@@ -4,6 +4,37 @@
   
   
   <entry>
+    <title>一道字符串题[POI2006] OKR-Periods of Words</title>
+    <link href="/2023/01/31/%E4%B8%80%E9%81%93%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%A2%98-POI2006-OKR-Periods-of-Words/"/>
+    <url>/2023/01/31/%E4%B8%80%E9%81%93%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%A2%98-POI2006-OKR-Periods-of-Words/</url>
+    
+    <content type="html"><![CDATA[<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><p>首先,我为什么要写这篇文章呢? 我之所以要写一篇这样的题解, 并不是我觉得这题有多么多么精妙以至于我很想将它的解法分享给大家. 只是因为搭建博客有一两天了, 想写一篇看看效果, 但是又不知道写些什么, 就拿了一道题目打算写篇题解看看.</p><h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p>A string is a finite sequence of lower-case (non-capital) letters of the English alphabet. Particularly, it may be an empty sequence, i.e. a sequence of 0 letters. By A&#x3D;BC we denotes that A is a string obtained by concatenation (joining by writing one immediately after another, i.e. without any space, etc.) of the strings B and C (in this order). A string P is a prefix of the string !, if there is a string B, that A&#x3D;PB. In other words, prefixes of A are the initial fragments of A. In addition, if P!&#x3D;A and P is not an empty string, we say, that P is a proper prefix of A.</p><p>A string Q is a period of Q, if Q is a proper prefix of A and A is a prefix (not necessarily a proper one) of the string QQ. For example, the strings abab and ababab are both periods of the string abababa. The maximum period of a string A is the longest of its periods or the empty string, if A doesn’t have any period. For example, the maximum period of ababab is abab. The maximum period of abc is the empty string.</p><p>Task Write a programme that:</p><p>reads from the standard input the string’s length and the string itself,calculates the sum of lengths of maximum periods of all its prefixes,writes the result to the standard output.</p><h2 id="题目翻译"><a href="#题目翻译" class="headerlink" title="题目翻译"></a>题目翻译</h2><p>对于一个仅含小写字母的字符串 $a$，$p$ 为 $a$ 的前缀且 $p$ $\neq$ $a$ 那么我们称 $p$ 为 $a$ 的 proper 前缀。</p><p>规定字符串 $Q$（可以是空串）表示 $a$ 的周期，当且仅当 $Q$ 是 $a$ 的 proper 前缀且 $a$是 $Q+Q$ 的前缀。</p><p>例如 <code>ab</code> 是 <code>abab</code> 的一个周期，因为 <code>ab</code> 是 <code>abab</code> 的 proper 前缀，且 <code>abab</code> 是 <code>ab+ab</code> 的前缀。</p><p>求给定字符串所有前缀的最大周期长度之和。</p><h2 id="输入描述"><a href="#输入描述" class="headerlink" title="输入描述"></a>输入描述</h2><p>In the first line of the standard input there is one integer $k$ (1≤$k$≤1 000 000) - the length of the string. In the following line a sequence of exactly $k$ lower-case letters of the English alphabet is written - the string.</p><h2 id="输出描述"><a href="#输出描述" class="headerlink" title="输出描述"></a>输出描述</h2><p>In the first and only line of the standard output your program should write an integer - the sum of lengths of maximum periods of all prefixes of the string given in the input.</p><h2 id="样例"><a href="#样例" class="headerlink" title="样例"></a>样例</h2><p><strong>输入 #1</strong></p><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs">8<br>babababa<br></code></pre></td></tr></table></figure><p><strong>输出 #1</strong></p><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs">24<br></code></pre></td></tr></table></figure><h2 id="题目分析"><a href="#题目分析" class="headerlink" title="题目分析"></a>题目分析</h2><p>首先我们看看从题目的描述中可以得到一些什么性质.</p><p>为了方便, <strong>proper前缀</strong> 我们下文就称为 <strong>真前缀</strong> ,这里的”真”就相当于”真子集”概念中的这个”真”.</p><p>根据题目描述, 如果S是T的一个周期, 那么S是T的真前缀, 且T是SS(这里是两个S进行了拼接)的前缀. 这意味着什么呢? 如果T的周期S存在的话, 那么T是由一个S和S的某个不为空的真前缀拼接而成.</p><p>假设S&#x3D;abc,  T&#x3D;abca (一个完整的S周期: abc 和1&#x2F;3周期: a), 那么S是T的前缀, 也就是说T至少包含了1个完整的S周期, 至多包含2个完整的S(因为如果T长度大于|SS|,它就不可能是SS的前缀).</p><p>对于这种具有周期性质的字符串T(虽然它并不是由刚好完整的若干个周期组成), 有一种时间复杂度O(n)的方法可以求得它的周期长度. 当然,如果T不具有周期性质, 我们也能用该方法分辨出来.</p><p>假设现在T&#x3D;abcdab , 我们可以很容易用肉眼看出它的周期是”abcd”, 但是我们怎么让程序看出来呢?</p><p>一种很简单的方法就是, 从$\lceil{\frac{n}{2}\rceil}$(该对括号意义是向上取整)开始一直到n-1(假设T长度为n)不断尝试周期的长度,  然后字符串就变成了两个部分: 前面被认为完整周期的部分和后面的剩余部分, 然后将剩余的部分拿来和周期进行一个前缀匹配, 如果匹配得上就说明当前尝试的周期是一个正确的周期. 然后我们不断尝试, 看看它最大的周期长度是多少即可. 但是显然这种方法效率不够高, 它的时间复杂度是O($n^2$)的.</p><p>如果T是由一个完整周期和部分周期构成,那么它一定有某个后缀和前缀是匹配得上的(从刚才的方法也能看出来), 比如T&#x3D;abcdab,  它的后缀”ab”就也在前缀出现, 因此可以把”ab”视作周期的部分(也可能是全部).如果T&#x3D;abcabcabca , 那么它的后缀”a”出现了,”abca”也出现了,”abcabca”也出现了. 那么你可以把这些后缀的前面部分看作是周期, 比如”a”前面是”abcabcabc”, “abca”前面是”abcabc”, “abcabca”前面是”abc”. 不过由于本题的限制, 因此”abc”不能作为一个有效周期, 因为T的长度最多是周期长度的两倍, 而”abcabcabca”是由3个”abc”和末尾的”a”构成的. 因此我们在考虑后缀时,它的长度不要超过$\lfloor{\frac{n}{2}} \rfloor$. 匹配成功的后缀越长, 对应的周期就越短. 而对于本题我们是希望周期尽可能长, 那么我们希望得到的就是最短相同前后缀.</p><p>如何求解一个字符串的最短相同前后缀呢? 这个通过哈希可以比较简单地处理一下, 但是我们需要解决的不止是这个问题. 我们需要求解的是题目给定的字符串S的所有前缀的最大周期长度之和. 对于所有的前缀, 我们都要求解它的最大周期.</p><p>KMP算法中一个重要的步骤就是高效计算一个字符串的所有前缀的最长相同前后缀, 不过这里是求最短相同前后缀, 因此还需要进行一些更改.</p><p>下次再写.</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>算法</category>
+      
+      <category>字符串</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>算法</tag>
+      
+      <tag>KMP</tag>
+      
+      <tag>字符串</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>Hello World</title>
     <link href="/2023/01/29/hello-world/"/>
     <url>/2023/01/29/hello-world/</url>
