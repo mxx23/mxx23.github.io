@@ -23,14 +23,16 @@
 <meta property="og:site_name" content="Moxiaoxiao&#39;s blog">
 <meta property="og:description" content="游戏简介 Screeps: World是一款多人竞争的即时策略游戏, 与常规游戏的不同之处在于, 你的策略是通过你的脚本代码来实施, 也就是你要写代码来控制你游戏中的各个单位进行各种操作. 而你要写的脚本是JavaScript脚本. 当然, 印象里依稀记得可以通过一些方式来用其他语言进行编写, 具体如何实现就不清楚了. 游戏的官方给出了详细的说明文档, 里面有游戏的基本机制, 以及游戏前期需要频繁">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="c:\Users\19246\AppData\Roaming\Typora\typora-user-images\image-20230203033836764.png">
 <meta property="article:published_time" content="2023-02-02T07:22:23.000Z">
-<meta property="article:modified_time" content="2023-02-02T14:19:31.259Z">
+<meta property="article:modified_time" content="2023-02-02T20:15:33.315Z">
 <meta property="article:author" content="Moxiaoxiao">
 <meta property="article:tag" content="游戏">
 <meta property="article:tag" content="Screeps: World">
 <meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="策略">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="c:\Users\19246\AppData\Roaming\Typora\typora-user-images\image-20230203033836764.png">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
@@ -225,7 +227,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          634 字
+          2.2k 字
         
       </span>
     
@@ -236,7 +238,7 @@
         
         
         
-          6 分钟
+          19 分钟
         
       </span>
     
@@ -287,7 +289,7 @@
               <p class="note note-info">
                 
                   
-                    本文最后更新于：2023年2月2日 晚上
+                    本文最后更新于：2023年2月3日 凌晨
                   
                 
               </p>
@@ -308,10 +310,52 @@
 <li>creep有小有大, 生产需要的energy的量也不同. 小和大的区别在于他们的属性槽的数量</li>
 <li>生产creep时要设定好它的属性槽要放哪些属性</li>
 <li>同样都是creep, 不同的属性组合可以形成不同的效果, 比如攻击的射程,攻击力,治疗能力, 移动速度等等</li>
-<li>Room里会有一些资源地, 可以让具有某种属性的creep去开采资源(energy)</li>
+<li>Room里会有一些资源地, 可以让具有某种属性的creep去开采资源(energy是一种资源)</li>
 <li>玩家可以消耗资源给自己的Room布置墙壁等设施</li>
 <li>建筑和creep当然是有血量的, 所以要想办法抵御别人的入侵. 当然,也可以去入侵别人.</li>
 <li>如果你在线, 你可以让你的Rooms启动安全模式, 别人就无法在你的领地产生伤害, 你也无法伤害别人. 如果离线, 那么安全模式会自动解除.</li>
+</ul>
+<h4 id="开始一次游戏"><a href="#开始一次游戏" class="headerlink" title="开始一次游戏"></a>开始一次游戏</h4><hr>
+<p>游戏最开始是有一个大本营, 也就是spawn. 初始时它具有300energy, 可以花200energy来生产第一个creep.</p>
+<p>creep需要具有至少一个WORK属性才能够采集能量资源(energy), 然后生产更多的creep, 当然spawn本身也会慢慢增加energy, 最初是300封顶. 而如果想要移动, 那么至少需要一个MOVE属性, 要搬运资源需要至少一个CARRY属性.</p>
+<p>所以我们如果希望能够开采资源并返回大本营, 就必须生成属性组合为[MOVE, CARRY, WORK]的creep. 我们可以根据分工来给不同的creep贴上不同的标签, 以便于我们用脚本检索数据时查看对应的分工. 那么这种开采资源的creep我们就称为”harvester”</p>
+<p>在脚本中, 我们可以针对不同分工的creep, 设计不同的行为逻辑.</p>
+<p>对于harvester, 我需要它做什么呢?(假设现在不会有人入侵我, 并且我只有一个room, 也只有一个大本营,取名为’spawn1’)</p>
+<h4 id="harvester的行为逻辑设计"><a href="#harvester的行为逻辑设计" class="headerlink" title="harvester的行为逻辑设计"></a>harvester的行为逻辑设计</h4><hr>
+<p>harvester要为我采集各种资源, 在[MOVE, CARRY, WORK]属性组合下, 它可以携带50点能量. 假设它现在一点能量都没有携带, 并且有资源可以挖掘, 那么就应该前往资源处挖掘资源. 若没有资源就回大本营待命. 至于有没有资源可以开采, 游戏提供了接口用于查询某个room的可开采资源列表.</p>
+<p>harvester可以直接通过moveTo(target)从而前往目的地, 然后进行开采工作.</p>
+<p>那么不难发现, 很多东西其实游戏已经帮我们设计好了, 比如寻路的逻辑, 尤其是当我们的creeps数量很多时, 如果需要玩家自己设计寻路逻辑不仅麻烦, 还很容易出bug, 因此游戏则已经实现了这些功能, 我们只需要调用接口即可.</p>
+<p>要注意的是, 资源地在最理想的i情况下就是周围一片空旷, 有8个位置与其相邻, 那么最多可以有8个harvester同时进行开采. 如果还有harvester, 则需在一旁等待, 如果有的开采完了要返回, 则等待者可以补上位置. 不过大多清空下地形只能允许3个左右的harvester同时进行开采, 如下图(黑色的是不可行动范围).</p>
+<p><img src="C:\Users\19246\AppData\Roaming\Typora\typora-user-images\image-20230203033836764.png" srcset="/img/loading.gif" lazyload alt="image-20230203033836764"></p>
+<p>所以为了避免很多开采人员挤在一起, 应该进行不同资源地的分配. 目前粗略设计为: 每5个开采人员开采一个地点. 资源地的位置也是不确定的, 如何选择资源地也是一个需要考虑的问题. 当目前的资源需要用于某建筑A时, 可以考虑让一批人员到距离A最近的资源地开采, 然后往返于A和资源地.</p>
+<p>不过似乎没有必要把这些用于建造其他建筑的人员和专门收集能量到大本营用来产生更多creeps的人员混在一起. 可以把它们的职能给区分开来.</p>
+<p>那么现在我们就先专心考虑开采资源送到大本营, 我需要做的就是: 获取harvester列表和资源地列表, 若有资源则分配任务. 然后设计harvester具体如何执行任务.</p>
+<p>游戏会循环执行你的代码, 每次执行时, 你都要决定你控制的各个单位应该做什么.</p>
+<p>那么有一种方式就是采用状态来表示当前的某个单位应该做什么, 比如如果它要开采某处的资源, 就要记录下对应的状态, 当它处于某个状态时, 引发了某个事件, 那么会从一个状态切换到另外一个状态. 不同状态下它的行为不同. 比如某个creep本来在开采资源, 忽然,它的容量满了或者资源被采光了, 那么它就应该返回大本营了, 它的状态就应该切换为”前往大本营”. 在该状态下我们应当引导其往大本营方向走.</p>
+<p>那么, 我们用一些简单的数字来为它的状态编号.</p>
+<ul>
+<li>0 : 待命状态, 此时往大本营走.<ul>
+<li>有资源地并且当前开采人员小于5则切换到状态1</li>
+</ul>
+</li>
+<li>1 : 赶往资源地(此时状态中还要存储一个资源地编号)<ul>
+<li>目标资源地消失则切换到状态0</li>
+<li>到达目标资源地则切换到状态2</li>
+</ul>
+</li>
+<li>2 : 开采资源<ul>
+<li>资源采尽, 切换到状态3</li>
+<li>容量已满, 切换到状态3</li>
+</ul>
+</li>
+<li>3 : 返回大本营<ul>
+<li>回到大本营, 切换到状态4</li>
+</ul>
+</li>
+<li>4 : 为大本营输送能量<ul>
+<li>输送完毕, 切换到状态0</li>
+</ul>
+</li>
 </ul>
 
                 
