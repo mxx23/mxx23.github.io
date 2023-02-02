@@ -23,16 +23,16 @@
 <meta property="og:site_name" content="Moxiaoxiao&#39;s blog">
 <meta property="og:description" content="游戏简介 Screeps: World是一款多人竞争的即时策略游戏, 与常规游戏的不同之处在于, 你的策略是通过你的脚本代码来实施, 也就是你要写代码来控制你游戏中的各个单位进行各种操作. 而你要写的脚本是JavaScript脚本. 当然, 印象里依稀记得可以通过一些方式来用其他语言进行编写, 具体如何实现就不清楚了. 游戏的官方给出了详细的说明文档, 里面有游戏的基本机制, 以及游戏前期需要频繁">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="c:\Users\19246\AppData\Roaming\Typora\typora-user-images\image-20230203033836764.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/mxx23/image-provider/main/Blog_img/image-20230203033836764.png">
 <meta property="article:published_time" content="2023-02-02T07:22:23.000Z">
-<meta property="article:modified_time" content="2023-02-02T20:15:33.315Z">
+<meta property="article:modified_time" content="2023-02-02T20:34:24.247Z">
 <meta property="article:author" content="Moxiaoxiao">
 <meta property="article:tag" content="游戏">
 <meta property="article:tag" content="Screeps: World">
 <meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="策略">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="c:\Users\19246\AppData\Roaming\Typora\typora-user-images\image-20230203033836764.png">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/mxx23/image-provider/main/Blog_img/image-20230203033836764.png">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
@@ -315,18 +315,18 @@
 <li>建筑和creep当然是有血量的, 所以要想办法抵御别人的入侵. 当然,也可以去入侵别人.</li>
 <li>如果你在线, 你可以让你的Rooms启动安全模式, 别人就无法在你的领地产生伤害, 你也无法伤害别人. 如果离线, 那么安全模式会自动解除.</li>
 </ul>
-<h4 id="开始一次游戏"><a href="#开始一次游戏" class="headerlink" title="开始一次游戏"></a>开始一次游戏</h4><hr>
+<h3 id="开始一次游戏"><a href="#开始一次游戏" class="headerlink" title="开始一次游戏"></a>开始一次游戏</h3><hr>
 <p>游戏最开始是有一个大本营, 也就是spawn. 初始时它具有300energy, 可以花200energy来生产第一个creep.</p>
 <p>creep需要具有至少一个WORK属性才能够采集能量资源(energy), 然后生产更多的creep, 当然spawn本身也会慢慢增加energy, 最初是300封顶. 而如果想要移动, 那么至少需要一个MOVE属性, 要搬运资源需要至少一个CARRY属性.</p>
 <p>所以我们如果希望能够开采资源并返回大本营, 就必须生成属性组合为[MOVE, CARRY, WORK]的creep. 我们可以根据分工来给不同的creep贴上不同的标签, 以便于我们用脚本检索数据时查看对应的分工. 那么这种开采资源的creep我们就称为”harvester”</p>
 <p>在脚本中, 我们可以针对不同分工的creep, 设计不同的行为逻辑.</p>
 <p>对于harvester, 我需要它做什么呢?(假设现在不会有人入侵我, 并且我只有一个room, 也只有一个大本营,取名为’spawn1’)</p>
-<h4 id="harvester的行为逻辑设计"><a href="#harvester的行为逻辑设计" class="headerlink" title="harvester的行为逻辑设计"></a>harvester的行为逻辑设计</h4><hr>
+<h3 id="harvester的行为逻辑设计"><a href="#harvester的行为逻辑设计" class="headerlink" title="harvester的行为逻辑设计"></a>harvester的行为逻辑设计</h3><hr>
 <p>harvester要为我采集各种资源, 在[MOVE, CARRY, WORK]属性组合下, 它可以携带50点能量. 假设它现在一点能量都没有携带, 并且有资源可以挖掘, 那么就应该前往资源处挖掘资源. 若没有资源就回大本营待命. 至于有没有资源可以开采, 游戏提供了接口用于查询某个room的可开采资源列表.</p>
 <p>harvester可以直接通过moveTo(target)从而前往目的地, 然后进行开采工作.</p>
 <p>那么不难发现, 很多东西其实游戏已经帮我们设计好了, 比如寻路的逻辑, 尤其是当我们的creeps数量很多时, 如果需要玩家自己设计寻路逻辑不仅麻烦, 还很容易出bug, 因此游戏则已经实现了这些功能, 我们只需要调用接口即可.</p>
 <p>要注意的是, 资源地在最理想的i情况下就是周围一片空旷, 有8个位置与其相邻, 那么最多可以有8个harvester同时进行开采. 如果还有harvester, 则需在一旁等待, 如果有的开采完了要返回, 则等待者可以补上位置. 不过大多清空下地形只能允许3个左右的harvester同时进行开采, 如下图(黑色的是不可行动范围).</p>
-<p><img src="C:\Users\19246\AppData\Roaming\Typora\typora-user-images\image-20230203033836764.png" srcset="/img/loading.gif" lazyload alt="image-20230203033836764"></p>
+<p><img src="https://raw.githubusercontent.com/mxx23/image-provider/main/Blog_img/image-20230203033836764.png" srcset="/img/loading.gif" lazyload alt="image-20230203033836764"></p>
 <p>所以为了避免很多开采人员挤在一起, 应该进行不同资源地的分配. 目前粗略设计为: 每5个开采人员开采一个地点. 资源地的位置也是不确定的, 如何选择资源地也是一个需要考虑的问题. 当目前的资源需要用于某建筑A时, 可以考虑让一批人员到距离A最近的资源地开采, 然后往返于A和资源地.</p>
 <p>不过似乎没有必要把这些用于建造其他建筑的人员和专门收集能量到大本营用来产生更多creeps的人员混在一起. 可以把它们的职能给区分开来.</p>
 <p>那么现在我们就先专心考虑开采资源送到大本营, 我需要做的就是: 获取harvester列表和资源地列表, 若有资源则分配任务. 然后设计harvester具体如何执行任务.</p>
