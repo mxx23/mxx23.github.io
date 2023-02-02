@@ -4,6 +4,27 @@
   
   
   <entry>
+    <title>尝试入门游戏Screeps: World</title>
+    <link href="/2023/02/02/%E6%B8%B8%E6%88%8FScreeps%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/"/>
+    <url>/2023/02/02/%E6%B8%B8%E6%88%8FScreeps%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/</url>
+    
+    <content type="html"><![CDATA[<h3 id="游戏简介"><a href="#游戏简介" class="headerlink" title="游戏简介"></a>游戏简介</h3><hr><p>Screeps: World是一款多人竞争的即时策略游戏, 与常规游戏的不同之处在于, 你的策略是通过你的脚本代码来实施, 也就是你要写代码来控制你游戏中的各个单位进行各种操作. 而你要写的脚本是JavaScript脚本. 当然, 印象里依稀记得可以通过一些方式来用其他语言进行编写, 具体如何实现就不清楚了.</p><p>游戏的官方给出了详细的说明文档, 里面有游戏的基本机制, 以及游戏前期需要频繁查阅的接口信息等等:</p><p><a href="https://docs.screeps.com/">Overview | Screeps Documentation</a></p><p><a href="https://screeps-cn.github.io/">总览 | Screeps 中文文档 (screeps-cn.github.io)</a></p><h3 id="游戏有哪些东西"><a href="#游戏有哪些东西" class="headerlink" title="游戏有哪些东西"></a>游戏有哪些东西</h3><hr><p>当我最后一次修改这篇博客时, 我对该游戏的了解如下:</p><ul><li>玩家有自己的Rooms, 每个Room有一个大本营</li><li>大本营可以生产creep, 同时要消耗掉一些energy</li><li>creep有小有大, 生产需要的energy的量也不同. 小和大的区别在于他们的属性槽的数量</li><li>生产creep时要设定好它的属性槽要放哪些属性</li><li>同样都是creep, 不同的属性组合可以形成不同的效果, 比如攻击的射程,攻击力,治疗能力, 移动速度等等</li><li>Room里会有一些资源地, 可以让具有某种属性的creep去开采资源(energy)</li><li>玩家可以消耗资源给自己的Room布置墙壁等设施</li><li>建筑和creep当然是有血量的, 所以要想办法抵御别人的入侵. 当然,也可以去入侵别人.</li><li>如果你在线, 你可以让你的Rooms启动安全模式, 别人就无法在你的领地产生伤害, 你也无法伤害别人. 如果离线, 那么安全模式会自动解除.</li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>游戏</category>
+      
+      <category>Screeps: World</category>
+      
+    </categories>
+    
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>一道字符串题[POI2006] OKR-Periods of Words</title>
     <link href="/2023/01/31/%E4%B8%80%E9%81%93%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%A2%98-POI2006-OKR-Periods-of-Words/"/>
     <url>/2023/01/31/%E4%B8%80%E9%81%93%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%A2%98-POI2006-OKR-Periods-of-Words/</url>
