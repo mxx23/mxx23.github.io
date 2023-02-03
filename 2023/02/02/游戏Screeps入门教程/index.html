@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://raw.githubusercontent.com/mxx23/image-provider/main/Blog_img/image-20230203033836764.png">
 <meta property="article:published_time" content="2023-02-02T07:22:23.000Z">
-<meta property="article:modified_time" content="2023-02-02T20:40:52.788Z">
+<meta property="article:modified_time" content="2023-02-03T09:36:10.178Z">
 <meta property="article:author" content="Moxiaoxiao">
 <meta property="article:tag" content="游戏">
 <meta property="article:tag" content="Screeps: World">
@@ -227,7 +227,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.2k 字
+          2.8k 字
         
       </span>
     
@@ -238,7 +238,7 @@
         
         
         
-          19 分钟
+          23 分钟
         
       </span>
     
@@ -289,7 +289,7 @@
               <p class="note note-info">
                 
                   
-                    本文最后更新于：2023年2月3日 凌晨
+                    本文最后更新于：2023年2月3日 下午
                   
                 
               </p>
@@ -331,7 +331,7 @@
 <p>那么, 我们用一些简单的数字来为它的状态编号.</p>
 <ul>
 <li>0 : 待命状态, 此时往大本营走.<ul>
-<li>有资源地并且当前开采人员小于5则切换到状态1</li>
+<li>有资源地并且当前开采人员小于4则锁定目标并切换到状态1</li>
 </ul>
 </li>
 <li>1 : 赶往资源地(此时状态中还要存储一个资源地编号)<ul>
@@ -353,6 +353,19 @@
 </ul>
 </li>
 </ul>
+<h2 id="spawn的行为逻辑"><a href="#spawn的行为逻辑" class="headerlink" title="spawn的行为逻辑"></a>spawn的行为逻辑</h2><p>Spawn就是我们的大本营, 目前起步阶段是只有一个大本营. 它需要做的就是生产creep.</p>
+<p>目前就只让它生产10个harvester就好了, 毕竟资源地也没这么多.</p>
+<p>也就是判断当前harvester的个数, 如果没有达到10个, 就尝试生产, 就不判断能量够不够了.</p>
+<h2 id="代码分支"><a href="#代码分支" class="headerlink" title="代码分支"></a>代码分支</h2><p>由于游戏提供的内存资源和算力十分有限, 因此在存储数据时需要精打细算, 设计的脚本不宜有太高的时空复杂度.</p>
+<p>个人认为, 为了提高性能, 应该将和平状态下的各种行为模型与防御状态下的各种行为模型的代码放到不同的分支. 根据需要, 让游戏执行你的某一个分支. 而不是将它们糅合在一起, 这样你所需要存储的数据量就会增加.</p>
+<p>比如和平状态下我不需要考虑敌人的各种因素, 我只需要存储那些资源信息, 建筑信息等等. 然后在防御状态下, 会停止一些不必要的任务, 而更多地关注敌方信息.</p>
+<h2 id="运行效果"><a href="#运行效果" class="headerlink" title="运行效果"></a>运行效果</h2><p>harvester看上去正常执行了</p>
+<video id="video" controls preload="auto" width="480" height="270" poster="">
+      <source id="mp4" src="/video/1.mp4" type="video/mp4">
+</video>
+
+<p>但是实际上还有一些问题, 虽然我设置了至多4个人挖掘同一个资源地, 但是视频里的资源地最多只允许3个人挖掘. 最后的那一个人在寻路的时候就会因为前方的三个位置都被占用了而试图绕后, 而后面是墙壁过去了也没用, 所以他会走一段无用功, 等到有人离开了位置它才会前往真正能采集资源的地方.</p>
+<p>此外就是目前的行为太单调了.</p>
 
                 
               </div>
