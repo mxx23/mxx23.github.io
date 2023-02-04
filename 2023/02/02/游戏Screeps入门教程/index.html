@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://raw.githubusercontent.com/mxx23/image-provider/main/Blog_img/image-20230203033836764.png">
 <meta property="article:published_time" content="2023-02-02T07:22:23.000Z">
-<meta property="article:modified_time" content="2023-02-03T09:36:10.178Z">
+<meta property="article:modified_time" content="2023-02-04T13:04:32.573Z">
 <meta property="article:author" content="Moxiaoxiao">
 <meta property="article:tag" content="游戏">
 <meta property="article:tag" content="Screeps: World">
@@ -289,7 +289,7 @@
               <p class="note note-info">
                 
                   
-                    本文最后更新于：2023年2月3日 下午
+                    本文最后更新于：2023年2月4日 晚上
                   
                 
               </p>
@@ -489,6 +489,28 @@
   
     <article id="comments" lazyload>
       
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"gaEdxvtb5Mw7uHbmcNrq8bcR-gzGzoHsz","appKey":"6CeBpFoTHGfW3uDNGBAzzuRK","path":"window.location.pathname","placeholder":"评论一下吧~","avatar":"mp","meta":["nick","mail"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
 
     </article>
   
