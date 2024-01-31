@@ -1,0 +1,817 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="mxx">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="题目链接Codeforces Round 905 (Div.2)  Problem A: Chemistry 时间限制: 2秒 内存限制: 256MB  题目描述　　给定一个长度为$n$的仅由小写字母组成的字符串$S$，你需要删除$k$个字符，但是删除哪些字符由你决定，删除完$k$个字符之后剩余的字符你可以随意排列，请问你是否有机会得到一个回文串，即：存在一种删除方案和一种排列方案使得最终的字符串">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Codeforces Round 905 (Div.2)">
+<meta property="og:url" content="https://mxx23.github.io/2023/10/26/Codeforces-Round-905-Div-2/index.html">
+<meta property="og:site_name" content="mxx的随笔">
+<meta property="og:description" content="题目链接Codeforces Round 905 (Div.2)  Problem A: Chemistry 时间限制: 2秒 内存限制: 256MB  题目描述　　给定一个长度为$n$的仅由小写字母组成的字符串$S$，你需要删除$k$个字符，但是删除哪些字符由你决定，删除完$k$个字符之后剩余的字符你可以随意排列，请问你是否有机会得到一个回文串，即：存在一种删除方案和一种排列方案使得最终的字符串">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-10-26T08:11:27.000Z">
+<meta property="article:modified_time" content="2024-01-31T09:44:41.019Z">
+<meta property="article:author" content="mxx">
+<meta property="article:tag" content="编程">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Codeforces Round 905 (Div.2) - mxx的随笔</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"mxx23.github.io","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>mxx的随笔</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="https://github.com/mxx23" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Codeforces Round 905 (Div.2)"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-10-26 16:11" pubdate>
+          2023年10月26日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          17 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Codeforces Round 905 (Div.2)</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="题目链接"><a href="#题目链接" class="headerlink" title="题目链接"></a>题目链接</h2><p><a target="_blank" rel="noopener" href="https://codeforces.com/contest/1888">Codeforces Round 905 (Div.2)</a></p>
+<hr>
+<h2 id="Problem-A-Chemistry"><a href="#Problem-A-Chemistry" class="headerlink" title="Problem A: Chemistry"></a>Problem A: Chemistry</h2><ul>
+<li>时间限制: 2秒</li>
+<li>内存限制: 256MB</li>
+</ul>
+<h3 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h3><p>　　给定一个长度为$n$的仅由小写字母组成的字符串$S$，你需要删除$k$个字符，但是删除哪些字符由你决定，删除完$k$个字符之后剩余的字符你可以随意排列，请问你是否有机会得到一个回文串，即：存在一种删除方案和一种排列方案使得最终的字符串$T’&#x3D;t_{1}t_{2}…t_{n-k}$满足：$t_1&#x3D;t_{n-k}$ , $t_2&#x3D;t_{n-k-1}$，…</p>
+<ul>
+<li><p>输入描述<br>　　第一行，一个正整数$t(1 \le t \le 10^{4} )$，表示接下来有$t$组数据。<br>　　接下来每组数据的第一行，正整数$n$和$k$ $(0\le k &lt; n \le 10^5)$，分别表示字符串的长度$n$和要删除的字符个数$k$。<br>　　第二行，一个长度为$n$的字符串。<br>　　输入数据满足：$t$组数据的所有$n$的值总和不超过$2*10^5$。</p>
+</li>
+<li><p>输出描述<br>　　对于每一组数据，如果存在相应方案，则输出一行“YES”，否则输出一行“NO”。</p>
+</li>
+</ul>
+<h3 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h3><p>　　回文串的长度如果是偶数，那么任意字符都出现偶数次，如果是奇数，那么会恰好有一个字符出现奇数次。题目给出了n和k，那么最终串的长度的奇偶是可以确定的。<br>　　如果是偶数，那么我删除掉$k$个字符之后剩下字符的种类出现的次数应该都是偶数才能排成回文串。如果在我删掉之前，出现次数是奇数的字符种数的奇偶性和k的奇偶性一致,并且这个种数不大于k，那么就可以让最终剩下的都出现偶数次，反之则必然出现奇数次的，所以这种情况下希望它们一致。<br>　　如果是奇数，则希望它们不一致。当然，同样需要种数不大于k+1（这里+1是因为可以保留1个奇数次，就不需要动它了）。根据以上思路，想要解决这题就很简单了。</p>
+<h3 id="解题代码-C"><a href="#解题代码-C" class="headerlink" title="解题代码(C++)"></a>解题代码(C++)</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string&gt;</span></span><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-type">int</span> t;<br>    cin &gt;&gt; t;<br>    <span class="hljs-keyword">while</span> (t--)<br>    &#123;<br>        <span class="hljs-comment">/* 此处处理一组独立数据 */</span><br>        <span class="hljs-type">int</span> n, k;<br>        <span class="hljs-type">int</span> count[<span class="hljs-number">128</span>] = &#123;<span class="hljs-number">0</span>&#125;;<br>        cin &gt;&gt; n &gt;&gt; k;<br>        string s;<br>        cin &gt;&gt; s;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> &amp;c : s)<br>        &#123;<br>            count[c]++;<br>        &#125;<br>        <span class="hljs-type">int</span> oddCount = <span class="hljs-number">0</span>; <span class="hljs-comment">// 出现奇数次的种数</span><br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">char</span> c = <span class="hljs-string">&#x27;a&#x27;</span>; c &lt;= <span class="hljs-string">&#x27;z&#x27;</span>; ++c)<br>        &#123;<br>            <span class="hljs-keyword">if</span> (count[c] % <span class="hljs-number">2</span>)<br>            &#123;<br>                oddCount++;<br>            &#125;<br>        &#125;<br>        <span class="hljs-type">bool</span> ans = <span class="hljs-literal">false</span>;<br>        <span class="hljs-comment">/* 可以构造的条件1：最终长度偶数，oddCount和k奇偶一致 */</span><br>        <span class="hljs-keyword">if</span> ((n - k) % <span class="hljs-number">2</span> == <span class="hljs-number">0</span> &amp;&amp; (oddCount % <span class="hljs-number">2</span>) == (k % <span class="hljs-number">2</span>) &amp;&amp; oddCount &lt;= k)<br>        &#123;<br>            ans = <span class="hljs-literal">true</span>;<br>        &#125;<br>        <span class="hljs-comment">/* 可以构造的条件2：最终长度奇数，oddCount和k奇偶不一致 */</span><br>        <span class="hljs-keyword">if</span> ((n - k) % <span class="hljs-number">2</span> &amp;&amp; (oddCount % <span class="hljs-number">2</span>) != (k % <span class="hljs-number">2</span>) &amp;&amp; oddCount &lt;= k + <span class="hljs-number">1</span>)<br>        &#123;<br>            ans = <span class="hljs-literal">true</span>;<br>        &#125;<br>        <span class="hljs-keyword">if</span> (ans)<br>        &#123;<br>            cout &lt;&lt; <span class="hljs-string">&quot;YES\n&quot;</span>;<br>        &#125;<br>        <span class="hljs-keyword">else</span><br>        &#123;<br>            cout &lt;&lt; <span class="hljs-string">&quot;NO\n&quot;</span>;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="Problem-B-Raspberries"><a href="#Problem-B-Raspberries" class="headerlink" title="Problem B: Raspberries"></a>Problem B: Raspberries</h2><ul>
+<li>时间限制：2秒</li>
+<li>内存限制：256 MB</li>
+</ul>
+<h3 id="题目描述-1"><a href="#题目描述-1" class="headerlink" title="题目描述"></a>题目描述</h3><p>　　给定一个长度为$n$的数组$A &#x3D; a_1,a_2,…,a_n$和一个正整数$k(2 \le k \le 5)$，你可以对数组执行以下操作若干次：<br>　　选取一个下标$i(1\le i \le n)$，令$a_i &#x3D; a_i + 1$。<br>　　问：至少需要执行多少次操作才能使得数组所有元素的乘积能够被$k$整除？</p>
+<ul>
+<li><p>输入描述<br>　　第一行，一个正整数$t(1 \le t \le 10^4)$，表示接下来有$t$组数据。<br>　　每组数据第一行，正整数$n,k(2 \le n \le 10^5, 2\le k \le 5)$，分别表示数组$A$的长度和除数$k$。<br>　　第二行，$n$个整数，分别表示$a_1,a_2,…,a_n( 1 \le a_i \le 10)$。<br>　　输入数据满足：$t$组数据的所有$n$的值总和不超过$2*10^5$。</p>
+</li>
+<li><p>输出描述<br>　　对于每组数据，输出一个整数，表示你认为所需要的最少操作次数。</p>
+</li>
+</ul>
+<h3 id="解题思路-1"><a href="#解题思路-1" class="headerlink" title="解题思路"></a>解题思路</h3><p>　　$k$的范围很小，感觉可能是分类讨论，$k&#x3D;2$时很好判断，就看数列里有没有偶数就可以了，有就0次，没有就1次。$k&#x3D;3$时也很好判断，就是判断数列中哪个数离它下一个3的倍数最近，这个最近的距离就是答案。$k&#x3D;5$时也很简单，同样是看离下一个5的倍数最近的那个距离，事实上，只要是质数，就可以按这样的方法处理。$k&#x3D;4$呢？如果数列里已经有4的倍数了那就0次，除此之外，如果有1个2的倍数，那就需要再构建出一个2的倍数，只需要1次。如果有两个2的倍数，那么也是0，如果一个都没有，一种方案是构建4的倍数，一种方案是构建两个2的倍数，两种都计算一下次数取最小值就行。好像就这几种情况，分类讨论就可以了，然后把可以合并的情况给合并一下，减少无用代码。</p>
+<h3 id="解题代码-C-1"><a href="#解题代码-C-1" class="headerlink" title="解题代码(C++)"></a>解题代码(C++)</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> min(a, b) ((a) &lt; (b) ? (a) : (b))</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> max(a, b) ((a) &gt; (b) ? (a) : (b))</span><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><span class="hljs-type">int</span> arr[<span class="hljs-number">100005</span>];<br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">solve</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-type">int</span> n, k;<br>    cin &gt;&gt; n &gt;&gt; k;<br>    <span class="hljs-type">int</span> ans = <span class="hljs-number">1000000</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= n; ++i)<br>    &#123;<br>        cin &gt;&gt; arr[i];<br>        ans = <span class="hljs-built_in">min</span>(ans, (k - (arr[i] % k)) % k);<br>    &#125;<br>    <span class="hljs-keyword">if</span> (k == <span class="hljs-number">4</span>)<br>    &#123;<br>        <span class="hljs-type">int</span> count = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= n; ++i)<br>        &#123;<br>            <span class="hljs-keyword">if</span> (arr[i] % <span class="hljs-number">2</span> == <span class="hljs-number">0</span>)<br>            &#123;<br>                count++;<br>            &#125;<br>        &#125;<br>        ans = <span class="hljs-built_in">min</span>(ans, <span class="hljs-number">2</span> - <span class="hljs-built_in">min</span>(<span class="hljs-number">2</span>, count));<br>    &#125;<br>    cout &lt;&lt; ans &lt;&lt; <span class="hljs-string">&quot;\n&quot;</span>;<br>&#125;<br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-type">int</span> t;<br>    cin &gt;&gt; t;<br>    <span class="hljs-keyword">while</span> (t--)<br>    &#123;<br>        <span class="hljs-built_in">solve</span>();<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="Problem-C-You-Are-So-Beautiful"><a href="#Problem-C-You-Are-So-Beautiful" class="headerlink" title="Problem C: You Are So Beautiful"></a>Problem C: You Are So Beautiful</h2><ul>
+<li>时间限制：1秒</li>
+<li>内存限制：256 MB</li>
+</ul>
+<hr>
+<h3 id="题目描述-2"><a href="#题目描述-2" class="headerlink" title="题目描述"></a>题目描述</h3><p>　　给定一个长度为$n$的数组$A&#x3D;a_1,a_2,…,a_n$，问该数组有多少个非空子数组是唯一存在而且在原数组位置上连续的？例如数组$[1,1,3,5,7]$，可以选中其中的第$1,3,5$个元素构成子数组$[1,3,7]$，但是它不是唯一存在的，因为我选取第$2,3,5$个元素也能构成一样的结果。而子数组$[3,5,7]$就是唯一存在且连续的，而若选取第$2,3,4$个元素得到$[1,3,5]$虽然连续，但是不唯一存在。</p>
+<ul>
+<li><p>输入描述<br>　　第一行，一个正整数$t(1\le t \le 10^4)$，表示接下来有$t$组测试数据。<br>　　对于每组数据的第一行，一个正整数$n(1\le n \le 10^5)$，表示数组的长度。<br>　　第二行，$n$个正整数，表示$a_1,a_2,…,a_n(1\le a_i \le 10^9)$。<br>　　输入数据满足：$t$组数据的所有$n$的值总和不超过$2*10^5$。</p>
+</li>
+<li><p>输出描述<br>　　对于每组数据，输出一个整数，表示你认为的符合条件的子数组的数量。</p>
+</li>
+</ul>
+<h3 id="解题思路-2"><a href="#解题思路-2" class="headerlink" title="解题思路"></a>解题思路</h3><p>　　假设一个连续的子数组$[a_i,a_{i+1},…,a_j]$是符合条件的，那么$a_i$的左边一定不会再有$a_i$出现了，同样的，$a_j$右边也不会再有$a_j$出现。我可以先统计一下每个元素出现的最左边的位置和最右边的位置，每个最左的位置和每个最右的位置相组合得到的区间$[L,R]$对应的连续子数组一定是唯一的！并且不会落下任何合法的子数组。<br>　　因此，我们可以借助C++的map来维护元素的最左位置和最右位置。再把它们汇总成两个数组，不需要知道这个位置上是哪个元素，只需要知道这个位置本身就行。然后将$L,R$两个数组按大小排个序，然后枚举一方，再通过二分法计算另一方的能够组成合法区间的分界位置（选取$L$中的元素作为左边界，$R$中的作为右边界，而左边界总不能在右边界的右边），从而计数。这样最终时间复杂度是$O(n*\log_2{n})$的，可以通过本题。</p>
+<h3 id="解题代码-C-2"><a href="#解题代码-C-2" class="headerlink" title="解题代码(C++)"></a>解题代码(C++)</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;algorithm&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;vector&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;map&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> min(a, b) ((a) &lt; (b) ? (a) : (b))</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> max(a, b) ((a) &gt; (b) ? (a) : (b))</span><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><span class="hljs-type">int</span> arr[<span class="hljs-number">200005</span>];<br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">solve</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-type">int</span> n;<br>    cin &gt;&gt; n;<br>    map&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt; minIndex, maxIndex;<br>    vector&lt;<span class="hljs-type">int</span>&gt; L, R;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= n; ++i)<br>    &#123;<br>        cin &gt;&gt; arr[i];<br>        maxIndex[arr[i]] = i;<br>    &#125;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = n; i &gt;= <span class="hljs-number">1</span>; --i)<br>    &#123;<br>        minIndex[arr[i]] = i;<br>    &#125;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> &amp;[u, v] : minIndex)<br>    &#123;<br>        L.<span class="hljs-built_in">push_back</span>(v);<br>    &#125;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> &amp;[u, v] : maxIndex)<br>    &#123;<br>        R.<span class="hljs-built_in">push_back</span>(v);<br>    &#125;<br>    <span class="hljs-built_in">sort</span>(L.<span class="hljs-built_in">begin</span>(), L.<span class="hljs-built_in">end</span>());<br>    <span class="hljs-built_in">sort</span>(R.<span class="hljs-built_in">begin</span>(), R.<span class="hljs-built_in">end</span>());<br>    <span class="hljs-type">long</span> <span class="hljs-type">long</span> ans = <span class="hljs-number">0</span>; <span class="hljs-comment">//不开long long见祖宗</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> l : L)<br>    &#123;<br>        <span class="hljs-keyword">auto</span> iter = <span class="hljs-built_in">lower_bound</span>(R.<span class="hljs-built_in">begin</span>(), R.<span class="hljs-built_in">end</span>(), l);<br>        ans += R.<span class="hljs-built_in">end</span>() - iter;<br>    &#125;<br>    cout &lt;&lt; ans &lt;&lt; <span class="hljs-string">&quot;\n&quot;</span>;<br>&#125;<br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-type">int</span> t;<br>    cin &gt;&gt; t;<br>    <span class="hljs-keyword">while</span> (t--)<br>    &#123;<br>        <span class="hljs-built_in">solve</span>();<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="Problem-D1-Dances-Easy-version"><a href="#Problem-D1-Dances-Easy-version" class="headerlink" title="Problem D1: Dances (Easy version)"></a>Problem D1: Dances (Easy version)</h2><ul>
+<li>时间限制：3秒</li>
+<li>内存限制：256 MB</li>
+</ul>
+<h3 id="题目描述-3"><a href="#题目描述-3" class="headerlink" title="题目描述"></a>题目描述</h3><p>　　给定两个长度为$n$的数组$A,B$，现在有这样一个问题：你可以先各自将两个数组任意排列，然后在数列非空的前提下，你可以从$A,B$中各自删去一个任意位置上的数从$A$中删除的元素所在位置和$B$删除的位置不需要相同，然后剩下的元素会形成新的数组，这样的操作你可以执行任意次。最少需要执行多少次才能使得最终的数组满足：如果还存在$k$个元素，那么对于所有的$i \in [1,k] \cap \mathbb{Z}$，有：$a_i &lt; b_i$，其中$\mathbb{Z}$代表整数域。<br>　　上述问题并不是你需要解决的最终问题，你需要解决的最终问题是：在给定上述的两个长度为$n$的数组的情况下，再给定一个正整数$m$。问，在数组$A$的首位元素$a_1$分别变为$1,2,…,m$的$m$种情况下，它们对应的上述问题的答案的总和是多少？<br>　　本题为简单版本，$m$的值恒定为$1$。在困难版本中，$m$的取值范围是$1\le m \le 10^9$。</p>
+<ul>
+<li><p>输入描述<br>　　第一行，一个正整数$t$，表示接下来有$t$组测试数据。<br>　　每组测试数据的第一行，正整数$n,m(2 \le n \le 10^5, m &#x3D; 1)$，分别表示两个数组的长度以及要处理的子问题个数。<br>　　第二行，$n-1$个整数，代表$a_2,a_3,…a_n(1 \le a_i \le 10^9)$，由于$a_1$的取值由$m$决定，因此此处不进行无意义的数据输入。<br>　　第三行，$n$个整数，代表$b_1,b_2,…,b_n(1 \le b_i \le 10^9)$。<br>　　输入数据满足：$t$组数据的所有$n$的值总和不超过$10^5$。</p>
+</li>
+<li><p>输出描述<br>　　对于每组测试数据，输出一个整数，表示该组数据的$m$个子问题答案的总和。</p>
+</li>
+</ul>
+<h3 id="解题思路-3"><a href="#解题思路-3" class="headerlink" title="解题思路"></a>解题思路</h3><p>　　没想出来（MD没注意到可以任意排序，想半天没想出来跟这个脱不了干系！），我去看了官方的题解。首先采用二分答案法，假定两数组各删去$k$个元素，判断在两数组都剩下$n-k$个元素的情况下是否可能存在合法的数组$A,B$满足题意。判断方式很简单，方法如下：将数组$A,B$升序排序，从$A$中删掉$k$个最大元素，从$B$中删掉$k$个最小元素，然后将最后剩下的元素配对比较一下看是否符合条件。<br>　　在困难版本下，$m$的取值范围是$1\le m \le 10^9$，由于改变的只会是$a_1$元素的值，它值的变化至多只会给问题的答案造成1的影响。比如，在$a_1$取值很小时，或许可以保留它的存在，而当它增大到越过某个临界点的时候，就需要将它删去，于是答案增加了1。可以通过二分法来找到这个临界点，从而得到两个范围$[1,k],[k+1,m]$，并计算一下其中一个范围时答案对应的值，比如$[1,k]$范围内需要删$x$次，那么$[k+1,m]$范围内就需要删除$x+1$次，于是最终答案就是$k*x + (m - k) * (x + 1)$。</p>
+<h3 id="解题代码-简单版本-C"><a href="#解题代码-简单版本-C" class="headerlink" title="解题代码(简单版本, C++)"></a>解题代码(简单版本, C++)</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;algorithm&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;vector&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;queue&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;map&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> min(a, b) ((a) &lt; (b) ? (a) : (b))</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> max(a, b) ((a) &gt; (b) ? (a) : (b))</span><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><span class="hljs-type">int</span> a[<span class="hljs-number">200005</span>];<br><span class="hljs-type">int</span> b[<span class="hljs-number">200005</span>];<br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">solve</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-type">int</span> n, m;<br>    cin &gt;&gt; n &gt;&gt; m;<br>    a[<span class="hljs-number">1</span>] = <span class="hljs-number">1</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">2</span>; i &lt;= n; ++i)<br>    &#123;<br>        cin &gt;&gt; a[i];<br>    &#125;<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= n; ++i)<br>    &#123;<br>        cin &gt;&gt; b[i];<br>    &#125;<br>    <span class="hljs-built_in">sort</span>(a + <span class="hljs-number">1</span>, a + n + <span class="hljs-number">1</span>);<br>    <span class="hljs-built_in">sort</span>(b + <span class="hljs-number">1</span>, b + n + <span class="hljs-number">1</span>);<br>    <span class="hljs-comment">// 二分答案 求需要删除的最少次数</span><br>    <span class="hljs-type">int</span> l = <span class="hljs-number">0</span>, r = n;<br>    <span class="hljs-comment">// 假定删除k次时的校验函数</span><br>    <span class="hljs-keyword">auto</span> check = [&amp;](<span class="hljs-type">int</span> k)<br>    &#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= n - k; ++i)<br>        &#123;<br>            <span class="hljs-keyword">if</span> (a[i] &gt;= b[k + i])<br>            &#123;<br>                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>    &#125;;<br>    <span class="hljs-keyword">while</span> (l &lt; r)<br>    &#123;<br>        <span class="hljs-type">int</span> mid = (l + r) &gt;&gt; <span class="hljs-number">1</span>;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">check</span>(mid))<br>        &#123;<br>            r = mid;<br>        &#125;<br>        <span class="hljs-keyword">else</span><br>        &#123;<br>            l = mid + <span class="hljs-number">1</span>;<br>        &#125;<br>    &#125;<br>    cout &lt;&lt; l &lt;&lt; <span class="hljs-string">&quot;\n&quot;</span>;<br>&#125;<br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-type">int</span> t;<br>    cin &gt;&gt; t;<br>    <span class="hljs-keyword">while</span> (t--)<br>    &#123;<br>        <span class="hljs-built_in">solve</span>();<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="解题代码-困难版本-C"><a href="#解题代码-困难版本-C" class="headerlink" title="解题代码(困难版本, C++)"></a>解题代码(困难版本, C++)</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;algorithm&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;memory.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;vector&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;queue&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;map&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> min(a, b) ((a) &lt; (b) ? (a) : (b))</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> max(a, b) ((a) &gt; (b) ? (a) : (b))</span><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><span class="hljs-type">int</span> src_a[<span class="hljs-number">200005</span>];<br><span class="hljs-type">int</span> src_b[<span class="hljs-number">200005</span>];<br><span class="hljs-type">int</span> a[<span class="hljs-number">200005</span>];<br><span class="hljs-type">int</span> b[<span class="hljs-number">200005</span>];<br><span class="hljs-type">int</span> n;<br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">solve</span><span class="hljs-params">(<span class="hljs-type">int</span> first)</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-built_in">memcpy</span>(a, src_a, <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">int</span>) * (n + <span class="hljs-number">1</span>));<br>    <span class="hljs-built_in">memcpy</span>(b, src_b, <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">int</span>) * (n + <span class="hljs-number">1</span>));<br>    a[<span class="hljs-number">1</span>] = first;<br>    <span class="hljs-built_in">sort</span>(a + <span class="hljs-number">1</span>, a + n + <span class="hljs-number">1</span>);<br>    <span class="hljs-built_in">sort</span>(b + <span class="hljs-number">1</span>, b + n + <span class="hljs-number">1</span>);<br>    <span class="hljs-comment">// 二分答案 求需要删除的最少次数</span><br>    <span class="hljs-type">int</span> l = <span class="hljs-number">0</span>, r = n;<br>    <span class="hljs-comment">// 假定删除k次时的校验函数</span><br>    <span class="hljs-keyword">auto</span> check = [&amp;](<span class="hljs-type">int</span> k)<br>    &#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= n - k; ++i)<br>        &#123;<br>            <span class="hljs-keyword">if</span> (a[i] &gt;= b[k + i])<br>            &#123;<br>                <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>    &#125;;<br>    <span class="hljs-keyword">while</span> (l &lt; r)<br>    &#123;<br>        <span class="hljs-type">int</span> mid = (l + r) &gt;&gt; <span class="hljs-number">1</span>;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">check</span>(mid))<br>        &#123;<br>            r = mid;<br>        &#125;<br>        <span class="hljs-keyword">else</span><br>        &#123;<br>            l = mid + <span class="hljs-number">1</span>;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> l;<br>&#125;<br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-type">int</span> t;<br>    cin &gt;&gt; t;<br>    <span class="hljs-keyword">while</span> (t--)<br>    &#123;<br>        <span class="hljs-type">int</span> m;<br>        cin &gt;&gt; n &gt;&gt; m;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">2</span>; i &lt;= n; ++i)<br>        &#123;<br>            cin &gt;&gt; src_a[i];<br>        &#125;<br><br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= n; ++i)<br>        &#123;<br>            cin &gt;&gt; src_b[i];<br>        &#125;<br>        <span class="hljs-type">int</span> ans_min = <span class="hljs-built_in">solve</span>(<span class="hljs-number">1</span>);<br>        <span class="hljs-type">int</span> ans_max = <span class="hljs-built_in">solve</span>(m);<br>        <span class="hljs-keyword">if</span> (ans_min == ans_max)<br>        &#123;<br>            cout &lt;&lt; (<span class="hljs-type">long</span> <span class="hljs-type">long</span>)ans_min * m &lt;&lt; <span class="hljs-string">&quot;\n&quot;</span>;<br>            <span class="hljs-keyword">continue</span>;<br>        &#125;<br>        <span class="hljs-comment">/* 最终的l和r都会等于能让答案+1的首元素取值的最小值 */</span><br>        <span class="hljs-type">int</span> l = <span class="hljs-number">1</span>, r = m;<br>        <span class="hljs-keyword">while</span> (l &lt; r)<br>        &#123;<br>            <span class="hljs-type">int</span> mid = (l + r) &gt;&gt; <span class="hljs-number">1</span>;<br>            <span class="hljs-keyword">if</span> (<span class="hljs-built_in">solve</span>(mid) &gt; ans_min)<br>            &#123;<br>                r = mid;<br>            &#125;<br>            <span class="hljs-keyword">else</span><br>            &#123;<br>                l = mid + <span class="hljs-number">1</span>;<br>            &#125;<br>        &#125;<br>        cout &lt;&lt; (<span class="hljs-type">long</span> <span class="hljs-type">long</span>)ans_min * (l - <span class="hljs-number">1</span>) + (<span class="hljs-type">long</span> <span class="hljs-type">long</span>)ans_max * (m - l + <span class="hljs-number">1</span>) &lt;&lt; <span class="hljs-string">&quot;\n&quot;</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="Problem-E-Time-Travel"><a href="#Problem-E-Time-Travel" class="headerlink" title="Problem E: Time Travel"></a>Problem E: Time Travel</h2><ul>
+<li>时间限制：2秒</li>
+<li>内存限制：512 MB</li>
+</ul>
+<h3 id="题目描述-4"><a href="#题目描述-4" class="headerlink" title="题目描述"></a>题目描述</h3><p>　　现在有一个国家，内部有$n$个不同的地区，但是地区之间的交通道路并不总是可用的，只有在某几个特定的时间可以通行，而且道路是双向的。你有一台时光机，它可以让你穿梭于不同的时间。 但是它每次穿梭时间时到达的目标时间都是既定好的，你没法自主控制，不过你清楚地知道它穿梭的时间设定。在通过一条道路之后，时光机会自动执行一次，这意味着你无法在某个时间连续走完两条道路。现在给出地区的数量$n$，以及$t$个不同的特殊时间。对于每个特殊时间$t_i$，会给出一个可通行道路数量$m_i$和列表$[(u_1,v_1),(u_2,v_2),…,(u_{m_i},v_{m_i})]$。然后给出时光机可进行穿梭时间的次数$k$，以及这$k$次穿梭对应的目标时间$a_1,a_2,…,a_k$。你最初会在地区$1$，并且处于时间$a_1$。问：你最少需要经过多少次时间穿梭才能够到达区域$n$？（到达最终目标区域$n$之后时光机的自动执行不计入统计）</p>
+<ul>
+<li><p>输入描述<br>　　第一行，正整数$n,t(2\le n\le 2<em>10^5,1\le t\le 2</em>10^5)$分别表示区域个数和特定时间个数。<br>　　接下来有$t$组数据，第$i$组数据的第一行，一个非负整数$m_i(0 \le m_i \le \min(\frac{n(n-1)}{2}, 2<em>10^5))$代表在第$i$个特定时间所能通行的道路数量。<br>　　第$i$组数据的接下来$m_i$行，每行两个正整数$u_j,v_j(1\le u_j,v_j\le n, u_j \neq v_j)$，代表一条道路所连接的两个区域。<br>　　接收完$t$组时间点的道路数据之后，接下来一行，一个正整数$k(1\le k \le 2</em>10^5)$，表示时光机可穿梭的次数。<br>　　接下来一行，$k$个正整数$a_1,a_2,…,a_k(1\le a_i \le t)$，表示时光机每次穿梭后的时间点。<br>　　输入数据保证：所有的$m_i$总和不超过$2*10^5$。每个时间点对应的道路数据不会有重复（即使是$(u,v)和(v,u)$也不会同时存在）。</p>
+</li>
+<li><p>输出描述<br>　　一个整数，表示从区域$1$到达区域$n$所需的最小穿梭次数，如果无法到达，那么输出$-1$。</p>
+</li>
+</ul>
+<h3 id="解题思路-4"><a href="#解题思路-4" class="headerlink" title="解题思路"></a>解题思路</h3><p>　　Dijkstra最短路(堆优化版本)，需要维护数组$D&#x3D;{d_1,d_2,…,d_n}$，$d_i$表示到达第$i$个区域时最早可以是在第几次穿梭之后。需要维护所有的边可通行的时间列表，在再维护所有时间所在的穿梭轮次列表，这样在后面处理数据的时候就可以根据边得到这条边对应的可行穿梭轮次列表（列表会有多个），每个列表都要升序排序（数据输入的顺序就是升序的，存下来后不需要额外排序），后面需要用到二分查找。$(u,v)和(v,u)$是同一条边，共用所有的数据即可。<br>　　然后就是基本的Dijkstra最短路算法，只不过在更新邻近点的$d_v$值时需要找到能够前往$v$的最早轮次。当前我们到达$u$时最早可能处于$d_u$次穿梭之后，枚举与$u$相连的所有边$(u,v)$，对于每条边$(u,v)$：先获取允许它通行的时间列表$[t_1,t_2,…t_x]$，枚举所有的$t_i$，获取到其所在的穿梭轮次列表$[idx_1,idx_2,…idx_y]$，这样你得到的列表就是允许该边通行的穿梭轮次列表之一，通过二分法找到在当前列表允许它通行的晚于当前轮次的最早轮次，然后维护多个列表的最小轮次，最终得到的就是需要的允许该边通行而且晚于当前轮次的最早轮次。假设得到$y$，那么令$d_v &#x3D; \min(d_v, y)$，就是假设等待到这个轮次之后前往$v$，如果发现这样走能在更早的轮次到达，就更新数据，也就是Dijkstra的基本操作了。</p>
+<h3 id="解题代码-C-3"><a href="#解题代码-C-3" class="headerlink" title="解题代码(C++)"></a>解题代码(C++)</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;algorithm&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;vector&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;memory.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;queue&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;list&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;map&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> min(a, b) ((a) &lt; (b) ? (a) : (b))</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> max(a, b) ((a) &gt; (b) ? (a) : (b))</span><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><span class="hljs-type">bool</span> vis[<span class="hljs-number">200005</span>];<br><span class="hljs-type">int</span> dis[<span class="hljs-number">200005</span>];<br>map&lt;pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;, vector&lt;<span class="hljs-type">int</span>&gt;&gt; edgeTime; <span class="hljs-comment">/*边-&gt;可通行时间列表*/</span><br>vector&lt;<span class="hljs-type">int</span>&gt; timeIndex[<span class="hljs-number">200005</span>];             <span class="hljs-comment">/*时间-&gt;穿梭轮次列表*/</span><br>vector&lt;<span class="hljs-type">int</span>&gt; edge[<span class="hljs-number">200005</span>];                  <span class="hljs-comment">/*节点拥有的邻居列表*/</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-type">int</span> n, t;<br>    cin &gt;&gt; n &gt;&gt; t;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= t; ++i)<br>    &#123;<br>        <span class="hljs-type">int</span> m;<br>        cin &gt;&gt; m;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">0</span>; j &lt; m; ++j)<br>        &#123;<br>            <span class="hljs-type">int</span> u, v;<br>            cin &gt;&gt; u &gt;&gt; v;<br>            edge[u].<span class="hljs-built_in">push_back</span>(v);<br>            edge[v].<span class="hljs-built_in">push_back</span>(u);<br>            <span class="hljs-keyword">if</span> (u &gt; v)<br>            &#123;<br>                <span class="hljs-built_in">swap</span>(u, v);<br>            &#125;<br>            edgeTime[<span class="hljs-built_in">make_pair</span>(u, v)].<span class="hljs-built_in">push_back</span>(i);<br>        &#125;<br>    &#125;<br>    <span class="hljs-type">int</span> k;<br>    cin &gt;&gt; k;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= k; ++i)<br>    &#123;<br>        <span class="hljs-type">int</span> target;<br>        cin &gt;&gt; target;<br>        timeIndex[target].<span class="hljs-built_in">push_back</span>(i);<br>    &#125;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= n; ++i)<br>    &#123;<br>        dis[i] = <span class="hljs-number">1e9</span>;<br>        vis[i] = <span class="hljs-literal">false</span>;<br>    &#125;<br>    dis[<span class="hljs-number">1</span>] = <span class="hljs-number">0</span>;<br>    priority_queue&lt;pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;, vector&lt;pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;&gt;, greater&lt;pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt;&gt;&gt; que;<br>    que.<span class="hljs-built_in">push</span>(<span class="hljs-built_in">make_pair</span>(dis[<span class="hljs-number">1</span>], <span class="hljs-number">1</span>));<br>    <span class="hljs-keyword">while</span> (!que.<span class="hljs-built_in">empty</span>())<br>    &#123;<br>        <span class="hljs-keyword">auto</span> node = que.<span class="hljs-built_in">top</span>();<br>        que.<span class="hljs-built_in">pop</span>();<br>        <span class="hljs-keyword">if</span> (vis[node.second])<br>        &#123;<br>            <span class="hljs-keyword">continue</span>;<br>        &#125;<br>        vis[node.second] = <span class="hljs-literal">true</span>;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> v : edge[node.second])<br>        &#123;<br>            <span class="hljs-type">int</span> u = node.second;<br>            <span class="hljs-comment">// 当前节点u，目标节点v，需要边(u, v)</span><br>            <span class="hljs-comment">// 需要找到让该边可通行的比现在晚的最早穿梭轮次（当前为node.first轮）</span><br>            <span class="hljs-type">int</span> index = <span class="hljs-number">1e7</span>;<br>            <span class="hljs-comment">// 遍历当前边可通行的时间列表（当前为node.first轮）</span><br>            vector&lt;<span class="hljs-type">int</span>&gt; &amp;passTimeList = edgeTime[<span class="hljs-built_in">make_pair</span>(<span class="hljs-built_in">min</span>(u, v), <span class="hljs-built_in">max</span>(u, v))];<br>            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> _time : passTimeList)<br>            &#123;<br>                vector&lt;<span class="hljs-type">int</span>&gt; &amp;vec = timeIndex[_time];<br>                <span class="hljs-keyword">auto</span> iter = <span class="hljs-built_in">upper_bound</span>(vec.<span class="hljs-built_in">begin</span>(), vec.<span class="hljs-built_in">end</span>(), node.first);<br>                <span class="hljs-keyword">if</span> (iter != vec.<span class="hljs-built_in">end</span>())<br>                &#123;<br>                    index = <span class="hljs-built_in">min</span>(index, *iter);<br>                &#125;<br>            &#125;<br>            <span class="hljs-keyword">if</span> (index == <span class="hljs-number">1e7</span>)<br>            &#123;<br>                <span class="hljs-keyword">continue</span>;<br>            &#125;<br>            <span class="hljs-keyword">if</span> (index &lt; dis[v])<br>            &#123;<br>                dis[v] = index;<br>                que.<span class="hljs-built_in">push</span>(<span class="hljs-built_in">make_pair</span>(dis[v], v));<br>            &#125;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (dis[n] == <span class="hljs-number">1e9</span>)<br>    &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;-1\n&quot;</span>;<br>    &#125;<br>    <span class="hljs-keyword">else</span><br>    &#123;<br>        cout &lt;&lt; dis[n] &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Codeforces/" class="category-chain-item">Codeforces</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E7%BC%96%E7%A8%8B/" class="print-no-link">#编程</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Codeforces Round 905 (Div.2)</div>
+      <div>https://mxx23.github.io/2023/10/26/Codeforces-Round-905-Div-2/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>mxx</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年10月26日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/10/29/2023-10-29%E9%9A%8F%E7%AC%94/" title="2023-10-29随笔">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">2023-10-29随笔</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/10/26/2023-10-26%E9%9A%8F%E7%AC%94/" title="2023-10-26随笔">
+                        <span class="hidden-mobile">2023-10-26随笔</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"gaEdxvtb5Mw7uHbmcNrq8bcR-gzGzoHsz","appKey":"6CeBpFoTHGfW3uDNGBAzzuRK","path":"window.location.pathname","placeholder":"在此处输入内容","avatar":"retro","meta":["nick","mail"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>

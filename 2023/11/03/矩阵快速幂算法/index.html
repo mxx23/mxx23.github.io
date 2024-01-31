@@ -1,0 +1,745 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="mxx">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="矩阵快速幂的介绍　　先说说和矩阵快速幂在思想上一致的快速幂算法：对于计算函数 $\displaystyle F(x)&#x3D;a^{x}$ 的某个函数值，我们不必让计算机去进行 $x$ 次乘法，而是可以通过将其拆解为两个相同的部分的乘积(也就是某个数的平方)，从而减少不必要的计算。比如要计算 $2^8$ 的值，完全没有必要通过 $222*…*2$ 依次得出 $2^1,2^2,2^3,…,2^8$">
+<meta property="og:type" content="article">
+<meta property="og:title" content="矩阵快速幂算法">
+<meta property="og:url" content="https://mxx23.github.io/2023/11/03/%E7%9F%A9%E9%98%B5%E5%BF%AB%E9%80%9F%E5%B9%82%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="mxx的随笔">
+<meta property="og:description" content="矩阵快速幂的介绍　　先说说和矩阵快速幂在思想上一致的快速幂算法：对于计算函数 $\displaystyle F(x)&#x3D;a^{x}$ 的某个函数值，我们不必让计算机去进行 $x$ 次乘法，而是可以通过将其拆解为两个相同的部分的乘积(也就是某个数的平方)，从而减少不必要的计算。比如要计算 $2^8$ 的值，完全没有必要通过 $222*…*2$ 依次得出 $2^1,2^2,2^3,…,2^8$">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-11-03T01:12:40.000Z">
+<meta property="article:modified_time" content="2024-01-31T09:42:55.681Z">
+<meta property="article:author" content="mxx">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="矩阵快速幂">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>矩阵快速幂算法 - mxx的随笔</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"mxx23.github.io","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>mxx的随笔</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="https://github.com/mxx23" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="矩阵快速幂算法"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-11-03 09:12" pubdate>
+          2023年11月3日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          5 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">矩阵快速幂算法</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h3 id="矩阵快速幂的介绍"><a href="#矩阵快速幂的介绍" class="headerlink" title="矩阵快速幂的介绍"></a>矩阵快速幂的介绍</h3><p>　　先说说和矩阵快速幂在思想上一致的快速幂算法：对于计算函数 $\displaystyle F(x)&#x3D;a^{x}$ 的某个函数值，我们不必让计算机去进行 $x$ 次乘法，而是可以通过将其拆解为两个相同的部分的乘积(也就是某个数的平方)，从而减少不必要的计算。比如要计算 $2^8$ 的值，完全没有必要通过 $2<em>2</em>2*…*2$ 依次得出 $2^1,2^2,2^3,…,2^8$的值。而是可以转换为 $(((2^1)^2)^2)^2$ ，与前者不同的是，后者进行平方运算时只需要知道 $2^1,2^2,2^4,2^8$ 这少数的几个值。不难看出，快速幂算法快就快在它避免了不必要的计算，将一个表达式尽可能拆解为两个相同的数的积，当得到了其中一方的值时就不需要再去计算另一方了。如果无法拆解，那么在这一层当中可以单独抽离出一份来做乘法，比如 $2^9$ 可以写为 $(2^4)^2 * 2^1$。<br>　　同样的，对于矩阵的幂运算，也可以用这样的方式来进行优化，当然，前提是这个矩阵的行列条件可以执行幂运算。如果你还不清楚什么是矩阵，矩阵如何做运算，那么可以先去了解一点线性代数相关的内容。<br>　　在平时遇到的算法题当中，需要用到快速幂的地方通常一眼就能够看出来，毕竟很多题你看一看就意识到哪里要进行幂运算了。但是矩阵快速幂则有点不同，虽然二者思想一致，实现起来也都不算难，但是没有一定经验的人或许根本就看不出来某个地方居然还可以用矩阵来运算，更不用提矩阵快速幂了。<br>　　因此我个人认为，要在算法中利用到矩阵快速幂，关键点并不在于算法本身，而是你能否将一个问题转换为矩阵的幂运算的问题。</p>
+<h3 id="经典例子——斐波那契数列"><a href="#经典例子——斐波那契数列" class="headerlink" title="经典例子——斐波那契数列"></a>经典例子——斐波那契数列</h3><h1 id="斐波那契数列就是前两项为-1-，从第-3-项开始的任意第-i-项的值都等于-第-i-1-和第-i-2-项之和的数列。由于前两项是固定值，那么后面的所有项其实也都是固定值。当然，某些题目中可能会让前两项变为其他的值，不过我们现在要谈论的东西不会因为前两项是什么值而受到影响，我们要关注的只是它这个-“从第三项开始的每一项都等于前两项之和”的特性。-假设现在有这样一个编程问题，给定一个具有斐波那契数列性质的数列-A-a-1-a-2-a-3…-，不过-a-1-和-a-2-的值不会在题目中就告诉你，而是在程序执行后输入到程序中。那么，你如何设计程序得到某个指定位置的项-a-n-这个-n-也是在输入中给出-的值？-当这个-n-不会很大时，完全可以开一个足够大的数组，然后把前两项的值写进去，剩余的项依次推导得到，直到计算得到第-n-项的值。如果再有一点节省内存的意识，完全可以只开几个变量来存储需要用到的前-2-项和待计算项，就不用开个这么大的数组了。-但是，有的时候问题会比这个还更加刁钻，会给出一个比较大的-n-可能达到-10-18-这个数量级-，并且还要求你能够在数秒之内给出结果，不过，由于答案很大，这样的题目一般会让我们对结果的数值对一个数取余数。取余数的目的是让我们不用花心思在“如何存储一个超出了基本变量所能存储的最大值的数”这样的问题上，毕竟高精度计算不是这道题考察的重点。回到题目本身，如果依然使用递推的方式来一项一项地推导，根据当前计算机的算力，是没办法在数秒之内给出结果的-本句话写于2023年-。因此，需要一些手段来更快地计算出结果，这个手段正是矩阵快速幂。这题看上去只看得到它有计算，看不出来哪里有矩阵，不过它确实可以通过构造出矩阵来进行计算得到相同的效果。我们构造这样一个矩阵-T-：-begin-bmatrix-1-1-1-0-end-bmatrix-再拿目前已经知道的前两项-a-1-a-2-构造出另一个矩阵-B-：-begin-bmatrix-a-2-a-1-end-bmatrix-然后我们让它们两个相乘-注意矩阵乘法的两方不能交换位置-：-begin-bmatrix-1-1-1-0-end-bmatrix-begin-bmatrix-a-2-a-1-end-bmatrix"><a href="#斐波那契数列就是前两项为-1-，从第-3-项开始的任意第-i-项的值都等于-第-i-1-和第-i-2-项之和的数列。由于前两项是固定值，那么后面的所有项其实也都是固定值。当然，某些题目中可能会让前两项变为其他的值，不过我们现在要谈论的东西不会因为前两项是什么值而受到影响，我们要关注的只是它这个-“从第三项开始的每一项都等于前两项之和”的特性。-假设现在有这样一个编程问题，给定一个具有斐波那契数列性质的数列-A-a-1-a-2-a-3…-，不过-a-1-和-a-2-的值不会在题目中就告诉你，而是在程序执行后输入到程序中。那么，你如何设计程序得到某个指定位置的项-a-n-这个-n-也是在输入中给出-的值？-当这个-n-不会很大时，完全可以开一个足够大的数组，然后把前两项的值写进去，剩余的项依次推导得到，直到计算得到第-n-项的值。如果再有一点节省内存的意识，完全可以只开几个变量来存储需要用到的前-2-项和待计算项，就不用开个这么大的数组了。-但是，有的时候问题会比这个还更加刁钻，会给出一个比较大的-n-可能达到-10-18-这个数量级-，并且还要求你能够在数秒之内给出结果，不过，由于答案很大，这样的题目一般会让我们对结果的数值对一个数取余数。取余数的目的是让我们不用花心思在“如何存储一个超出了基本变量所能存储的最大值的数”这样的问题上，毕竟高精度计算不是这道题考察的重点。回到题目本身，如果依然使用递推的方式来一项一项地推导，根据当前计算机的算力，是没办法在数秒之内给出结果的-本句话写于2023年-。因此，需要一些手段来更快地计算出结果，这个手段正是矩阵快速幂。这题看上去只看得到它有计算，看不出来哪里有矩阵，不过它确实可以通过构造出矩阵来进行计算得到相同的效果。我们构造这样一个矩阵-T-：-begin-bmatrix-1-1-1-0-end-bmatrix-再拿目前已经知道的前两项-a-1-a-2-构造出另一个矩阵-B-：-begin-bmatrix-a-2-a-1-end-bmatrix-然后我们让它们两个相乘-注意矩阵乘法的两方不能交换位置-：-begin-bmatrix-1-1-1-0-end-bmatrix-begin-bmatrix-a-2-a-1-end-bmatrix" class="headerlink" title="斐波那契数列就是前两项为 $1$ ，从第 $3$ 项开始的任意第 $i$ 项的值都等于 第 $i-1$ 和第 $i-2$ 项之和的数列。由于前两项是固定值，那么后面的所有项其实也都是固定值。当然，某些题目中可能会让前两项变为其他的值，不过我们现在要谈论的东西不会因为前两项是什么值而受到影响，我们要关注的只是它这个 “从第三项开始的每一项都等于前两项之和”的特性。　　假设现在有这样一个编程问题，给定一个具有斐波那契数列性质的数列 $A &#x3D; a_1,a_2,a_3…$ ，不过 $a_1$ 和 $a_2$ 的值不会在题目中就告诉你，而是在程序执行后输入到程序中。那么，你如何设计程序得到某个指定位置的项 $a_n$ (这个 $n$ 也是在输入中给出)的值？　　当这个 $n$ 不会很大时，完全可以开一个足够大的数组，然后把前两项的值写进去，剩余的项依次推导得到，直到计算得到第 $n$ 项的值。如果再有一点节省内存的意识，完全可以只开几个变量来存储需要用到的前 $2$ 项和待计算项，就不用开个这么大的数组了。　　但是，有的时候问题会比这个还更加刁钻，会给出一个比较大的 $n$ (可能达到 $10^{18}$ 这个数量级)，并且还要求你能够在数秒之内给出结果，不过，由于答案很大，这样的题目一般会让我们对结果的数值对一个数取余数。取余数的目的是让我们不用花心思在“如何存储一个超出了基本变量所能存储的最大值的数”这样的问题上，毕竟高精度计算不是这道题考察的重点。回到题目本身，如果依然使用递推的方式来一项一项地推导，根据当前计算机的算力，是没办法在数秒之内给出结果的(本句话写于2023年)。因此，需要一些手段来更快地计算出结果，这个手段正是矩阵快速幂。这题看上去只看得到它有计算，看不出来哪里有矩阵，不过它确实可以通过构造出矩阵来进行计算得到相同的效果。我们构造这样一个矩阵 $T$ ：$$\begin{bmatrix}1 &amp; 1\1 &amp; 0\end{bmatrix}$$再拿目前已经知道的前两项 $a_1, a_2$ 构造出另一个矩阵 $B$ ：$$\begin{bmatrix}a_2\a_1\end{bmatrix}$$然后我们让它们两个相乘(注意矩阵乘法的两方不能交换位置)：$$\begin{bmatrix}1 &amp; 1\1 &amp; 0\end{bmatrix}\begin{bmatrix}a_2\a_1\end{bmatrix}"></a>斐波那契数列就是前两项为 $1$ ，从第 $3$ 项开始的任意第 $i$ 项的值都等于 第 $i-1$ 和第 $i-2$ 项之和的数列。由于前两项是固定值，那么后面的所有项其实也都是固定值。当然，某些题目中可能会让前两项变为其他的值，不过我们现在要谈论的东西不会因为前两项是什么值而受到影响，我们要关注的只是它这个 <strong>“从第三项开始的每一项都等于前两项之和”</strong>的特性。<br>　　假设现在有这样一个编程问题，给定一个具有斐波那契数列性质的数列 $A &#x3D; a_1,a_2,a_3…$ ，不过 $a_1$ 和 $a_2$ 的值不会在题目中就告诉你，而是在程序执行后输入到程序中。那么，你如何设计程序得到某个指定位置的项 $a_n$ (这个 $n$ 也是在输入中给出)的值？<br>　　当这个 $n$ 不会很大时，完全可以开一个足够大的数组，然后把前两项的值写进去，剩余的项依次推导得到，直到计算得到第 $n$ 项的值。如果再有一点节省内存的意识，完全可以只开几个变量来存储需要用到的前 $2$ 项和待计算项，就不用开个这么大的数组了。<br>　　但是，有的时候问题会比这个还更加刁钻，会给出一个比较大的 $n$ (可能达到 $10^{18}$ 这个数量级)，并且还要求你能够在数秒之内给出结果，不过，由于答案很大，这样的题目一般会让我们对结果的数值对一个数取余数。取余数的目的是让我们不用花心思在“如何存储一个超出了基本变量所能存储的最大值的数”这样的问题上，毕竟高精度计算不是这道题考察的重点。回到题目本身，如果依然使用递推的方式来一项一项地推导，根据当前计算机的算力，是没办法在数秒之内给出结果的(本句话写于2023年)。因此，需要一些手段来更快地计算出结果，这个手段正是矩阵快速幂。这题看上去只看得到它有计算，看不出来哪里有矩阵，不过它确实可以通过构造出矩阵来进行计算得到相同的效果。<br>我们构造这样一个矩阵 $T$ ：<br>$$<br>\begin{bmatrix}<br>1 &amp; 1\<br>1 &amp; 0<br>\end{bmatrix}<br>$$<br>再拿目前已经知道的前两项 $a_1, a_2$ 构造出另一个矩阵 $B$ ：<br>$$<br>\begin{bmatrix}<br>a_2\<br>a_1<br>\end{bmatrix}<br>$$<br>然后我们让它们两个相乘(注意矩阵乘法的两方不能交换位置)：<br>$$<br>\begin{bmatrix}<br>1 &amp; 1\<br>1 &amp; 0<br>\end{bmatrix}<br>\begin{bmatrix}<br>a_2\<br>a_1<br>\end{bmatrix}</h1><p>\begin{bmatrix}<br>a_1+a_2\<br>a_2<br>\end{bmatrix}<br>\Rightarrow<br>\begin{bmatrix}<br>a_3\<br>a_2<br>\end{bmatrix}<br>$$<br>这样，我们就得出了 $a_3$ 的值，同样的，如果我们要得到 $a_4$ 的值，就只需要再左乘一次矩阵 $T$ 即可。如果我们希望计算到 $a_n$ ，就是用矩阵 $B$ 左乘 $n-2$ 次矩阵 $T$ ，也就是 $T^{n-2} B$ 。如果止步于此，那么这只会是个比之前的递推还要更复杂且费时间的算法，但是现在它已经符合了矩阵快速幂的条件，我们可以用矩阵快速幂来加快计算 $T^{n-2}$ 过程，得到结果之后再去右乘矩阵 $B$ ，就得出了 $a_n$ 的值。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%AE%97%E6%B3%95/" class="category-chain-item">算法</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E7%AE%97%E6%B3%95/" class="print-no-link">#算法</a>
+      
+        <a href="/tags/%E7%9F%A9%E9%98%B5%E5%BF%AB%E9%80%9F%E5%B9%82/" class="print-no-link">#矩阵快速幂</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>矩阵快速幂算法</div>
+      <div>https://mxx23.github.io/2023/11/03/矩阵快速幂算法/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>mxx</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年11月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/11/03/Codeforces-Round-906-Div-2/" title="Codeforces Round 906 (Div.2)">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Codeforces Round 906 (Div.2)</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/10/29/2023-10-29%E9%9A%8F%E7%AC%94/" title="2023-10-29随笔">
+                        <span class="hidden-mobile">2023-10-29随笔</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"gaEdxvtb5Mw7uHbmcNrq8bcR-gzGzoHsz","appKey":"6CeBpFoTHGfW3uDNGBAzzuRK","path":"window.location.pathname","placeholder":"在此处输入内容","avatar":"retro","meta":["nick","mail"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>
