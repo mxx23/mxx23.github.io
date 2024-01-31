@@ -24,7 +24,7 @@
 <meta property="og:description" content="数学练习题第一题计算不定积分：$$\int{x^3}·\ln{x}·\mathrm{d}x$$解：根据分部积分法有：$$\begin{aligned}u·v &amp;&#x3D; \int{u·\mathrm{d}v} + \int{v·\mathrm{d}u}\\    &amp;&#x3D; \int{u·\frac{\mathrm{d}v}{\mathrm{d}x} · \mathrm{d">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-10-29T04:20:45.000Z">
-<meta property="article:modified_time" content="2024-01-31T09:41:15.891Z">
+<meta property="article:modified_time" content="2024-01-31T10:38:16.746Z">
 <meta property="article:author" content="mxx">
 <meta property="article:tag" content="微积分">
 <meta property="article:tag" content="分部积分法">
@@ -278,7 +278,7 @@
 <hr>
 <h3 id="第二题"><a href="#第二题" class="headerlink" title="第二题"></a>第二题</h3><p>计算不定积分：<br>$$<br>\int{x·\cos(6x)·\mathrm{d}x}<br>$$<br>解：<br>同样采用分部积分法，令:<br>$$<br>\begin{cases}<br>u &#x3D; x\<br>v &#x3D; \frac{1}{6}·\sin(6x)<br>\end{cases}<br>$$<br>有：<br>$$<br>\int{u·\mathrm{d}v} &#x3D; \int{x·\cos(6x)·\mathrm{d}x}<br>$$<br>则：<br>$$<br>\begin{aligned}<br>\int{x·\cos(6x)·\mathrm{d}x} &amp;&#x3D; u·v - \int{\frac{1}{6}·\sin(6x)·\mathrm{d}x}\\<br>                    &amp;&#x3D; \frac{1}{6}x·\sin(6x) + \frac{1}{36}\cos(6x) + C<br>\end{aligned}<br>$$</p>
 <hr>
-<h3 id="第三题"><a href="#第三题" class="headerlink" title="第三题"></a>第三题</h3><p>计算不定积分：<br>$$<br>\int \arctan{(\sqrt{x})}·\mathrm{d}x\\<br>$$<br>解：<br>令：<br>$$<br>\begin{cases}<br>u &amp;&#x3D; x\<br>v &amp;&#x3D; \arctan{(\sqrt{x})}<br>\end{cases}<br>$$<br>则：<br>$$<br>\begin{aligned}<br>\int \arctan{(\sqrt{x})}·\mathrm{d}x &amp;&#x3D; u·v - \int u·\mathrm{d}v\\<br>                                     &amp;&#x3D; x·\arctan{(\sqrt{x})} - \int \frac{x}{2\sqrt{x}·(1+x)}\mathrm{d}x\\<br>                                     &amp;&#x3D; x·\arctan{(\sqrt{x})} - \int \frac{\sqrt{x}}{2(1+x)}\mathrm{d}x<br>\end{aligned}<br>$$<br>针对积分式：<br>$$<br>\int \frac{\sqrt{x}}{2(1+x)}\mathrm{d}x<br>$$<br>令：$\displaystyle u&#x3D;\sqrt{x}$，则有：<br>$$<br>\begin{aligned}<br>\frac{\mathrm{d}u}{\mathrm{d}x} &amp;&#x3D; \frac{1}{2\sqrt{x}}\\<br>\Rightarrow \quad \mathrm{d}x &amp;&#x3D; 2\sqrt{x}·\mathrm{d}u<br>\end{aligned}<br>$$<br>则：<br>$$<br>\begin{aligned}<br>\int \frac{\sqrt{x}}{2(1+x)}\mathrm{d}x &amp;&#x3D; \int \frac{\sqrt{x}}{2(1+x)}·2\sqrt{x}·\mathrm{d}u\\<br>                                        &amp;&#x3D; \int \frac{x}{1+x}·\mathrm{d}u\\<br>                                        &amp;&#x3D; \int \frac{x+1-1}{1+x}·\mathrm{d}u\\<br>                                        &amp;&#x3D; \int (1 - \frac{1}{1+x})·\mathrm{d}u\\<br>                                        &amp;&#x3D; \int \mathrm{d}u - \int \frac{1}{1+x}·\mathrm{d}u\\<br>                                        &amp;&#x3D; \int \mathrm{d}u - \int \frac{1}{1+u^2}·\mathrm{d}u\\<br>                                        &amp;&#x3D; u - \arctan{u} + C_{1}\\<br>                                        &amp;&#x3D; \sqrt{x} - \arctan{\sqrt{x}} + C_1\\<br>\end{aligned}<br>$$<br>则最初的原积分式：<br>$$<br>\begin{aligned}<br>\int \arctan{\sqrt{x}}·\mathrm{d}x &amp;&#x3D; x·\arctan{\sqrt{x}} - \sqrt{x} + \arctan{\sqrt{x}} + C\\<br>                                   &amp;&#x3D; (x+1)\arctan{\sqrt{x}} - \sqrt{x} + C<br>\end{aligned}<br>$$<br>其中$C$和$C_1$是常数，之所以用下标区分它们只是为了体现它们不是同一个常数，毕竟前面的正负号没有在计算过程中变号。</p>
+<h3 id="第三题"><a href="#第三题" class="headerlink" title="第三题"></a>第三题</h3><p>计算不定积分：<br>$$<br>\int \arctan{(\sqrt{x})}·\mathrm{d}x\\<br>$$<br>解：<br>令：<br>$$<br>\begin{cases}<br>u &amp;&#x3D; x\\<br>v &amp;&#x3D; \arctan{(\sqrt{x})}<br>\end{cases}<br>$$<br>则：<br>$$<br>\begin{aligned}<br>\int \arctan{(\sqrt{x})}·\mathrm{d}x &amp;&#x3D; u·v - \int u·\mathrm{d}v\\<br>                                     &amp;&#x3D; x·\arctan{(\sqrt{x})} - \int \frac{x}{2\sqrt{x}·(1+x)}\mathrm{d}x\\<br>                                     &amp;&#x3D; x·\arctan{(\sqrt{x})} - \int \frac{\sqrt{x}}{2(1+x)}\mathrm{d}x<br>\end{aligned}<br>$$<br>针对积分式：<br>$$<br>\int \frac{\sqrt{x}}{2(1+x)}\mathrm{d}x<br>$$<br>令：$\displaystyle u&#x3D;\sqrt{x}$，则有：<br>$$<br>\begin{aligned}<br>\frac{\mathrm{d}u}{\mathrm{d}x} &amp;&#x3D; \frac{1}{2\sqrt{x}}\\<br>\Rightarrow \quad \mathrm{d}x &amp;&#x3D; 2\sqrt{x}·\mathrm{d}u<br>\end{aligned}<br>$$<br>则：<br>$$<br>\begin{aligned}<br>\int \frac{\sqrt{x}}{2(1+x)}\mathrm{d}x &amp;&#x3D; \int \frac{\sqrt{x}}{2(1+x)}·2\sqrt{x}·\mathrm{d}u\\<br>                                        &amp;&#x3D; \int \frac{x}{1+x}·\mathrm{d}u\\<br>                                        &amp;&#x3D; \int \frac{x+1-1}{1+x}·\mathrm{d}u\\<br>                                        &amp;&#x3D; \int (1 - \frac{1}{1+x})·\mathrm{d}u\\<br>                                        &amp;&#x3D; \int \mathrm{d}u - \int \frac{1}{1+x}·\mathrm{d}u\\<br>                                        &amp;&#x3D; \int \mathrm{d}u - \int \frac{1}{1+u^2}·\mathrm{d}u\\<br>                                        &amp;&#x3D; u - \arctan{u} + C_{1}\\<br>                                        &amp;&#x3D; \sqrt{x} - \arctan{\sqrt{x}} + C_1\\<br>\end{aligned}<br>$$<br>则最初的原积分式：<br>$$<br>\begin{aligned}<br>\int \arctan{\sqrt{x}}·\mathrm{d}x &amp;&#x3D; x·\arctan{\sqrt{x}} - \sqrt{x} + \arctan{\sqrt{x}} + C\\<br>                                   &amp;&#x3D; (x+1)\arctan{\sqrt{x}} - \sqrt{x} + C<br>\end{aligned}<br>$$<br>其中$C$和$C_1$是常数，之所以用下标区分它们只是为了体现它们不是同一个常数，毕竟前面的正负号没有在计算过程中变号。</p>
 
                 
               </div>
@@ -739,20 +739,5 @@
   <noscript>
     <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
   </noscript>
-<script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-        tex2jax: {
-            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
-            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-            processEscapes: true
-        }
-    });
-    MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax();
-        for (var i = 0; i < all.length; ++i)
-            all[i].SourceElement().parentNode.className += ' has-jax';
-    });
-</script>
-<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>
