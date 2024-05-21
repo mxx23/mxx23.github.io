@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+</head>
+<style>
+.center_text {
+    text-align: center; /* 让文本居中显示 */
+    font-size: 30px; /* 设置文本大小为30像素 */
+}
+</style>
+<body>
+    <main>
+    </main>
+</body>
+
+<script>
+    var rssUrl = window.location.origin + "/atom.xml";
+    window.onload = function () {
+        // 复制rssUrl到剪切板
+        if (rssUrl) {
+            navigator.clipboard.writeText(rssUrl);
+        }
+        alert("RSS链接已复制到剪切板");
+        // 返回到前一个页面
+        window.history.back();
+    }
+</script>
+</html>

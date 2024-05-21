@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+</head>
+<style>
+</style>
+<body>
+    <main>
+    </main>
+</body>
+
+<script>
+    // 获取URL中的查询字符串部分
+    var queryString = window.location.search;
+    // 创建URLSearchParams对象并解析查询字符串
+    var urlParams = new URLSearchParams(queryString);
+    // 使用get()方法获取指定参数的值
+    var filename = urlParams.get('filename');
+    window.onload = function () {
+        var link = document.createElement('a');
+        // 使用反引号包裹字符串插值
+        link.href = `../../../assets/files/${filename}`;
+        link.download = `${filename}`;
+        link.click();
+        // 返回到前一个页面
+        window.history.back();
+    }
+</script>
+</html>
