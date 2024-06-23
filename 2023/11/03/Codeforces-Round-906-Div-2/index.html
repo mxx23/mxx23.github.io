@@ -24,7 +24,7 @@
 <meta property="og:description" content="题目链接Codeforces Round 906 (Div.2)  Problem A: Doremy’s Paint 3 时间限制：1秒 内存限制：256 MB  题目描述　　本题定义一种数组是“好数组”，只要该数组满足某条件：对于数组中的任意两个相邻的元素之和都会得到同一个结果。更数学化一点的描述就是：$$\forall i \forall j (i,j \in [1, n-1] \cap \">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-11-03T03:18:27.000Z">
-<meta property="article:modified_time" content="2024-02-15T07:42:10.339Z">
+<meta property="article:modified_time" content="2024-06-23T10:04:43.672Z">
 <meta property="article:author" content="mxx">
 <meta property="article:tag" content="编程">
 <meta name="twitter:card" content="summary_large_image">
@@ -343,7 +343,7 @@
 <li>时间限制：1秒</li>
 <li>内存限制：256 MB</li>
 </ul>
-<h3 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h3><p>　　本题定义一种数组是“好数组”，只要该数组满足某条件：对于数组中的任意两个相邻的元素之和都会得到同一个结果。更数学化一点的描述就是：$$\forall i \forall j (i,j \in [1, n-1] \cap \mathbb{Z}) \rightarrow a_i + a_{i+1} &#x3D; a_j + a_{j+1}$$<br>其中 $\mathbb{Z}$ 是整数域。<br>　　现在给定一个长度为 $n$ 的数组 $A_n$ ，你可以将它任意排序，问是否能够将它变为“好数组”，如果能，输出“YES”，否则输出“NO”。</p>
+<h3 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h3><p>　　本题定义一种数组是“好数组”，只要该数组满足某条件：对于数组中的任意两个相邻的元素之和都会得到同一个结果。更数学化一点的描述就是：$$\forall i \forall j (i,j \in [1, n-1] \cap \mathbb{Z}) \rightarrow a_i + a_{i+1} &#x3D; a_j + a_{j+1}$$ 其中 $\mathbb{Z}$ 是整数域。<br>　　现在给定一个长度为 $n$ 的数组 $A_n$ ，你可以将它任意排序，问是否能够将它变为“好数组”，如果能，输出“YES”，否则输出“NO”。</p>
 <ul>
 <li>输入描述<br>　　第一行，一个正整数 $t$ ，表示接下来有 $t (1\le t\le 100)$ 组数据。<br>　　对于每组数据，第一行，一个正整数 $n (2 \le n \le 1000)$ ，表示数组的长度。<br>　　第二行， $n$ 个整数，表示数组 $a_1,a_2,…,a_n(1\le a_i \le 10^5)$。</li>
 <li>输出描述<br>　　对于每组数据，输出一行“YES”或“NO”。</li>
@@ -371,7 +371,7 @@
 <li>时间限制：1秒</li>
 <li>空间限制：256 MB</li>
 </ul>
-<h3 id="题目描述-2"><a href="#题目描述-2" class="headerlink" title="题目描述"></a>题目描述</h3><p>　　本题中定义一个字符串是“好字符串”，如果该字符串 $S$ 满足(假设其长度是 $n$ )：<br>$$<br>\forall i (i \in [1, n]\cap \mathbb{Z}) \rightarrow S_{i} &#x3D; S_{n-i+1}<br>$$<br>其中 $\mathbb{Z}$ 是整数域。<br>　　现给定一个仅由’0’和’1’组成的字符串 $S$ ，你可以执行某种操作0~300次：将“01”插入到字符串 $S$ 的任意位置，得到新的 $S$ 。问：是否有可能在经过若干次(或0次)操作之后让 $S$ 成为“好字符串”？如果不可能，那么输出“-1”，否则输出你给出的插入位置。</p>
+<h3 id="题目描述-2"><a href="#题目描述-2" class="headerlink" title="题目描述"></a>题目描述</h3><p>　　本题中定义一个字符串是“好字符串”，如果该字符串 $S$ 满足(假设其长度是 $n$ )：<br>$$<br>\forall i (i \in [1, n]\cap \mathbb{Z}) \rightarrow S_{i} &#x3D; S_{n-i+1}<br>$$ 其中 $\mathbb{Z}$ 是整数域。<br>　　现给定一个仅由’0’和’1’组成的字符串 $S$ ，你可以执行某种操作0~300次：将“01”插入到字符串 $S$ 的任意位置，得到新的 $S$ 。问：是否有可能在经过若干次(或0次)操作之后让 $S$ 成为“好字符串”？如果不可能，那么输出“-1”，否则输出你给出的插入位置。</p>
 <ul>
 <li><p>输入描述<br>　　第一行，一个正整数 $t(1\le t\le 100)$ ，表示接下来有 $t$ 组数据。<br>　　对于每组数据，第一行，一个正整数 $n(1\le n\le 100)$ ，表示字符串的长度。<br>　　第二行，一个长度为 $n$ 的字符串 $S$ ，仅由’0’和’1’组成。</p>
 </li>
@@ -857,20 +857,5 @@
   <noscript>
     <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
   </noscript>
-<script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-        tex2jax: {
-            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
-            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-            processEscapes: true
-        }
-    });
-    MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax();
-        for (var i = 0; i < all.length; ++i)
-            all[i].SourceElement().parentNode.className += ' has-jax';
-    });
-</script>
-<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>

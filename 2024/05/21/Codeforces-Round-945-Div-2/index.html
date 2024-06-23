@@ -24,7 +24,7 @@
 <meta property="og:description" content="题目链接Codeforces Round 945 (Div. 2) Problem A: Chess For Three 时间限制：1秒 内存限制：256 MB  题目描述　　三个人，两两可以进行游戏，游戏可以进行任意多局（可以是0）。每一局游戏结束时，胜方得2分，败方不得分，若平局，则各得1分。现在给定三人的最终得分 $p_1, p_2, p_3$ ，保证 $p_1 \le p_2 \le p_">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-05-21T04:09:16.000Z">
-<meta property="article:modified_time" content="2024-06-23T09:58:38.244Z">
+<meta property="article:modified_time" content="2024-06-23T10:04:39.156Z">
 <meta property="article:author" content="mxx">
 <meta property="article:tag" content="编程">
 <meta name="twitter:card" content="summary_large_image">
@@ -361,7 +361,7 @@
 <li>时间限制：2秒</li>
 <li>内存限制：256 MB</li>
 </ul>
-<h3 id="题目描述-1"><a href="#题目描述-1" class="headerlink" title="题目描述"></a>题目描述</h3><p>　　定义一个数组 $A$ 的孤独值 $k$ 为满足某个条件的最小可能取值。条件：数组中任意连续 $k$ 个相邻元素的按位或(bitwise OR)结果相同。更数学化的表达为：<br>$$<br>\forall{i}\forall{j}(i,j \in [1,n-k+1] \cap \mathbb{Z}) \rightarrow a_i|a_{i+1}|…|a_{i+k-1} &#x3D; a_j|a_{j+1}|…|a_{j+k-1}<br>$$<br>其中 $\mathbb{Z}$ 为整数域。<br>　　显然，当 $k&#x3D;n$ 时满足条件，因为当 $k&#x3D;n$ 时，连续 $k$ 个相邻元素只有一种选取情况，即整个数组，故而只有一种计算结果。现在给定一个数组，请问它的孤独值是多少？</p>
+<h3 id="题目描述-1"><a href="#题目描述-1" class="headerlink" title="题目描述"></a>题目描述</h3><p>　　定义一个数组 $A$ 的孤独值 $k$ 为满足某个条件的最小可能取值。条件：数组中任意连续 $k$ 个相邻元素的按位或(bitwise OR)结果相同。更数学化的表达为：<br>$$<br>\forall{i}\forall{j}(i,j \in [1,n-k+1] \cap \mathbb{Z}) \rightarrow a_i|a_{i+1}|…|a_{i+k-1} &#x3D; a_j|a_{j+1}|…|a_{j+k-1}$$ 其中 $\mathbb{Z}$ 为整数域。<br>　　显然，当 $k&#x3D;n$ 时满足条件，因为当 $k&#x3D;n$ 时，连续 $k$ 个相邻元素只有一种选取情况，即整个数组，故而只有一种计算结果。现在给定一个数组，请问它的孤独值是多少？</p>
 <ul>
 <li>输入描述<br>　　第一行，一个正整数 $t (1\le t\le 10^4)$，表示接下来有 $t$ 组数据。<br>　　每组数据包含两行，第一行，一个正整数 $n (1\le n\le 10^5)$，表示数组长度。<br>　　每组数据第二行， $n$ 个非负整数 $a_1,a_2,…,a_n(0\le a_i\le 2^{20})$，表示给定的数组。<br>　　数据保证所有组数的 $n$ 总和不超过 $10^5$。</li>
 <li>输出描述<br>　　每一组数据输出一行，包含一个正整数，表示该组数据得到的孤独值。</li>
@@ -882,20 +882,5 @@
   <noscript>
     <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
   </noscript>
-<script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-        tex2jax: {
-            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
-            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-            processEscapes: true
-        }
-    });
-    MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax();
-        for (var i = 0; i < all.length; ++i)
-            all[i].SourceElement().parentNode.className += ' has-jax';
-    });
-</script>
-<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>
