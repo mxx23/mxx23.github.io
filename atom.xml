@@ -6,7 +6,7 @@
   <link href="https://mxx23.github.io/atom.xml" rel="self"/>
   
   <link href="https://mxx23.github.io/"/>
-  <updated>2026-09-12T15:39:50.290Z</updated>
+  <updated>2026-09-12T17:24:19.923Z</updated>
   <id>https://mxx23.github.io/</id>
   
   <author>
@@ -15,6 +15,35 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>AES在线加解密工具</title>
+    <link href="https://mxx23.github.io/2026/09/13/AES%E5%9C%A8%E7%BA%BF%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%B7%A5%E5%85%B7/"/>
+    <id>https://mxx23.github.io/2026/09/13/AES%E5%9C%A8%E7%BA%BF%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%B7%A5%E5%85%B7/</id>
+    <published>2026-09-12T17:00:00.000Z</published>
+    <updated>2026-09-12T17:24:19.923Z</updated>
+    
+    <content type="html"><![CDATA[<p>　　在线 AES 加解密工具：支持 AES-128 &#x2F; AES-256，GCM 与 CBC 两种模式，可以加密文本或整个文件，用口令（PBKDF2 派生）或原始密钥都行，还能与 OpenSSL 等程序互通。密钥与数据全程留在浏览器里，不上传。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/tools/aes.html"     style="display:inline-block;padding:12px 36px;background:#3095d4;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(48,149,212,.32)">    👉 打开 AES 在线加解密工具  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;　　在线 AES 加解密工具：支持 AES-128 &amp;#x2F; AES-256，GCM 与 CBC 两种模式，可以加密文本或整个文件，用口令（PBKDF2 派生）或原始密钥都行，还能与 OpenSSL 等程序互通。密钥与数据全程留在浏览器里，不上传。&lt;/p&gt;
+&lt;div s</summary>
+      
+    
+    
+    
+    <category term="在线工具" scheme="https://mxx23.github.io/categories/%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7/"/>
+    
+    
+    <category term="在线工具" scheme="https://mxx23.github.io/tags/%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7/"/>
+    
+    <category term="AES" scheme="https://mxx23.github.io/tags/AES/"/>
+    
+    <category term="加密" scheme="https://mxx23.github.io/tags/%E5%8A%A0%E5%AF%86/"/>
+    
+  </entry>
   
   <entry>
     <title>在线图片去背景工具</title>

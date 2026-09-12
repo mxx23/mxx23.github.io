@@ -27,7 +27,7 @@
 <meta property="og:description" content="这里收集了本站用纯 JavaScript 实现的一些在线小工具。它们全部在浏览器本地运行，不依赖任何后端服务：输入的文本、上传的图片和视频都不会离开你的电脑，断网也能继续使用（把页面另存为本地文件即可）。    🔢 Base64 在线编码解码   文本与 Base64 互转（完整支持中文 UTF-8）、URL 安全字符、MIME 换行；文件与图片转 Base64 &#x2F; Data URI，Bas">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-09-12T15:45:00.000Z">
-<meta property="article:modified_time" content="2026-09-12T15:42:08.285Z">
+<meta property="article:modified_time" content="2026-09-12T17:24:23.036Z">
 <meta property="article:author" content="mxx">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -374,6 +374,11 @@
   <p style="margin:0;font-size:14px;line-height:1.8;opacity:.88">自动识别纯色 / 渐变背景并转为透明，支持容差调节、边缘羽化、去杂边，以及橡皮擦与恢复笔手工修补，导出透明 PNG。</p>
 </div>
 
+<div style="background:rgba(124,108,255,.08);border:1px solid rgba(124,108,255,.30);border-radius:10px;padding:16px 18px;margin:18px 0">
+  <h3 style="margin:0 0 6px;font-size:17px"><a href="/assets/web/tools/aes.html">🔐 AES 在线加解密（AES-128 / AES-256）</a></h3>
+  <p style="margin:0;font-size:14px;line-height:1.8;opacity:.88">用口令或原始密钥加密文本与文件，支持 AES-GCM（带完整性校验）与 AES-CBC；密文自带算法与参数，解密时自动识别，也可以切换成不含头部的「裸模式」与 OpenSSL 等程序互通。</p>
+</div>
+
 <h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><ul>
 <li>工具页面本身是独立的静态 HTML，放在 <code>source/assets/web/tools/</code> 目录下，由 Hexo 原样复制到站点中，可以直接分享链接给别人使用。</li>
 <li>每个工具页面的底部都写了它的功能、使用技巧，以及实现原理与能力边界，遇到问题可以先看那里。</li>
@@ -504,5 +509,20 @@
   <noscript>
     <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
   </noscript>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>

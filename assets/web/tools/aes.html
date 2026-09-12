@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AES 在线加解密工具（AES-128 / AES-256，文本与文件）</title>
+    <meta name="description" content="在线 AES-128 / AES-256 加解密：支持文本与文件，GCM / CBC 模式，口令（PBKDF2）或原始密钥，全部在浏览器本地完成，密钥与数据都不上传。">
+    <link rel="stylesheet" href="css/tool.css">
+    <script>try { var t = localStorage.getItem('tool-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) { }</script>
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="tool-header-inner">
+            <a class="tool-back" href="/" data-back>← 返回</a>
+            <div class="tool-title-wrap">
+                <h1 class="tool-title">AES 在线加解密</h1>
+                <p class="tool-subtitle">AES-128 / AES-256 · GCM / CBC · 文本与文件 · 密钥与数据全程留在浏览器，不上传</p>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="themeToggle" type="button" title="切换主题">☾</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="tool-main">
+
+        <div class="status err show hidden" id="cryptoWarn"></div>
+
+        <!-- ============================ 加密设置 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">加密设置</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnReset" type="button">恢复默认设置</button>
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="field">
+                    <label class="field-label" for="optMode">分组模式</label>
+                    <select id="optMode">
+                        <option value="gcm" selected>AES-GCM（带完整性校验，推荐）</option>
+                        <option value="cbc">AES-CBC（PKCS#7 填充）</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="optKeyLen">密钥长度</label>
+                    <select id="optKeyLen">
+                        <option value="32" selected>AES-256（32 字节密钥）</option>
+                        <option value="16">AES-128（16 字节密钥）</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="optKdf">密钥来源</label>
+                    <select id="optKdf">
+                        <option value="pbkdf2" selected>口令（PBKDF2-SHA256 派生）</option>
+                        <option value="raw">原始密钥（直接使用）</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="pwPane">
+                <div class="row">
+                    <div class="col">
+                        <label class="field-label" for="pwInput">口令（自己记住，丢了无法恢复）</label>
+                        <input type="password" id="pwInput" class="mono" autocomplete="off" spellcheck="false"
+                            placeholder="输入任意长度的口令，支持中文与空格">
+                    </div>
+                    <div class="col" style="flex:0 0 200px">
+                        <label class="field-label" for="optIter">PBKDF2 迭代次数</label>
+                        <select id="optIter">
+                            <option value="100000">100,000（最快）</option>
+                            <option value="210000">210,000</option>
+                            <option value="600000" selected>600,000（推荐）</option>
+                            <option value="1000000">1,000,000（最慢最安全）</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-group mt-8">
+                    <button class="btn btn-sm" id="btnPwToggle" type="button">显示口令</button>
+                    <button class="btn btn-sm" id="btnPwRandom" type="button">随机口令</button>
+                    <button class="btn btn-sm" id="btnPwCopy" type="button">复制口令</button>
+                </div>
+                <p class="hint" id="pwHint">口令强度：—</p>
+            </div>
+
+            <div id="rawPane" class="hidden">
+                <label class="field-label" for="rawKey">原始密钥（十六进制 / Base64 / 刚好 16 或 32 字节的文本）</label>
+                <input type="text" id="rawKey" class="mono" autocomplete="off" spellcheck="false"
+                    placeholder="例如 64 个十六进制字符（AES-256）或 32 个（AES-128）">
+                <div class="btn-group mt-8">
+                    <button class="btn btn-sm" id="btnKeyRandom" type="button">随机生成 256 位</button>
+                    <button class="btn btn-sm" id="btnKeyRandom128" type="button">随机生成 128 位</button>
+                    <button class="btn btn-sm" id="btnKeyCopy" type="button">复制密钥</button>
+                </div>
+                <p class="hint" id="rawKeyHint">尚未识别密钥。</p>
+            </div>
+
+            <div class="mt-12">
+                <label class="check-line"><input type="checkbox" id="optContainer" checked> 使用自描述容器（推荐：算法、参数与原文件名写在密文头部，解密时自动识别）</label>
+            </div>
+
+            <div id="ivPane" class="hidden">
+                <label class="field-label" for="rawIv">IV / 初始向量（十六进制或 Base64，解密时必须与加密时完全一致）</label>
+                <input type="text" id="rawIv" class="mono" autocomplete="off" spellcheck="false" placeholder="CBC：32 个十六进制字符；GCM：24 个">
+                <div class="btn-group mt-8">
+                    <button class="btn btn-sm" id="btnIvRandom" type="button">随机生成 IV</button>
+                </div>
+                <p class="hint">裸模式说明：密文里不带任何头部，所以分组模式、密钥与 IV 都必须由解密方手动填成一致；又因为盐与迭代次数没有地方保存，裸模式固定使用「原始密钥」，不能用口令。</p>
+                <p class="hint" id="ivHint"></p>
+            </div>
+
+            <p class="hint" id="formatHint"></p>
+        </section>
+
+        <!-- ============================ 文本加解密 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">文本加密 / 解密</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnSampleText" type="button">示例</button>
+                    <button class="btn btn-sm" id="btnClearText" type="button">清空</button>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <label class="field-label" for="plainText">明文（加密时的输入 / 解密时的输出）</label>
+                    <textarea id="plainText" rows="9" placeholder="在这里输入要加密的文本，例如：你好，AES！"></textarea>
+                    <p class="hint">字符数：<b id="plainCount">0</b> ｜ UTF-8 字节数：<b id="plainBytes">0 B</b></p>
+                </div>
+                <div>
+                    <label class="field-label" for="cipherText">密文（解密时的输入 / 加密时的输出）</label>
+                    <textarea id="cipherText" class="mono" rows="9"
+                        placeholder="在这里粘贴密文（Base64 或十六进制），或点击「加密」生成"></textarea>
+                    <p class="hint">长度：<b id="cipherLen">0</b> ｜ <b id="cipherInfo">—</b></p>
+                </div>
+            </div>
+
+            <div class="btn-group mt-12">
+                <button class="btn btn-primary" id="btnEncryptText" type="button">🔒 加密（左 → 右）</button>
+                <button class="btn btn-primary" id="btnDecryptText" type="button">🔓 解密（右 → 左）</button>
+                <button class="btn" id="btnCopyCipher" type="button">复制密文</button>
+                <button class="btn" id="btnCopyPlain" type="button">复制明文</button>
+                <button class="btn hidden" id="btnDownloadTextResult" type="button">⬇ 下载结果</button>
+            </div>
+
+            <div class="row mt-12">
+                <div class="col">
+                    <label class="field-label" for="optTextOut">密文输出格式（加密时）</label>
+                    <select id="optTextOut">
+                        <option value="base64" selected>Base64（推荐，便于复制粘贴）</option>
+                        <option value="hex">十六进制（Hex）</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label class="field-label" for="optTextIn">密文输入格式（解密时）</label>
+                    <select id="optTextIn">
+                        <option value="auto" selected>自动识别（Base64 / Hex）</option>
+                        <option value="base64">Base64</option>
+                        <option value="hex">十六进制（Hex）</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="status" id="textStatus"></div>
+            <p class="hint" id="textMeta"></p>
+        </section>
+
+        <!-- ============================ 文件加解密 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">文件加密 / 解密</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnDownloadAll" type="button">下载全部结果</button>
+                    <button class="btn btn-sm" id="btnClearFiles" type="button">清空列表</button>
+                </div>
+            </div>
+
+            <div class="drop-zone" id="fileDropZone">
+                <div class="dz-title">点击选择文件，或把文件拖到这里（可多选）</div>
+                <div class="dz-sub" id="fileLimitTip">文件只在本地读取和加密，不会上传</div>
+            </div>
+            <input type="file" id="fileInput" class="hidden" multiple>
+
+            <div class="btn-group mt-12">
+                <button class="btn btn-primary" id="btnEncryptFiles" type="button">🔒 加密所选文件</button>
+                <button class="btn btn-primary" id="btnDecryptFiles" type="button">🔓 解密所选文件</button>
+                <button class="btn btn-danger" id="btnCancelJob" type="button" disabled>停止</button>
+            </div>
+
+            <div class="mt-12">
+                <label class="check-line"><input type="checkbox" id="optFileB64"> 加密结果输出为 Base64 文本（<code>.enc.txt</code>，便于粘贴到聊天 / JSON；仅对 48 MB 以内的结果生效）</label>
+            </div>
+
+            <div class="progress mt-12 hidden" id="jobProgressWrap"><i id="jobProgress"></i></div>
+            <div class="status" id="fileStatus"></div>
+
+            <div class="mt-12 hidden" id="fileTableWrap">
+                <table class="kv-table">
+                    <thead>
+                        <tr>
+                            <th style="width:44%">文件</th>
+                            <th style="width:20%">大小</th>
+                            <th>状态</th>
+                            <th style="width:130px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fileTbody"></tbody>
+                </table>
+                <p class="hint">加解密都在内存中完成，只有点「下载」才会写入磁盘。处理大文件时请勿关闭页面；「停止」会在当前文件处理完后生效。</p>
+            </div>
+        </section>
+
+        <!-- ============================ 说明 ============================ -->
+        <section class="card">
+            <h2 class="card-title">使用说明</h2>
+
+            <h3 style="font-size:14px;margin:14px 0 6px">怎么用</h3>
+            <ul class="hint" style="margin:0;padding-left:20px;line-height:1.9">
+                <li>默认配置（<b>AES-256-GCM</b> + 口令 + 自描述容器）适合绝大多数场景：填一个口令，加密后把密文发给对方，对方在同一个页面粘上密文、输入同样的口令就能解开。</li>
+                <li><b>文本</b>：左侧输入明文 →「🔒 加密（左 → 右）」得到右侧密文；把密文粘回右侧 →「🔓 解密（右 → 左）」还原明文（可以用来验证口令是否记对）。</li>
+                <li><b>文件</b>：把文件拖进虚线框（可多选）→「🔒 加密所选文件」，每个文件会生成一个 <code>原文件名.enc</code>；解密时把 <code>.enc</code> 拖进来即可，如果密文里带着原文件名，解密后会自动还原。</li>
+                <li>解密时<b>不需要</b>手动选算法：自描述容器会把模式、密钥长度、迭代次数、盐、IV 都写在密文头部，本工具读到头部后会自动切好设置，你只要提供口令或原始密钥。</li>
+            </ul>
+
+            <h3 style="font-size:14px;margin:14px 0 6px">算法与安全设计</h3>
+            <ul class="hint" style="margin:0;padding-left:20px;line-height:1.9">
+                <li><b>口令模式</b>：用 <code>PBKDF2-HMAC-SHA256</code>（默认 60 万次迭代 + 16 字节随机盐）把口令扩展成密钥，抵抗离线暴力破解；AES 密钥用不可导出的 <code>CryptoKey</code> 形式交给浏览器内核。</li>
+                <li><b>GCM</b> 自带 128 位认证标签，并且把整个头部（算法、参数、原文件名）作为附加认证数据（AAD）参与校验：密文或头部被改一个字节，解密都会直接失败而不是给出乱码。</li>
+                <li><b>CBC</b> 属于传统模式，本身不防篡改，所以容器模式会额外用一段独立密钥做 <code>HMAC-SHA256</code>（先加密后认证，Encrypt-then-MAC），校验通过才会解密：口令模式下这段密钥取自 PBKDF2 输出的后半段，原始密钥模式下则用 HKDF-SHA256 从密钥派生。</li>
+                <li>原始密钥模式<b>不做密钥派生</b>：你填的密钥就是 AES 密钥，你填的 IV 就直接使用——这是为了跟其它程序对接（见下）。</li>
+                <li>本页不联网：没有 <code>fetch</code> / <code>XMLHttpRequest</code> / <code>WebSocket</code>，不用 Cookie、IndexedDB、缓存存储，也不会把明文、密文或口令写到任何地方。</li>
+            </ul>
+
+            <h3 style="font-size:14px;margin:14px 0 6px">密文容器格式（v1，大端序）</h3>
+            <table class="kv-table">
+                <thead>
+                    <tr>
+                        <th style="width:64px">偏移</th>
+                        <th style="width:56px">长度</th>
+                        <th>字段</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td class="mono">0</td><td>8</td><td>固定标识 <code>AESTOOL1</code></td></tr>
+                    <tr><td class="mono">8</td><td>1</td><td>版本号 <code>0x01</code></td></tr>
+                    <tr><td class="mono">9</td><td>1</td><td>分组模式：<code>1</code>=AES-GCM，<code>2</code>=AES-CBC</td></tr>
+                    <tr><td class="mono">10</td><td>1</td><td>密钥来源：<code>1</code>=PBKDF2 口令，<code>2</code>=原始密钥</td></tr>
+                    <tr><td class="mono">11</td><td>1</td><td>AES 密钥字节数：<code>16</code>（AES-128）或 <code>32</code>（AES-256）</td></tr>
+                    <tr><td class="mono">12</td><td>4</td><td>PBKDF2 迭代次数（原始密钥模式为 <code>0</code>）</td></tr>
+                    <tr><td class="mono">16</td><td>2</td><td>盐长度（固定 16）</td></tr>
+                    <tr><td class="mono">18</td><td>2</td><td>IV 长度（GCM 为 12，CBC 为 16）</td></tr>
+                    <tr><td class="mono">20</td><td>2</td><td>原文件名长度（UTF-8 字节数，可为 0）</td></tr>
+                    <tr><td class="mono">22</td><td>1</td><td>标志位（bit0：是否包含原文件名）</td></tr>
+                    <tr><td class="mono">23</td><td>1</td><td>保留，固定为 0</td></tr>
+                    <tr><td class="mono">24</td><td>…</td><td>盐 ‖ IV ‖ 原文件名</td></tr>
+                    <tr><td class="mono">之后</td><td>…</td><td>密文载荷：GCM 为 <code>密文 ‖ 16 字节标签</code>；CBC 为 <code>密文 ‖ 32 字节 HMAC-SHA256</code></td></tr>
+                </tbody>
+            </table>
+            <p class="hint">头部整体作为 GCM 的 AAD（CBC 则被 HMAC 覆盖），所以头部同样不可篡改。为了让解密方自动还原文件名，原文件名以明文存在头部里（只存文件名本身，不含路径与内容）；如果文件名本身敏感，加密前先把它改成无关的名字。</p>
+
+            <h3 style="font-size:14px;margin:14px 0 6px">与其它程序对接（取消勾选「自描述容器」＝裸模式）</h3>
+            <p class="hint" style="margin:0 0 6px">裸模式输出的就是纯粹的 AES 密文，不带任何头部，可以跟 OpenSSL、Node.js、Java、Python 等实现双向互通。以 AES-256-CBC 为例：</p>
+            <pre class="code" style="overflow:auto;background:var(--code-bg);border:1px solid var(--border);border-radius:7px;padding:10px 12px;margin:0 0 8px"><code># 生成随机密钥与 IV（Linux / macOS）
+KEY=$(openssl rand -hex 32); IV=$(openssl rand -hex 16)
+
+# 加密：AES-256-CBC + PKCS#7 填充，与本工具裸模式完全一致
+openssl enc -aes-256-cbc -K $KEY -iv $IV -in 明文.txt -out 密文.bin
+
+# 解密
+openssl enc -d -aes-256-cbc -K $KEY -iv $IV -in 密文.bin -out 明文.txt</code></pre>
+            <ul class="hint" style="margin:0;padding-left:20px;line-height:1.9">
+                <li>把 <code>$KEY</code> 的 64 个十六进制字符填进「原始密钥」，<code>$IV</code> 的 32 个字符填进「IV」，两边就能互相解开。</li>
+                <li>AES-CBC 的 IV 必须是 <b>16 字节</b>；AES-GCM 的 IV 通常是 <b>12 字节</b>（也接受 16 字节），GCM 的裸模式输出为 <code>密文 ‖ 16 字节标签</code>，与各语言标准 AEAD 实现的输出一致。</li>
+                <li>裸模式配合 CBC 时没有完整性校验：密钥或 IV 错了通常会因为填充错误而报错，但也有极小概率"解开"成乱码，请注意核对结果。</li>
+                <li>原始密钥模式支持三种写法：十六进制、Base64、或刚好 16 / 32 字节的文本；密钥长度决定用 AES-128 还是 AES-256。</li>
+            </ul>
+
+            <h3 style="font-size:14px;margin:14px 0 6px">口令与密钥</h3>
+            <ul class="hint" style="margin:0;padding-left:20px;line-height:1.9">
+                <li><b>忘记口令 = 数据永久无法恢复</b>。本页没有任何后门、没有找回机制，也没有服务器能帮你重置。</li>
+                <li>密钥强度决定一切。PBKDF2 只能拖慢暴力破解，救不了弱口令：建议 12 位以上、混用大小写与符号，或者点「随机口令」生成一个强口令并立刻存进密码管理器。</li>
+                <li>加密完成前请先确认口令记牢；加密之后本页不会保存任何口令或密钥，刷新页面设置就会清空。</li>
+            </ul>
+
+            <h3 style="font-size:14px;margin:14px 0 6px">能力边界</h3>
+            <ul class="hint" style="margin:0;padding-left:20px;line-height:1.9">
+                <li>文件是在内存里一次性加解密的（GCM / CBC 都无法分段流式处理），<b>建议单个文件不超过 200 MB</b>，超大文件请用 <code>age</code>、<code>gpg</code> 或 7-Zip 等本地工具。</li>
+                <li>处理大文件时内存占用会明显上升，请勿关闭或刷新页面；「停止」只能在一批文件的间隙生效。</li>
+                <li>结果不会自动写盘，必须点「下载」才会保存到你的下载目录。</li>
+                <li>这是个网页工具：如果电脑上已经有键盘记录器、恶意扩展或已经中毒，任何加密工具都保护不了你的明文与口令。高价值数据请使用系统级方案（BitLocker / VeraCrypt / age）。</li>
+                <li>可以断网使用，也可以把本页另存到本地打开（<code>file://</code> 下 Web Crypto 同样可用）。</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <p class="footer-note">mxx 的博客 · 在线工具 ｜ <a href="/">返回首页</a></p>
+
+    <script src="js/tool.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var $ = function (id) { return document.getElementById(id); };
+            var subtle = (window.crypto && window.crypto.subtle) ? window.crypto.subtle : null;
+
+            /* ==================== 常量 ==================== */
+            var MAGIC = 'AESTOOL1';
+            var VERSION = 1;
+            var C_GCM = 1, C_CBC = 2;          // 分组模式
+            var K_PBKDF2 = 1, K_RAW = 2;       // 密钥来源
+            var HDR = 24, SALT_LEN = 16, MAC_LEN = 32, TAG_LEN = 16;
+            var FILE_WARN = 200 * 1024 * 1024;
+            var FILE_B64_LIMIT = 48 * 1024 * 1024;
+            var TEXT_LIMIT = 24 * 1024 * 1024;
+
+            /* ==================== 异常 ==================== */
+            function AesError(msg) { this.message = msg; this.name = 'AesError'; }
+            AesError.prototype = Object.create(Error.prototype);
+            AesError.prototype.constructor = AesError;
+            function fail(msg) { throw new AesError(msg); }
+
+            /* ==================== 字节工具 ==================== */
+            function utf8Encode(s) { return new TextEncoder().encode(s); }
+            function utf8Decode(b) { return new TextDecoder('utf-8').decode(b); }
+            function utf8DecodeStrict(b) { return new TextDecoder('utf-8', { fatal: true }).decode(b); }
+
+            function randomBytes(n) {
+                var b = new Uint8Array(n);
+                window.crypto.getRandomValues(b);
+                return b;
+            }
+
+            function concatBytes(parts) {
+                var total = 0, i;
+                for (i = 0; i < parts.length; i++) total += parts[i].length;
+                var out = new Uint8Array(total), off = 0;
+                for (i = 0; i < parts.length; i++) { out.set(parts[i], off); off += parts[i].length; }
+                return out;
+            }
+
+            function bytesToBase64(bytes) {
+                var bin = '', CH = 0x8000;
+                for (var i = 0; i < bytes.length; i += CH) {
+                    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
+                }
+                return btoa(bin);
+            }
+
+            function base64ToBytes(b64) {
+                var bin = atob(b64);
+                var out = new Uint8Array(bin.length);
+                for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+                return out;
+            }
+
+            /* 去掉空白、兼容 base64url、补齐 padding；非法返回 null */
+            function normalizeBase64(input) {
+                if (input == null) return null;
+                var s = String(input).replace(/\s+/g, '');
+                if (!s) return null;
+                s = s.replace(/-/g, '+').replace(/_/g, '/');
+                if (!/^[A-Za-z0-9+/]*={0,2}$/.test(s)) return null;
+                var pad = s.length % 4;
+                if (pad === 1) return null;
+                if (pad === 2) s += '==';
+                else if (pad === 3) s += '=';
+                return (s.length % 4 === 0) ? s : null;
+            }
+
+            function bytesToHex(bytes) {
+                var out = '';
+                for (var i = 0; i < bytes.length; i++) out += ('0' + bytes[i].toString(16)).slice(-2);
+                return out;
+            }
+
+            function hexToBytes(str) {
+                var s = String(str).replace(/[\s:,\-]/g, '');
+                if (!s || s.length % 2 !== 0 || !/^[0-9a-fA-F]+$/.test(s)) return null;
+                var out = new Uint8Array(s.length / 2);
+                for (var i = 0; i < out.length; i++) out[i] = parseInt(s.substr(i * 2, 2), 16);
+                return out;
+            }
+
+            function wrap76(str) {
+                var out = [];
+                for (var i = 0; i < str.length; i += 76) out.push(str.substr(i, 76));
+                return out.join('\r\n');
+            }
+
+            /* ==================== 密钥 / IV 解析 ==================== */
+            /* 支持 Hex / Base64 / 16 或 32 字节文本，返回 { bytes, format, bits } */
+            function parseKeyInput(str) {
+                var s = String(str == null ? '' : str).trim();
+                if (!s) fail('请先填写原始密钥。');
+                var hx = s.replace(/[\s:]/g, '');
+                if (/^[0-9a-fA-F]+$/.test(hx) && (hx.length === 32 || hx.length === 64)) {
+                    return { bytes: hexToBytes(hx), format: '十六进制', bits: hx.length * 4 };
+                }
+                var n = normalizeBase64(s);
+                if (n) {
+                    try {
+                        var b = base64ToBytes(n);
+                        if (b.length === 16 || b.length === 32) return { bytes: b, format: 'Base64', bits: b.length * 8 };
+                    } catch (e) { /* 继续尝试文本 */ }
+                }
+                var t = utf8Encode(s);
+                if (t.length === 16 || t.length === 32) return { bytes: t, format: 'UTF-8 文本', bits: t.length * 8 };
+                fail('无法识别密钥：请填写 32 或 64 个十六进制字符、Base64 字符串，或刚好 16 / 32 字节的文本（当前文本为 ' + t.length + ' 字节）。');
+            }
+
+            function parseIvInput(str, mode) {
+                var s = String(str == null ? '' : str).trim();
+                if (!s) fail('请填写 IV（初始向量）；也可以点「随机生成 IV」再把它保存下来。');
+                var hx = s.replace(/[\s:]/g, ''), bytes = null;
+                if (/^[0-9a-fA-F]+$/.test(hx) && hx.length % 2 === 0) bytes = hexToBytes(hx);
+                else {
+                    var n = normalizeBase64(s);
+                    if (n) { try { bytes = base64ToBytes(n); } catch (e) { bytes = null; } }
+                }
+                if (!bytes) fail('IV 需要是十六进制字符串或 Base64 字符串。');
+                if (mode === 'cbc' && bytes.length !== 16) fail('AES-CBC 的 IV 必须是 16 字节（32 个十六进制字符），当前为 ' + bytes.length + ' 字节。');
+                if (mode === 'gcm' && bytes.length !== 12 && bytes.length !== 16) fail('AES-GCM 的 IV 通常为 12 字节（24 个十六进制字符），也接受 16 字节，当前为 ' + bytes.length + ' 字节。');
+                return bytes;
+            }
+
+            /* ==================== 容器头 ==================== */
+            function buildHeader(o) {
+                var nameLen = o.nameBytes ? o.nameBytes.length : 0;
+                var h = new Uint8Array(HDR + o.salt.length + o.iv.length + nameLen);
+                for (var i = 0; i < 8; i++) h[i] = MAGIC.charCodeAt(i);
+                h[8] = VERSION;
+                h[9] = o.cipher;
+                h[10] = o.kdf;
+                h[11] = o.keyLen;
+                var dv = new DataView(h.buffer);
+                dv.setUint32(12, o.iterations >>> 0, false);
+                dv.setUint16(16, o.salt.length, false);
+                dv.setUint16(18, o.iv.length, false);
+                dv.setUint16(20, nameLen, false);
+                h[22] = nameLen ? 1 : 0;
+                h[23] = 0;
+                h.set(o.salt, HDR);
+                h.set(o.iv, HDR + o.salt.length);
+                if (nameLen) h.set(o.nameBytes, HDR + o.salt.length + o.iv.length);
+                return h;
+            }
+
+            function hasMagic(bytes) {
+                if (!bytes || bytes.length < 8) return false;
+                for (var i = 0; i < 8; i++) if (bytes[i] !== MAGIC.charCodeAt(i)) return false;
+                return true;
+            }
+
+            function isContainerBytes(bytes) {
+                return hasMagic(bytes) && bytes.length >= HDR;
+            }
+
+            /* 文件名最长 255 字节（按 UTF-8 计算，不切断代理对），避免头部异常膨胀 */
+            function capFileName(name) {
+                var chars = Array.from ? Array.from(String(name)) : String(name).split('');
+                var out = '';
+                for (var i = 0; i < chars.length; i++) {
+                    if (utf8Encode(out + chars[i]).length > 255) break;
+                    out += chars[i];
+                }
+                return out;
+            }
+
+            function parseContainer(bytes) {
+                if (!bytes || bytes.length < HDR) fail('数据太短，不像是本工具生成的密文容器。');
+                if (!hasMagic(bytes)) fail('没有找到 AESTOOL1 容器标识。');
+                if (bytes[8] !== VERSION) fail('容器版本为 ' + bytes[8] + '，本工具只能处理版本 1。');
+                var cipher = bytes[9], kdf = bytes[10], keyLen = bytes[11];
+                if (cipher !== C_GCM && cipher !== C_CBC) fail('容器里的分组模式无法识别（可能是用更新版本的工具生成的）。');
+                if (kdf !== K_PBKDF2 && kdf !== K_RAW) fail('容器里的密钥来源无法识别。');
+                if (keyLen !== 16 && keyLen !== 32) fail('容器里的密钥长度无法识别。');
+                var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+                var iterations = dv.getUint32(12, false);
+                var saltLen = dv.getUint16(16, false);
+                var ivLen = dv.getUint16(18, false);
+                var nameLen = dv.getUint16(20, false);
+                if (saltLen > 64 || ivLen < 1 || ivLen > 64 || nameLen > 4096) fail('容器头部参数异常，数据可能已损坏。');
+                var headerLen = HDR + saltLen + ivLen + nameLen;
+                if (headerLen > bytes.length) fail('容器头部不完整，文件可能被截断。');
+                var name = '';
+                if (nameLen) {
+                    try { name = utf8DecodeStrict(bytes.subarray(HDR + saltLen + ivLen, headerLen)); }
+                    catch (e) { name = ''; }
+                }
+                return {
+                    cipher: cipher, kdf: kdf, keyLen: keyLen, iterations: iterations,
+                    mode: cipher === C_GCM ? 'gcm' : 'cbc',
+                    salt: bytes.subarray(HDR, HDR + saltLen),
+                    iv: bytes.subarray(HDR + saltLen, HDR + saltLen + ivLen),
+                    fileName: name,
+                    header: bytes.subarray(0, headerLen),
+                    payload: bytes.subarray(headerLen)
+                };
+            }
+
+            /* ==================== 密钥派生 ==================== */
+            /* o: { kdf, passwordBytes, rawKeyBytes, salt, iterations, keyLen, mode, needMac } */
+            async function deriveCryptoKeys(o) {
+                var algo = o.mode === 'gcm' ? 'AES-GCM' : 'AES-CBC';
+                var aesKeyBytes = null, macKeyBytes = null, sensitive = [];
+
+                if (o.kdf === K_PBKDF2) {
+                    if (!o.passwordBytes || !o.passwordBytes.length) fail('请填入口令。');
+                    var iters = o.iterations | 0;
+                    if (iters < 1000 || iters > 20000000) fail('PBKDF2 迭代次数不合法。');
+                    var need = o.keyLen + (o.needMac ? MAC_LEN : 0);
+                    var baseKey = await subtle.importKey('raw', o.passwordBytes, 'PBKDF2', false, ['deriveBits']);
+                    var bits = await subtle.deriveBits(
+                        { name: 'PBKDF2', salt: o.salt, iterations: iters, hash: 'SHA-256' }, baseKey, need * 8);
+                    var dk = new Uint8Array(bits);
+                    sensitive.push(dk);
+                    aesKeyBytes = dk.subarray(0, o.keyLen);
+                    if (o.needMac) macKeyBytes = dk.subarray(o.keyLen, o.keyLen + MAC_LEN);
+                } else {
+                    if (!o.rawKeyBytes || !o.rawKeyBytes.length) fail('请填写原始密钥。');
+                    if (o.rawKeyBytes.length !== o.keyLen) {
+                        fail('密钥长度不匹配：容器使用 AES-' + (o.keyLen * 8) + '（' + o.keyLen + ' 字节密钥），而当前密钥是 ' +
+                            o.rawKeyBytes.length + ' 字节。');
+                    }
+                    aesKeyBytes = o.rawKeyBytes;
+                    if (o.needMac) {
+                        var hk = await subtle.importKey('raw', o.rawKeyBytes, 'HKDF', false, ['deriveBits']);
+                        macKeyBytes = new Uint8Array(await subtle.deriveBits(
+                            { name: 'HKDF', hash: 'SHA-256', salt: o.salt, info: utf8Encode('aestool/v1/mac') }, hk, 256));
+                        sensitive.push(macKeyBytes);
+                    }
+                }
+
+                var aesKey = await subtle.importKey('raw', aesKeyBytes, { name: algo }, false, ['encrypt', 'decrypt']);
+                var macKey = null;
+                if (macKeyBytes) {
+                    macKey = await subtle.importKey('raw', macKeyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
+                }
+                for (var i = 0; i < sensitive.length; i++) sensitive[i].fill(0);
+                return { aesKey: aesKey, macKey: macKey };
+            }
+
+            /* ==================== 加解密核心 ==================== */
+            /* cfg: { mode, container, kdf, keyLen, passwordBytes, rawKeyBytes, iterations, iv, fileName } */
+            async function encryptBytes(plain, cfg) {
+                if (!cfg.container) {
+                    var key = cfg.rawKeyBytes;
+                    if (!key || !key.length) fail('裸模式必须使用「原始密钥」：口令模式需要自描述容器来保存盐与参数。');
+                    if (key.length !== 16 && key.length !== 32) fail('原始密钥长度必须是 16 或 32 字节。');
+                    var params = cfg.mode === 'gcm'
+                        ? { name: 'AES-GCM', iv: cfg.iv, tagLength: 128 }
+                        : { name: 'AES-CBC', iv: cfg.iv };
+                    var k = await subtle.importKey('raw', key, { name: cfg.mode === 'gcm' ? 'AES-GCM' : 'AES-CBC' }, false, ['encrypt']);
+                    var ct = new Uint8Array(await subtle.encrypt(params, k, plain));
+                    return {
+                        bytes: ct,
+                        info: { container: false, mode: cfg.mode, keyLen: key.length, iv: cfg.iv, kdf: K_RAW, iterations: 0, fileName: '' }
+                    };
+                }
+
+                var cipher = cfg.mode === 'gcm' ? C_GCM : C_CBC;
+                var needMac = cfg.mode === 'cbc';
+                var salt = randomBytes(SALT_LEN);
+                var iv = randomBytes(cfg.mode === 'gcm' ? 12 : 16);
+                var nameBytes = cfg.fileName ? utf8Encode(capFileName(cfg.fileName)) : null;
+                var header = buildHeader({
+                    cipher: cipher,
+                    kdf: cfg.kdf === 'raw' ? K_RAW : K_PBKDF2,
+                    keyLen: cfg.keyLen,
+                    iterations: cfg.kdf === 'raw' ? 0 : cfg.iterations,
+                    salt: salt, iv: iv, nameBytes: nameBytes
+                });
+                var keys = await deriveCryptoKeys({
+                    kdf: cfg.kdf === 'raw' ? K_RAW : K_PBKDF2,
+                    passwordBytes: cfg.passwordBytes,
+                    rawKeyBytes: cfg.rawKeyBytes,
+                    salt: salt,
+                    iterations: cfg.iterations,
+                    keyLen: cfg.keyLen,
+                    mode: cfg.mode,
+                    needMac: needMac
+                });
+                var ct2 = new Uint8Array(await subtle.encrypt(
+                    cfg.mode === 'gcm'
+                        ? { name: 'AES-GCM', iv: iv, additionalData: header, tagLength: 128 }
+                        : { name: 'AES-CBC', iv: iv },
+                    keys.aesKey, plain));
+                var payload = ct2;
+                if (needMac) {
+                    var mac = new Uint8Array(await subtle.sign('HMAC', keys.macKey, concatBytes([header, ct2])));
+                    payload = concatBytes([ct2, mac]);
+                }
+                return {
+                    bytes: concatBytes([header, payload]),
+                    info: {
+                        container: true, mode: cfg.mode, keyLen: cfg.keyLen,
+                        kdf: cfg.kdf === 'raw' ? K_RAW : K_PBKDF2, iterations: cfg.iterations,
+                        iv: iv, fileName: cfg.fileName || ''
+                    }
+                };
+            }
+
+            async function decryptOrFail(params, key, data) {
+                try {
+                    return new Uint8Array(await subtle.decrypt(params, key, data));
+                } catch (e) {
+                    fail('解密失败：口令 / 密钥或 IV 不正确，或密文已被篡改、损坏。');
+                }
+            }
+
+            /* cfg: { container(=设置里的勾选，仅用于裸模式), mode, passwordBytes, rawKeyBytes, iv } */
+            async function decryptBytes(input, cfg) {
+                if (hasMagic(input)) {
+                    var info = parseContainer(input);
+                    var needMac = info.cipher === C_CBC;
+                    var keys = await deriveCryptoKeys({
+                        kdf: info.kdf,
+                        passwordBytes: cfg.passwordBytes,
+                        rawKeyBytes: cfg.rawKeyBytes,
+                        salt: info.salt,
+                        iterations: info.iterations,
+                        keyLen: info.keyLen,
+                        mode: info.mode,
+                        needMac: needMac
+                    });
+                    var payload = info.payload, pt;
+                    if (needMac) {
+                        if (payload.length < MAC_LEN + 16) fail('密文长度异常（不足一个分组），数据可能不完整。');
+                        var ct = payload.subarray(0, payload.length - MAC_LEN);
+                        var mac = payload.subarray(payload.length - MAC_LEN);
+                        if (ct.length % 16 !== 0) fail('CBC 密文长度不是 16 的整数倍，数据可能已损坏。');
+                        var ok = await subtle.verify('HMAC', keys.macKey, mac, concatBytes([info.header, ct]));
+                        if (!ok) fail('完整性校验失败：口令 / 密钥错误，或密文被篡改、传输时损坏。');
+                        pt = await decryptOrFail({ name: 'AES-CBC', iv: info.iv }, keys.aesKey, ct);
+                    } else {
+                        if (payload.length < TAG_LEN) fail('密文长度异常，数据可能不完整。');
+                        pt = await decryptOrFail(
+                            { name: 'AES-GCM', iv: info.iv, additionalData: info.header, tagLength: 128 }, keys.aesKey, payload);
+                    }
+                    return {
+                        bytes: pt,
+                        info: {
+                            container: true, mode: info.mode, keyLen: info.keyLen, kdf: info.kdf,
+                            iterations: info.iterations, iv: info.iv, fileName: info.fileName
+                        }
+                    };
+                }
+
+                if (cfg.container) {
+                    fail('没有找到 AESTOOL1 容器头部：这是「裸模式」密文（或不是本工具生成的密文）。请取消勾选「使用自描述容器」，' +
+                        '选好分组模式并填写原始密钥与 IV。');
+                }
+                var key = cfg.rawKeyBytes;
+                if (!key || !key.length) fail('裸模式解密需要填写原始密钥。');
+                if (!cfg.iv) fail('裸模式解密需要填写 IV。');
+                var k = await subtle.importKey('raw', key, { name: cfg.mode === 'gcm' ? 'AES-GCM' : 'AES-CBC' }, false, ['decrypt']);
+                var out = await decryptOrFail(
+                    cfg.mode === 'gcm' ? { name: 'AES-GCM', iv: cfg.iv, tagLength: 128 } : { name: 'AES-CBC', iv: cfg.iv },
+                    k, input);
+                return {
+                    bytes: out,
+                    info: { container: false, mode: cfg.mode, keyLen: key.length, kdf: K_RAW, iterations: 0, iv: cfg.iv, fileName: '' }
+                };
+            }
+
+            /* ==================== 文本 <-> 字节 ==================== */
+            function encodeBytesToText(bytes, fmt) {
+                return fmt === 'hex' ? bytesToHex(bytes) : wrap76(bytesToBase64(bytes));
+            }
+
+            /* 自动识别 Base64 / Hex：
+             * 1) 优先选能解析出容器头部的那一种；
+             * 2) 都不是容器时，纯十六进制串按 Hex 处理（否则裸模式密文会被当成 Base64 解错）；
+             * 3) 其余情况按 Base64。 */
+            function decodeCipherTextAuto(str) {
+                var s = String(str).trim();
+                if (!s) fail('请先粘贴要解密的内容。');
+                if (s.length > TEXT_LIMIT) fail('文本太长（超过 ' + Tool.formatBytes(TEXT_LIMIT) + '），请改用「文件加密 / 解密」。');
+                var b64Cand = null, hexCand = null;
+                if (/^[A-Za-z0-9+/=\s\-_]+$/.test(s)) {
+                    var n = normalizeBase64(s);
+                    if (n) { try { b64Cand = { how: 'Base64', bytes: base64ToBytes(n) }; } catch (e) { /* 忽略 */ } }
+                }
+                var hx = s.replace(/[\s:]/g, '');
+                if (hx.length >= 16 && /^[0-9a-fA-F]+$/.test(hx) && hx.length % 2 === 0) {
+                    try { hexCand = { how: '十六进制', bytes: hexToBytes(hx) }; } catch (e) { /* 忽略 */ }
+                }
+                var cands = [];
+                if (b64Cand) cands.push(b64Cand);
+                if (hexCand) cands.push(hexCand);
+                if (!cands.length) fail('内容既不是合法的 Base64，也不是合法的十六进制字符串。');
+                for (var i = 0; i < cands.length; i++) if (hasMagic(cands[i].bytes)) return cands[i];
+                return hexCand || b64Cand;
+            }
+
+            function decodeTextToBytes(str, fmt) {
+                if (fmt === 'hex') {
+                    var h = hexToBytes(String(str));
+                    if (!h) fail('不是合法的十六进制字符串（应只含 0-9 a-f，且长度为偶数）。');
+                    return { how: '十六进制', bytes: h };
+                }
+                if (fmt === 'base64') {
+                    var n = normalizeBase64(String(str));
+                    if (!n) fail('不是合法的 Base64 字符串。');
+                    return { how: 'Base64', bytes: base64ToBytes(n) };
+                }
+                return decodeCipherTextAuto(str);
+            }
+
+            /* ==================== 界面状态 ==================== */
+            var state = { busy: false, cancel: false, files: [], seq: 0, lastText: null };
+            /* 取消勾选「自描述容器」时被强制改成原始密钥，这里记住原设置以便还原 */
+            var bareBackup = null;
+
+            function nextTick() { return new Promise(function (r) { setTimeout(r, 0); }); }
+
+            function modeName(mode) { return mode === 'gcm' ? 'AES-GCM' : 'AES-CBC'; }
+
+            function timing(ms) { return ms ? '，耗时 ' + ms + ' ms。' : '。'; }
+
+            function describeInfo(info) {
+                if (!info) return '';
+                var s = [modeName(info.mode), 'AES-' + (info.keyLen * 8)];
+                if (info.container) {
+                    s.push(info.kdf === K_RAW ? '原始密钥' : 'PBKDF2 ' + Number(info.iterations).toLocaleString() + ' 次');
+                    s.push('IV ' + info.iv.length + ' 字节');
+                    if (info.fileName) s.push('原文件名 ' + info.fileName);
+                } else {
+                    s.push('裸模式（无头部）');
+                }
+                return s.join(' · ');
+            }
+
+            function requirePw() {
+                var pw = $('pwInput').value;
+                if (!pw) fail('请填写口令（解密时的口令必须与加密时完全一致，包括大小写与空格）。');
+                return utf8Encode(pw);
+            }
+
+            function readRawKey() { return parseKeyInput($('rawKey').value).bytes; }
+
+            /* 加密参数：来自界面设置 */
+            function collectEncryptCfg() {
+                var container = $('optContainer').checked;
+                var mode = $('optMode').value === 'cbc' ? 'cbc' : 'gcm';
+                var kdf = container ? ($('optKdf').value === 'raw' ? 'raw' : 'pbkdf2') : 'raw';
+                var keyLen = parseInt($('optKeyLen').value, 10);
+                var iterations = parseInt($('optIter').value, 10);
+                if (keyLen !== 16 && keyLen !== 32) keyLen = 32;
+                if (!(iterations >= 1000)) iterations = 600000;
+                var cfg = {
+                    mode: mode, container: container, kdf: kdf, keyLen: keyLen,
+                    iterations: iterations, passwordBytes: null, rawKeyBytes: null, iv: null, fileName: null
+                };
+                if (kdf === 'pbkdf2') {
+                    cfg.passwordBytes = requirePw();
+                } else {
+                    cfg.rawKeyBytes = readRawKey();
+                    cfg.keyLen = cfg.rawKeyBytes.length;
+                }
+                if (!container) {
+                    if (!cfg.rawKeyBytes) fail('裸模式必须使用「原始密钥」：口令模式需要自描述容器来保存盐与参数。');
+                    cfg.iv = parseIvInput($('rawIv').value, mode);
+                }
+                return cfg;
+            }
+
+            /* 解密参数：优先从容器头部读取，裸模式才用界面设置 */
+            function collectDecryptCfg(bytes) {
+                if (hasMagic(bytes)) {
+                    var info = parseContainer(bytes);
+                    syncUiFromContainer(info);
+                    var cfg = { container: true, mode: info.mode, passwordBytes: null, rawKeyBytes: null, iv: null };
+                    if (info.kdf === K_PBKDF2) cfg.passwordBytes = requirePw();
+                    else cfg.rawKeyBytes = readRawKey();
+                    return cfg;
+                }
+                if ($('optContainer').checked) {
+                    fail('没有找到 AESTOOL1 容器头部：这是「裸模式」密文（或不是本工具生成的密文）。请取消勾选「使用自描述容器」，' +
+                        '选好分组模式并填写原始密钥与 IV。');
+                }
+                var mode = $('optMode').value === 'cbc' ? 'cbc' : 'gcm';
+                return {
+                    container: false, mode: mode, passwordBytes: null,
+                    rawKeyBytes: readRawKey(), iv: parseIvInput($('rawIv').value, mode)
+                };
+            }
+
+            /* 按容器头部的参数同步界面，让用户看到"它自己认出来了" */
+            function syncUiFromContainer(info) {
+                $('optContainer').checked = true;
+                $('optMode').value = info.mode;
+                $('optKdf').value = info.kdf === K_RAW ? 'raw' : 'pbkdf2';
+                updatePanes();
+                $('optKeyLen').value = String(info.keyLen);
+                if (info.kdf !== K_RAW) setIterSelect(info.iterations);
+                updateFormatHint();
+            }
+
+            /* 密文头部的迭代次数可能不在预设选项里，动态补一个 */
+            function setIterSelect(v) {
+                var sel = $('optIter'), s = String(v), found = false;
+                for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === s) found = true;
+                if (!found) {
+                    var o = document.createElement('option');
+                    o.value = s;
+                    o.textContent = Number(v).toLocaleString() + '（来自密文头部）';
+                    sel.appendChild(o);
+                }
+                sel.value = s;
+            }
+
+            /* ==================== 设置面板联动 ==================== */
+            function updatePanes() {
+                var container = $('optContainer').checked;
+                var kdf = $('optKdf').value === 'raw' ? 'raw' : 'pbkdf2';
+                $('pwPane').classList.toggle('hidden', kdf !== 'pbkdf2');
+                $('rawPane').classList.toggle('hidden', kdf !== 'raw');
+                $('ivPane').classList.toggle('hidden', container);
+                $('optIter').disabled = (kdf !== 'pbkdf2');
+                $('optKdf').disabled = !container;
+
+                var rawLen = null;
+                if (kdf === 'raw') {
+                    try { rawLen = readRawKey().length; } catch (e) { rawLen = null; }
+                }
+                if (kdf === 'raw' && rawLen) $('optKeyLen').value = String(rawLen);
+                $('optKeyLen').disabled = (kdf === 'raw');
+                updateIvHint();
+                updateFormatHint();
+            }
+
+            function updateIvHint() {
+                var mode = $('optMode').value === 'cbc' ? 'cbc' : 'gcm';
+                $('ivHint').textContent = mode === 'cbc'
+                    ? '当前为 AES-CBC：IV 必须 16 字节（32 个十六进制字符），且每个文件 / 每段数据都应换一个随机 IV。'
+                    : '当前为 AES-GCM：IV 通常 12 字节（24 个十六进制字符），也接受 16 字节；同一密钥下切勿重复使用同一个 IV。';
+            }
+
+            function updateFormatHint() {
+                var container = $('optContainer').checked;
+                var mode = $('optMode').value === 'cbc' ? 'cbc' : 'gcm';
+                var kdf = container ? ($('optKdf').value === 'raw' ? 'raw' : 'pbkdf2') : 'raw';
+                var keyLen = kdf === 'raw' ? null : parseInt($('optKeyLen').value, 10);
+                var bits;
+                if (kdf === 'raw') {
+                    try { bits = readRawKey().length * 8; } catch (e) { bits = null; }
+                } else bits = keyLen;
+                var s = '当前配置：' + modeName(mode) + (bits ? ' AES-' + bits : ' AES-?(密钥长度由密钥决定)');
+                if (container) {
+                    s += '，' + (kdf === 'pbkdf2'
+                        ? '口令经 PBKDF2-SHA256（' + Number(parseInt($('optIter').value, 10)).toLocaleString() + ' 次迭代 + 随机盐）派生'
+                        : '直接使用你填写的原始密钥');
+                    s += '；密文带自描述头部（含原文件名）与' + (mode === 'gcm' ? ' 16 字节认证标签' : ' 32 字节 HMAC 校验值') + '，解密时只需提供' + (kdf === 'pbkdf2' ? '口令' : '同一把密钥') + '。';
+                } else {
+                    s += '，裸模式：直接使用你填写的密钥与 IV，输出不含任何头部的纯密文' +
+                        (mode === 'gcm' ? '（密文 ‖ 16 字节标签）' : '（PKCS#7 填充，可与 OpenSSL 互通）') +
+                        '；没有完整性校验以外的容错，务必备份好密钥与 IV。';
+                }
+                $('formatHint').textContent = s;
+            }
+
+            function pwStrength(pw) {
+                if (!pw) return '—';
+                var score = 0;
+                if (pw.length >= 8) score++;
+                if (pw.length >= 12) score++;
+                if (pw.length >= 16) score++;
+                if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+                if (/[0-9]/.test(pw)) score++;
+                if (/[^A-Za-z0-9]/.test(pw)) score++;
+                if (score <= 2) return '弱（很容易被离线暴力破解，建议换一个长口令）';
+                if (score <= 4) return '中等（建议 12 位以上，并混用大小写、数字与符号）';
+                return '较强';
+            }
+
+            function updatePwHint() {
+                $('pwHint').textContent = '口令强度：' + pwStrength($('pwInput').value) +
+                    '（口令只用于本地派生密钥，不会被保存或上传）';
+            }
+
+            function updateRawKeyHint() {
+                var v = $('rawKey').value.trim();
+                if (!v) { $('rawKeyHint').textContent = '尚未识别密钥。'; return; }
+                try {
+                    var r = parseKeyInput(v);
+                    $('rawKeyHint').textContent = '已识别：' + r.format + '，' + r.bytes.length + ' 字节 → 将使用 AES-' + r.bits + '。';
+                } catch (e) {
+                    $('rawKeyHint').textContent = e.message;
+                }
+            }
+
+            /* ==================== 文本区 ==================== */
+            function updateTextStats() {
+                var p = $('plainText').value;
+                $('plainCount').textContent = p.length;
+                try { $('plainBytes').textContent = Tool.formatBytes(utf8Encode(p).length); }
+                catch (e) { $('plainBytes').textContent = '-'; }
+                var c = $('cipherText').value.replace(/\s/g, '');
+                $('cipherLen').textContent = c.length;
+                $('cipherInfo').textContent = c ? cipherPeek() : '—';
+            }
+
+            function cipherPeek() {
+                var s = $('cipherText').value.trim();
+                if (!s) return '—';
+                if (s.length > 2 * 1024 * 1024) return '内容较长，已跳过识别';
+                try {
+                    var cand = decodeCipherTextAuto(s);
+                    if (hasMagic(cand.bytes)) {
+                        var info = parseContainer(cand.bytes);
+                        return 'AESTOOL1 容器：' + describeInfo({
+                            container: true, mode: info.mode, keyLen: info.keyLen, kdf: info.kdf,
+                            iterations: info.iterations, iv: info.iv, fileName: info.fileName
+                        }) + '（' + cand.how + ' 编码）';
+                    }
+                    return '裸模式密文：' + Tool.formatBytes(cand.bytes.length) + '（' + cand.how + ' 编码）';
+                } catch (e) {
+                    return '无法识别：' + e.message;
+                }
+            }
+
+            var peekDebounced = Tool.debounce(function () {
+                $('cipherInfo').textContent = $('cipherText').value.trim() ? cipherPeek() : '—';
+            }, 320);
+
+            function showTextResult(res, kind, howIn, ms) {
+                var text = null, isText = true;
+                try { text = utf8DecodeStrict(res.bytes); }
+                catch (e) { text = utf8Decode(res.bytes); isText = false; }
+
+                if (kind === 'enc') {
+                    $('cipherText').value = encodeBytesToText(res.bytes, $('optTextOut').value);
+                    state.lastText = { bytes: res.bytes, name: res.info.fileName ? res.info.fileName + '.enc' : 'ciphertext.enc', mime: 'application/octet-stream' };
+                    Tool.setStatus($('textStatus'), 'ok', '加密完成：' + Tool.formatBytes(res.bytes.length) + ' 密文（参数：' + describeInfo(res.info) + '）' + timing(ms));
+                } else {
+                    $('plainText').value = text;
+                    var nm = res.info.fileName || (isText ? 'decrypted.txt' : 'decrypted.bin');
+                    state.lastText = { bytes: res.bytes, name: nm, mime: isText ? 'text/plain;charset=utf-8' : 'application/octet-stream' };
+                    if (isText) {
+                        Tool.setStatus($('textStatus'), 'ok', '解密成功：' + Tool.formatBytes(res.bytes.length) + ' 明文（参数：' + describeInfo(res.info) +
+                            (howIn ? '，输入按 ' + howIn + ' 解析' : '') + '）' + timing(ms));
+                    } else {
+                        Tool.setStatus($('textStatus'), 'warn', '解密成功，但结果不是合法的 UTF-8 文本（可能是图片、压缩包等二进制数据，共 ' +
+                            Tool.formatBytes(res.bytes.length) + '）。下面按容错方式显示，建议点「下载结果」保存为文件。');
+                    }
+                }
+                $('btnDownloadTextResult').classList.remove('hidden');
+                $('textMeta').textContent = '本次参数：' + describeInfo(res.info) +
+                    (kind === 'dec' && !res.info.container && res.info.mode === 'cbc'
+                        ? '（裸模式 CBC 没有完整性校验，如果结果是乱码，说明密钥或 IV 不对）' : '');
+                updateTextStats();
+            }
+
+            async function doEncryptText() {
+                if (!subtle) return;
+                var plain = $('plainText').value;
+                if (!plain) { Tool.setStatus($('textStatus'), 'warn', '请先在左侧输入要加密的明文。'); return; }
+                if (state.busy) { Tool.toast('正在处理中，请稍候', 'warn'); return; }
+                var cfg;
+                try { cfg = collectEncryptCfg(); }
+                catch (e) { Tool.setStatus($('textStatus'), 'err', e.message); return; }
+                state.busy = true;
+                try {
+                    var t0 = performance.now();
+                    var res = await encryptBytes(utf8Encode(plain), cfg);
+                    showTextResult(res, 'enc', null, Math.max(1, Math.round(performance.now() - t0)));
+                } catch (e) {
+                    Tool.setStatus($('textStatus'), 'err', e.message || String(e));
+                } finally { state.busy = false; }
+            }
+
+            async function doDecryptText() {
+                if (!subtle) return;
+                var raw = $('cipherText').value;
+                if (!raw.trim()) { Tool.setStatus($('textStatus'), 'warn', '请先在右侧粘贴要解密的密文。'); return; }
+                if (state.busy) { Tool.toast('正在处理中，请稍候', 'warn'); return; }
+                var cand, cfg;
+                try {
+                    cand = decodeTextToBytes(raw, $('optTextIn').value);
+                    cfg = collectDecryptCfg(cand.bytes);
+                } catch (e) { Tool.setStatus($('textStatus'), 'err', e.message); return; }
+                state.busy = true;
+                try {
+                    var t0 = performance.now();
+                    var res = await decryptBytes(cand.bytes, cfg);
+                    showTextResult(res, 'dec', cand.how, Math.max(1, Math.round(performance.now() - t0)));
+                } catch (e) {
+                    Tool.setStatus($('textStatus'), 'err', e.message || String(e));
+                } finally { state.busy = false; }
+            }
+
+            /* ==================== 文件区 ==================== */
+            function sanitizeName(n) {
+                var s = String(n == null ? '' : n).replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').replace(/^\.+/, '').trim();
+                return s.slice(0, 180);
+            }
+
+            function suggestDecryptName(name, info) {
+                if (info && info.container && info.fileName) return sanitizeName(info.fileName) || 'decrypted.bin';
+                var n = String(name || 'file');
+                var m = n.replace(/\.(enc|encrypted|aes|crypt|bin|dat|txt)$/i, '');
+                if (m === n) m = n + '.dec';
+                return sanitizeName(m) || 'decrypted.bin';
+            }
+
+            function bindMultiDrop(zone, input, onFiles) {
+                zone.addEventListener('click', function () { input.click(); });
+                input.addEventListener('change', function () {
+                    if (input.files && input.files.length) onFiles(input.files);
+                    input.value = '';
+                });
+                ['dragenter', 'dragover'].forEach(function (ev) {
+                    zone.addEventListener(ev, function (e) {
+                        e.preventDefault(); e.stopPropagation();
+                        zone.classList.add('dragover');
+                    });
+                });
+                ['dragleave', 'drop'].forEach(function (ev) {
+                    zone.addEventListener(ev, function (e) {
+                        e.preventDefault(); e.stopPropagation();
+                        if (ev === 'dragleave' && zone.contains(e.relatedTarget)) return;
+                        zone.classList.remove('dragover');
+                    });
+                });
+                zone.addEventListener('drop', function (e) {
+                    var dt = e.dataTransfer;
+                    if (dt && dt.files && dt.files.length) onFiles(dt.files);
+                });
+            }
+
+            function addFiles(list) {
+                var n = 0;
+                for (var i = 0; i < list.length; i++) {
+                    var f = list[i];
+                    if (!f || typeof f.size !== 'number') continue;
+                    if (f.size === 0) { Tool.toast('已跳过空文件：' + f.name, 'warn'); continue; }
+                    state.files.push({
+                        id: ++state.seq, file: f, status: 'ready', out: null,
+                        outName: '', outMime: 'application/octet-stream', err: '', note: '', info: null
+                    });
+                    n++;
+                }
+                if (n) Tool.setStatus($('fileStatus'), 'info', '已加入 ' + n + ' 个文件，列表中共 ' + state.files.length + ' 个。');
+                renderFileList();
+                updateFileTip();
+            }
+
+            function updateFileTip() {
+                var total = 0, big = 0;
+                state.files.forEach(function (it) {
+                    total += it.file.size;
+                    if (it.file.size > FILE_WARN) big++;
+                });
+                var tip = '文件只在本地读取和加解密，不会上传';
+                if (state.files.length) tip += '；已选 ' + state.files.length + ' 个文件，合计 ' + Tool.formatBytes(total);
+                if (big) tip += '；其中 ' + big + ' 个超过 200 MB，可能因内存不足而失败';
+                $('fileLimitTip').textContent = tip;
+            }
+
+            var STATUS_TEXT = { ready: '待处理', running: '处理中…', done: '已完成', error: '失败' };
+
+            function renderFileList() {
+                var tb = $('fileTbody');
+                tb.textContent = '';
+                state.files.forEach(function (item) {
+                    var tr = document.createElement('tr');
+
+                    var tdName = document.createElement('td');
+                    tdName.className = 'mono';
+                    tdName.textContent = item.file.name;
+                    tdName.title = item.file.name;
+
+                    var tdSize = document.createElement('td');
+                    tdSize.textContent = Tool.formatBytes(item.file.size) +
+                        (item.out ? ' → ' + Tool.formatBytes(item.out.length) : '');
+
+                    var tdStat = document.createElement('td');
+                    var badge = document.createElement('span');
+                    badge.className = 'badge' + (item.status === 'done' ? ' ok' : item.status === 'error' ? ' err' : item.status === 'running' ? ' warn' : '');
+                    var t = STATUS_TEXT[item.status] || item.status;
+                    if (item.status === 'done' && item.outName) t += '（' + item.outName + '）';
+                    badge.textContent = t;
+                    tdStat.appendChild(badge);
+                    if (item.err) {
+                        var p = document.createElement('div');
+                        p.className = 'hint';
+                        p.textContent = item.err;
+                        tdStat.appendChild(p);
+                    }
+                    if (item.note) {
+                        var p2 = document.createElement('div');
+                        p2.className = 'hint';
+                        p2.textContent = item.note;
+                        tdStat.appendChild(p2);
+                    }
+
+                    var tdAct = document.createElement('td');
+                    var btnDl = document.createElement('button');
+                    btnDl.type = 'button';
+                    btnDl.className = 'btn btn-sm';
+                    btnDl.textContent = '下载';
+                    btnDl.disabled = !item.out;
+                    btnDl.addEventListener('click', function () { downloadItem(item); });
+                    var btnDel = document.createElement('button');
+                    btnDel.type = 'button';
+                    btnDel.className = 'btn btn-sm';
+                    btnDel.textContent = '移除';
+                    btnDel.style.marginLeft = '6px';
+                    btnDel.addEventListener('click', function () {
+                        var idx = state.files.indexOf(item);
+                        if (idx >= 0) state.files.splice(idx, 1);
+                        renderFileList();
+                        updateFileTip();
+                    });
+                    tdAct.appendChild(btnDl);
+                    tdAct.appendChild(btnDel);
+
+                    tr.appendChild(tdName);
+                    tr.appendChild(tdSize);
+                    tr.appendChild(tdStat);
+                    tr.appendChild(tdAct);
+                    tb.appendChild(tr);
+                });
+                $('fileTableWrap').classList.toggle('hidden', state.files.length === 0);
+            }
+
+            function downloadItem(item) {
+                if (!item.out) return;
+                var name = item.outName || 'output.bin';
+                Tool.download(new Blob([item.out], { type: item.outMime || 'application/octet-stream' }), name);
+                Tool.toast('已开始下载：' + name, 'ok');
+            }
+
+            function setProgress(p) {
+                var wrap = $('jobProgressWrap');
+                if (p == null) { wrap.classList.add('hidden'); $('jobProgress').style.width = '0%'; return; }
+                wrap.classList.remove('hidden');
+                $('jobProgress').style.width = Math.round(p * 100) + '%';
+            }
+
+            async function runFileJob(kind) {
+                if (!state.files.length) { Tool.toast('请先选择文件', 'warn'); return; }
+                if (state.busy) { Tool.toast('正在处理中，请稍候', 'warn'); return; }
+                var encCfg = null;
+                if (kind === 'enc') {
+                    try { encCfg = collectEncryptCfg(); }
+                    catch (e) { Tool.setStatus($('fileStatus'), 'err', e.message); return; }
+                }
+                state.busy = true;
+                state.cancel = false;
+                $('btnEncryptFiles').disabled = true;
+                $('btnDecryptFiles').disabled = true;
+                $('btnCancelJob').disabled = false;
+                var done = 0, failed = 0, skipped = 0;
+                try {
+                    for (var i = 0; i < state.files.length; i++) {
+                        var item = state.files[i];
+                        if (state.cancel) {
+                            skipped++;
+                            if (item.status === 'running') item.status = item.out ? 'done' : 'ready';
+                            continue;
+                        }
+                        item.status = 'running';
+                        item.err = '';
+                        item.note = '';
+                        renderFileList();
+                        setProgress(i / state.files.length);
+                        Tool.setStatus($('fileStatus'), 'info', '正在' + (kind === 'enc' ? '加密' : '解密') +
+                            ' ' + (i + 1) + '/' + state.files.length + '：' + item.file.name);
+                        await nextTick();
+                        try {
+                            var buf = new Uint8Array(await item.file.arrayBuffer());
+                            var res, outName, outMime = 'application/octet-stream', outBytes;
+                            if (kind === 'enc') {
+                                encCfg.fileName = item.file.name;
+                                res = await encryptBytes(buf, encCfg);
+                                outBytes = res.bytes;
+                                outName = item.file.name + '.enc';
+                                if ($('optFileB64').checked) {
+                                    if (res.bytes.length > FILE_B64_LIMIT) {
+                                        item.note = '结果超过 48 MB，已按二进制 .enc 输出。';
+                                    } else {
+                                        outBytes = utf8Encode(wrap76(bytesToBase64(res.bytes)));
+                                        outMime = 'text/plain;charset=utf-8';
+                                        outName = item.file.name + '.enc.txt';
+                                    }
+                                }
+                            } else {
+                                res = await decryptBytes(buf, collectDecryptCfg(buf));
+                                outBytes = res.bytes;
+                                outName = suggestDecryptName(item.file.name, res.info);
+                            }
+                            item.out = outBytes;
+                            item.outName = outName;
+                            item.outMime = outMime;
+                            item.info = res.info;
+                            item.status = 'done';
+                            done++;
+                        } catch (e) {
+                            item.status = 'error';
+                            item.err = e.message || String(e);
+                            failed++;
+                        }
+                        renderFileList();
+                        setProgress((i + 1) / state.files.length);
+                        await nextTick();
+                    }
+                } finally {
+                    state.busy = false;
+                    setProgress(null);
+                    $('btnEncryptFiles').disabled = false;
+                    $('btnDecryptFiles').disabled = false;
+                    $('btnCancelJob').disabled = true;
+                }
+                if (skipped) Tool.setStatus($('fileStatus'), 'warn', '已停止：完成 ' + done + ' 个，失败 ' + failed + ' 个，跳过 ' + skipped + ' 个。');
+                else if (failed) Tool.setStatus($('fileStatus'), 'err', '处理结束：成功 ' + done + ' 个，失败 ' + failed + ' 个，失败原因见列表。');
+                else Tool.setStatus($('fileStatus'), 'ok', '处理完成：' + done + ' 个文件已' + (kind === 'enc' ? '加密' : '解密') + '，点列表里的「下载」保存结果。');
+                state.cancel = false;
+            }
+
+            /* ==================== 事件绑定 ==================== */
+            function bind() {
+                $('optMode').addEventListener('change', function () { updateIvHint(); updateFormatHint(); });
+                $('optKeyLen').addEventListener('change', updateFormatHint);
+                $('optIter').addEventListener('change', updateFormatHint);
+                $('optKdf').addEventListener('change', updatePanes);
+                $('optContainer').addEventListener('change', function () {
+                    if (!this.checked) {
+                        /* 裸模式没有地方保存盐与迭代次数，只能用原始密钥。
+                         * 先记住用户原本的选择，重新勾选时再还原回去。 */
+                        bareBackup = { kdf: $('optKdf').value, keyLen: $('optKeyLen').value };
+                        $('optKdf').value = 'raw';
+                        if (!$('rawIv').value) $('rawIv').value = bytesToHex(randomBytes($('optMode').value === 'cbc' ? 16 : 12));
+                    } else if (bareBackup) {
+                        if (bareBackup.kdf !== 'raw') {
+                            $('optKdf').value = bareBackup.kdf;
+                            if (bareBackup.keyLen) $('optKeyLen').value = bareBackup.keyLen;
+                        }
+                        bareBackup = null;
+                    }
+                    updatePanes();
+                });
+                var rawKeyDebounced = Tool.debounce(function () { updatePanes(); updateRawKeyHint(); }, 200);
+                $('rawKey').addEventListener('input', rawKeyDebounced);
+                $('pwInput').addEventListener('input', Tool.debounce(updatePwHint, 150));
+
+                $('btnPwToggle').addEventListener('click', function () {
+                    var el = $('pwInput');
+                    var show = el.type === 'password';
+                    el.type = show ? 'text' : 'password';
+                    this.textContent = show ? '隐藏口令' : '显示口令';
+                });
+                $('btnPwRandom').addEventListener('click', function () {
+                    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*-_=+';
+                    var bytes = randomBytes(24), out = '';
+                    for (var i = 0; i < bytes.length; i++) out += chars.charAt(bytes[i] % chars.length);
+                    $('pwInput').value = out;
+                    $('pwInput').type = 'text';
+                    $('btnPwToggle').textContent = '隐藏口令';
+                    updatePwHint();
+                    Tool.toast('已生成随机口令，请立刻记录到密码管理器', 'ok', 2600);
+                });
+                $('btnPwCopy').addEventListener('click', function () { Tool.copy($('pwInput').value, '口令已复制'); });
+
+                $('btnKeyRandom').addEventListener('click', function () { setRandomKey(32); });
+                $('btnKeyRandom128').addEventListener('click', function () { setRandomKey(16); });
+                $('btnKeyCopy').addEventListener('click', function () { Tool.copy($('rawKey').value, '密钥已复制'); });
+                $('btnIvRandom').addEventListener('click', function () {
+                    var len = $('optMode').value === 'cbc' ? 16 : 12;
+                    $('rawIv').value = bytesToHex(randomBytes(len));
+                    Tool.toast('已生成 ' + len + ' 字节随机 IV，请一并保存', 'ok');
+                });
+
+                $('btnReset').addEventListener('click', function () {
+                    $('optMode').value = 'gcm';
+                    $('optKeyLen').value = '32';
+                    $('optKdf').value = 'pbkdf2';
+                    $('optIter').value = '600000';
+                    $('optContainer').checked = true;
+                    $('pwInput').value = '';
+                    $('rawKey').value = '';
+                    $('rawIv').value = '';
+                    bareBackup = null;
+                    $('optTextOut').value = 'base64';
+                    $('optTextIn').value = 'auto';
+                    updatePanes();
+                    updateRawKeyHint();
+                    updatePwHint();
+                    Tool.setStatus($('textStatus'), '', '');
+                    Tool.setStatus($('fileStatus'), '', '');
+                    $('textMeta').textContent = '';
+                    Tool.toast('设置已恢复默认', 'ok');
+                });
+
+                $('plainText').addEventListener('input', updateTextStats);
+                $('cipherText').addEventListener('input', function () { updateTextStats(); peekDebounced(); });
+                $('btnEncryptText').addEventListener('click', doEncryptText);
+                $('btnDecryptText').addEventListener('click', doDecryptText);
+                $('btnCopyCipher').addEventListener('click', function () { Tool.copy($('cipherText').value, '密文已复制'); });
+                $('btnCopyPlain').addEventListener('click', function () { Tool.copy($('plainText').value, '明文已复制'); });
+                $('btnClearText').addEventListener('click', function () {
+                    $('plainText').value = '';
+                    $('cipherText').value = '';
+                    $('btnDownloadTextResult').classList.add('hidden');
+                    state.lastText = null;
+                    Tool.setStatus($('textStatus'), '', '');
+                    $('textMeta').textContent = '';
+                    updateTextStats();
+                });
+                $('btnSampleText').addEventListener('click', function () {
+                    $('plainText').value = '你好，AES！Hello 2026 🔐 —— 这是一段用于测试加解密的示例文本。';
+                    if (!$('pwInput').value) {
+                        $('pwInput').value = 'mxx-demo-2026';
+                        updatePwHint();
+                    }
+                    $('optContainer').checked = true;
+                    $('optMode').value = 'gcm';
+                    $('optKeyLen').value = '32';
+                    $('optKdf').value = 'pbkdf2';
+                    updatePanes();
+                    updateTextStats();
+                    doEncryptText();
+                });
+                $('btnDownloadTextResult').addEventListener('click', function () {
+                    if (!state.lastText) { Tool.toast('还没有可下载的结果', 'warn'); return; }
+                    Tool.download(new Blob([state.lastText.bytes], { type: state.lastText.mime }), state.lastText.name);
+                    Tool.toast('已开始下载：' + state.lastText.name, 'ok');
+                });
+
+                bindMultiDrop($('fileDropZone'), $('fileInput'), addFiles);
+                $('btnEncryptFiles').addEventListener('click', function () { runFileJob('enc'); });
+                $('btnDecryptFiles').addEventListener('click', function () { runFileJob('dec'); });
+                $('btnCancelJob').addEventListener('click', function () {
+                    if (!state.busy) return;
+                    state.cancel = true;
+                    Tool.toast('将在当前文件处理完后停止', 'warn');
+                });
+                $('btnClearFiles').addEventListener('click', function () {
+                    if (state.busy) { Tool.toast('正在处理中，请先停止', 'warn'); return; }
+                    state.files = [];
+                    renderFileList();
+                    updateFileTip();
+                    Tool.setStatus($('fileStatus'), '', '');
+                });
+                $('btnDownloadAll').addEventListener('click', function () {
+                    var items = state.files.filter(function (it) { return it.out; });
+                    if (!items.length) { Tool.toast('还没有可下载的结果', 'warn'); return; }
+                    Tool.toast('将依次下载 ' + items.length + ' 个文件（浏览器若询问是否允许多文件下载，请选择允许）', 'ok', 3200);
+                    items.forEach(function (it, i) {
+                        setTimeout(function () { downloadItem(it); }, i * 450);
+                    });
+                });
+            }
+
+            function setRandomKey(len) {
+                $('rawKey').value = bytesToHex(randomBytes(len));
+                $('optKdf').value = 'raw';
+                updatePanes();
+                updateRawKeyHint();
+                Tool.toast('已生成 ' + (len * 8) + ' 位随机密钥，请先保存再加密', 'ok', 2400);
+            }
+
+            /* ==================== 启动 ==================== */
+            if (!subtle) {
+                $('cryptoWarn').classList.remove('hidden');
+                $('cryptoWarn').textContent = '当前浏览器环境不支持 Web Crypto API（crypto.subtle），无法进行 AES 运算。' +
+                    '请使用 Chrome / Edge / Firefox / Safari 的较新版本，并通过 https 或 localhost 打开本页。';
+                ['btnEncryptText', 'btnDecryptText', 'btnEncryptFiles', 'btnDecryptFiles'].forEach(function (id) {
+                    $(id).disabled = true;
+                });
+            } else {
+                bind();
+            }
+            updatePanes();
+            updateRawKeyHint();
+            updatePwHint();
+            updateTextStats();
+            renderFileList();
+            updateFileTip();
+        })();
+    </script>
+</body>
+
+</html>
