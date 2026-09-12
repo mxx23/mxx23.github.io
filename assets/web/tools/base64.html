@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Base64 在线编码解码工具</title>
+    <meta name="description" content="在线 Base64 编码与解码，支持中文 UTF-8、URL 安全字符、文件转 Base64、图片转 Data URI、Base64 还原为文件，全部在浏览器本地完成。">
+    <link rel="stylesheet" href="css/tool.css">
+    <script>try { var t = localStorage.getItem('tool-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) { }</script>
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="tool-header-inner">
+            <a class="tool-back" href="/" data-back>← 返回</a>
+            <div class="tool-title-wrap">
+                <h1 class="tool-title">Base64 在线编码解码</h1>
+                <p class="tool-subtitle">支持中文 UTF-8、URL 安全字符、文件与图片互转 · 全部在浏览器本地完成，数据不上传</p>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="themeToggle" type="button" title="切换主题">☾</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="tool-main">
+
+        <!-- ============================ 文本编解码 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">文本编码 / 解码</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnSwap" type="button" title="把右侧结果放回左侧继续处理">↑ 结果转输入</button>
+                    <button class="btn btn-sm" id="btnSample" type="button">示例</button>
+                    <button class="btn btn-sm" id="btnClearText" type="button">清空</button>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <label class="field-label" for="plainText">原文（文本 / 中文 / 任意字符）</label>
+                    <textarea id="plainText" class="mono" rows="9" placeholder="在这里输入要编码的文本，例如：你好，Hexo！"></textarea>
+                    <p class="hint">字符数：<b id="plainCount">0</b> ｜ UTF-8 字节数：<b id="plainBytes">0</b></p>
+                </div>
+                <div>
+                    <label class="field-label" for="b64Text">Base64 结果（可粘贴 Base64 后点“Base64 → 文本”解码）</label>
+                    <textarea id="b64Text" class="mono" rows="9" placeholder="在这里粘贴 Base64 字符串，或点击“文本 → Base64”生成"></textarea>
+                    <p class="hint">字符数：<b id="b64Count">0</b> ｜ 校验：<b id="b64Valid">—</b></p>
+                </div>
+            </div>
+
+            <div class="btn-group mt-12">
+                <button class="btn btn-primary" id="btnEncode" type="button">文本 → Base64</button>
+                <button class="btn btn-primary" id="btnDecode" type="button">Base64 → 文本</button>
+                <button class="btn" id="btnCopyB64" type="button">复制结果</button>
+                <button class="btn" id="btnCopyPlain" type="button">复制原文</button>
+            </div>
+
+            <div class="mt-12">
+                <label class="check-line"><input type="checkbox" id="optUrlSafe"> URL 安全（<code>-</code> <code>_</code> 代替 <code>+</code> <code>/</code>，解码时自动兼容）</label>
+                <label class="check-line"><input type="checkbox" id="optWrap"> 每 76 个字符换行（MIME 风格）</label>
+                <label class="check-line"><input type="checkbox" id="optAuto" checked> 右侧内容变化时自动尝试解码并预览</label>
+            </div>
+
+            <div class="status" id="textStatus"></div>
+            <div class="mt-12 hidden" id="autoDecodeBox">
+                <label class="field-label">自动解码预览</label>
+                <textarea id="autoDecodeOut" class="mono" rows="3" readonly></textarea>
+            </div>
+        </section>
+
+        <!-- ============================ 文件 → Base64 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">文件 / 图片 → Base64</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnCopyFileB64" type="button">复制结果</button>
+                    <button class="btn btn-sm" id="btnDownloadB64" type="button">下载为 .txt</button>
+                </div>
+            </div>
+
+            <div class="drop-zone" id="fileDropZone">
+                <div class="dz-title">点击选择文件，或把文件拖到这里</div>
+                <div class="dz-sub" id="fileLimitTip">文件仅在本地读取，不会上传到任何服务器</div>
+            </div>
+            <input type="file" id="fileInput" class="hidden">
+
+            <div class="mt-12">
+                <label class="check-line"><input type="radio" name="fileFormat" value="datauri" checked> 输出 Data URI（可直接用于 img 的 src / CSS 的 url）</label>
+                <label class="check-line"><input type="radio" name="fileFormat" value="raw"> 输出纯 Base64（不含 <code>data:</code> 前缀）</label>
+                <label class="check-line"><input type="checkbox" id="optFileWrap"> 每 76 个字符换行</label>
+            </div>
+
+            <p class="hint" id="fileInfo">尚未选择文件。</p>
+            <div class="status" id="fileStatus"></div>
+
+            <div class="grid-2 mt-12 hidden" id="fileResultBox">
+                <div>
+                    <label class="field-label">Base64 结果</label>
+                    <textarea id="fileB64" class="mono" rows="8" readonly placeholder="转换结果"></textarea>
+                    <p class="hint" id="fileB64Size">—</p>
+                </div>
+                <div>
+                    <label class="field-label">图片预览（仅图片文件）</label>
+                    <div class="canvas-wrap checker" id="imgPreviewWrap">
+                        <img id="imgPreview" alt="预览" style="max-width:100%;display:none">
+                        <p class="hint" id="imgPreviewTip">选择的文件不是图片，或尚未选择文件。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ Base64 → 文件 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">Base64 → 文件（还原下载）</h2>
+                <button class="btn btn-sm" id="btnClearRestore" type="button">清空</button>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label class="field-label" for="restoreInput">粘贴 Base64 或 Data URI</label>
+                    <textarea id="restoreInput" class="mono" rows="7" placeholder="例如：data:image/png;base64,iVBORw0KGgo..."></textarea>
+                    <div class="field mt-8">
+                        <label class="field-label" for="restoreName">保存的文件名</label>
+                        <input type="text" id="restoreName" class="mono" placeholder="output.bin">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="btnRestore" type="button">解析并下载</button>
+                    </div>
+                    <p class="hint">若粘贴的是 Data URI，会自动识别 MIME 类型并给出推荐扩展名。</p>
+                </div>
+                <div>
+                    <label class="field-label">解析结果</label>
+                    <table class="kv-table">
+                        <tbody>
+                            <tr>
+                                <th>状态</th>
+                                <td id="restoreState">等待输入</td>
+                            </tr>
+                            <tr>
+                                <th>识别类型</th>
+                                <td class="mono" id="restoreMime">—</td>
+                            </tr>
+                            <tr>
+                                <th>数据大小</th>
+                                <td class="mono" id="restoreSize">—</td>
+                            </tr>
+                            <tr>
+                                <th>建议文件名</th>
+                                <td class="mono" id="restoreSuggest">—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="status" id="restoreStatus"></div>
+                    <div class="mt-12" id="restorePreviewWrap" style="display:none">
+                        <label class="field-label">图片预览</label>
+                        <div class="canvas-wrap checker">
+                            <img id="restorePreview" alt="预览" style="max-width:100%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ 说明 ============================ -->
+        <section class="card">
+            <h2 class="card-title">使用说明</h2>
+            <ul class="hint" style="margin:8px 0 0;padding-left:20px;line-height:1.9">
+                <li>Base64 不是加密算法，只是把二进制数据用 64 个可打印字符表示出来，任何人都能还原，请不要用它保护密码等敏感信息。</li>
+                <li>编码后体积约为原来的 <b>4/3（约 133%）</b>，因此把大图片转成 Base64 内嵌进网页会显著增大页面体积。</li>
+                <li>URL 安全模式使用 <code>-</code> 与 <code>_</code> 替换 <code>+</code> 与 <code>/</code>，适合放在 URL 参数或 JWT 中；解码时两种写法都能识别。</li>
+                <li>本页所有计算都在你的浏览器中完成，文件不会被上传，也可以断网使用（把页面另存为本地文件即可）。</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <p class="footer-note">mxx 的博客 · 在线工具 ｜ <a href="/">返回首页</a></p>
+
+    <script src="js/tool.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var $ = function (id) { return document.getElementById(id); };
+
+            var plainText = $('plainText'), b64Text = $('b64Text');
+            var plainCount = $('plainCount'), plainBytes = $('plainBytes');
+            var b64Count = $('b64Count'), b64Valid = $('b64Valid');
+            var textStatus = $('textStatus'), autoDecodeBox = $('autoDecodeBox'), autoDecodeOut = $('autoDecodeOut');
+            var optUrlSafe = $('optUrlSafe'), optWrap = $('optWrap'), optAuto = $('optAuto');
+
+            /* ---------------------------------------------------- 编解码核心 */
+
+            function utf8ToBase64(str) {
+                var bytes = new TextEncoder().encode(str);
+                var bin = '';
+                var CHUNK = 0x8000;
+                for (var i = 0; i < bytes.length; i += CHUNK) {
+                    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+                }
+                return btoa(bin);
+            }
+
+            function base64ToBytes(b64) {
+                var bin = atob(b64);
+                var bytes = new Uint8Array(bin.length);
+                for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                return bytes;
+            }
+
+            function bytesToBase64(bytes) {
+                var bin = '';
+                var CHUNK = 0x8000;
+                for (var i = 0; i < bytes.length; i += CHUNK) {
+                    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+                }
+                return btoa(bin);
+            }
+
+            /* 规范化：去掉空白、兼容 base64url、补齐 padding；非法时返回 null */
+            function normalizeBase64(input) {
+                if (input == null) return null;
+                var s = String(input).replace(/[\s\r\n\t]/g, '');
+                if (!s) return null;
+                s = s.replace(/-/g, '+').replace(/_/g, '/');
+                if (!/^[A-Za-z0-9+/]*={0,2}$/.test(s)) return null;
+                var pad = s.length % 4;
+                if (pad === 1) return null;
+                if (pad === 2) s += '==';
+                else if (pad === 3) s += '=';
+                if (s.length % 4 !== 0) return null;
+                return s;
+            }
+
+            function wrap76(str) {
+                if (!str) return str;
+                var out = [];
+                for (var i = 0; i < str.length; i += 76) out.push(str.substr(i, 76));
+                return out.join('\r\n');
+            }
+
+            function applyUrlSafe(b64, urlSafe) {
+                if (!urlSafe) return b64;
+                return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            }
+
+            function updatePlainStats() {
+                var v = plainText.value;
+                plainCount.textContent = v.length;
+                try {
+                    plainBytes.textContent = new TextEncoder().encode(v).length;
+                } catch (e) {
+                    plainBytes.textContent = v.length;
+                }
+            }
+
+            function updateB64Stats() {
+                var v = b64Text.value;
+                b64Count.textContent = v.replace(/\s/g, '').length;
+                if (!v.trim()) {
+                    b64Valid.textContent = '—';
+                    b64Valid.className = '';
+                    return;
+                }
+                var n = normalizeBase64(v);
+                if (n) {
+                    b64Valid.textContent = '格式合法';
+                    b64Valid.className = 'badge ok';
+                } else {
+                    b64Valid.textContent = '格式非法';
+                    b64Valid.className = 'badge err';
+                }
+            }
+
+            function encode() {
+                var v = plainText.value;
+                if (!v) {
+                    Tool.setStatus(textStatus, 'warn', '请先在左侧输入要编码的文本。');
+                    return '';
+                }
+                var b64 = utf8ToBase64(v);
+                b64 = applyUrlSafe(b64, optUrlSafe.checked);
+                if (optWrap.checked) b64 = wrap76(b64);
+                b64Text.value = b64;
+                updateB64Stats();
+                Tool.setStatus(textStatus, 'ok', '编码完成：' + v.length + ' 个字符 → ' + b64.replace(/\s/g, '').length + ' 个 Base64 字符。');
+                return b64;
+            }
+
+            function decode(silent) {
+                var raw = b64Text.value;
+                if (!raw.trim()) {
+                    Tool.setStatus(textStatus, 'warn', '请先在右侧粘贴 Base64 字符串。');
+                    return '';
+                }
+                var n = normalizeBase64(raw);
+                if (!n) {
+                    Tool.setStatus(textStatus, 'err', '这不是合法的 Base64 字符串：只允许 A-Z a-z 0-9 + / = 以及 URL 安全字符 - _（已自动忽略空格与换行）。');
+                    return '';
+                }
+                var bytes, out;
+                try {
+                    bytes = base64ToBytes(n);
+                } catch (e) {
+                    Tool.setStatus(textStatus, 'err', '解码失败：' + e.message);
+                    return '';
+                }
+                try {
+                    out = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+                } catch (e) {
+                    out = new TextDecoder('utf-8').decode(bytes);
+                    Tool.setStatus(textStatus, 'warn',
+                        '解码成功，但字节流不是合法的 UTF-8 文本（可能是图片、压缩包等二进制数据，共 ' +
+                        Tool.formatBytes(bytes.length) + '）。下面按 UTF-8 容错方式显示，建议改用“Base64 → 文件”下载二进制内容。');
+                    plainText.value = out;
+                    updatePlainStats();
+                    return out;
+                }
+                plainText.value = out;
+                updatePlainStats();
+                Tool.setStatus(textStatus, 'ok', '解码完成：' + n.length + ' 个 Base64 字符 → ' + out.length + ' 个字符（' + Tool.formatBytes(bytes.length) + '）。');
+                return out;
+            }
+
+            /* 自动预览：右侧内容变化时尝试解码 */
+            var autoPreview = Tool.debounce(function () {
+                if (!optAuto.checked) return;
+                var raw = b64Text.value.trim();
+                if (!raw || raw.length < 8) {
+                    autoDecodeBox.classList.add('hidden');
+                    return;
+                }
+                var n = normalizeBase64(raw);
+                if (!n) {
+                    autoDecodeBox.classList.add('hidden');
+                    return;
+                }
+                try {
+                    var bytes = base64ToBytes(n);
+                    var txt = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+                    autoDecodeBox.classList.remove('hidden');
+                    autoDecodeOut.value = txt.length > 3000 ? txt.slice(0, 3000) + '\n…（已截断预览）' : txt;
+                } catch (e) {
+                    autoDecodeBox.classList.add('hidden');
+                }
+            }, 260);
+
+            /* ---------------------------------------------------- 文本区事件 */
+            plainText.addEventListener('input', updatePlainStats);
+            b64Text.addEventListener('input', function () {
+                updateB64Stats();
+                autoPreview();
+            });
+
+            $('btnEncode').addEventListener('click', function () { encode(); });
+            $('btnDecode').addEventListener('click', function () { decode(); });
+            $('btnCopyB64').addEventListener('click', function () { Tool.copy(b64Text.value, 'Base64 结果已复制'); });
+            $('btnCopyPlain').addEventListener('click', function () { Tool.copy(plainText.value, '原文已复制'); });
+            $('btnClearText').addEventListener('click', function () {
+                plainText.value = '';
+                b64Text.value = '';
+                autoDecodeBox.classList.add('hidden');
+                updatePlainStats();
+                updateB64Stats();
+                Tool.setStatus(textStatus, '', '');
+            });
+            $('btnSwap').addEventListener('click', function () {
+                var tmp = plainText.value;
+                plainText.value = b64Text.value;
+                b64Text.value = tmp;
+                updatePlainStats();
+                updateB64Stats();
+                Tool.setStatus(textStatus, 'info', '已交换左右两侧内容。');
+            });
+            $('btnSample').addEventListener('click', function () {
+                plainText.value = '你好，Hexo！Hello Base64 ~ 2024';
+                updatePlainStats();
+                encode();
+            });
+
+            updatePlainStats();
+            updateB64Stats();
+
+            /* ---------------------------------------------------- 文件 → Base64 */
+            var currentFile = null;
+
+            function readFileAsBase64(file) {
+                var reader = new FileReader();
+                reader.onload = function () {
+                    // reader.result 是 Data URI：data:<mime>;base64,<data>
+                    var result = String(reader.result);
+                    var comma = result.indexOf(',');
+                    var pure = result.slice(comma + 1);
+                    var useDataUri = document.querySelector('input[name="fileFormat"]:checked').value === 'datauri';
+                    var out = useDataUri ? result : pure;
+                    if ($('optFileWrap').checked) {
+                        out = useDataUri
+                            ? result.slice(0, comma + 1) + wrap76(pure)
+                            : wrap76(pure);
+                    }
+                    $('fileB64').value = out;
+                    $('fileB64Size').textContent =
+                        '原始大小 ' + Tool.formatBytes(file.size) +
+                        ' → Base64 后 ' + Tool.formatBytes(pure.length) +
+                        '（约 ' + (file.size ? (pure.length / file.size * 100).toFixed(1) : '0') + '%）';
+                    $('fileResultBox').classList.remove('hidden');
+                    Tool.setStatus($('fileStatus'), 'ok', '已读取文件：' + file.name);
+                };
+                reader.onerror = function () {
+                    Tool.setStatus($('fileStatus'), 'err', '读取文件失败，请重试或换一个文件。');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function handleFile(file) {
+                if (!file) return;
+                currentFile = file;
+                $('fileInfo').innerHTML = '已选择：<b>' + Tool.escapeHtml(file.name) + '</b>（' + Tool.formatBytes(file.size) +
+                    '，类型 ' + Tool.escapeHtml(file.type || '未知') + '）';
+                if (file.size > 8 * 1024 * 1024) {
+                    Tool.setStatus($('fileStatus'), 'warn', '文件较大（' + Tool.formatBytes(file.size) + '），转换与复制可能占用较多内存，请耐心等待。');
+                } else {
+                    Tool.setStatus($('fileStatus'), '', '');
+                }
+
+                var isImage = /^image\//.test(file.type);
+                var preview = $('imgPreview');
+                var tip = $('imgPreviewTip');
+                if (isImage) {
+                    var url = URL.createObjectURL(file);
+                    preview.onload = function () {
+                        tip.textContent = '尺寸：' + preview.naturalWidth + ' × ' + preview.naturalHeight + ' 像素';
+                        URL.revokeObjectURL(url);
+                    };
+                    preview.src = url;
+                    preview.style.display = 'block';
+                } else {
+                    preview.style.display = 'none';
+                    preview.removeAttribute('src');
+                    tip.textContent = '当前文件不是图片：' + (file.type || '未知类型');
+                }
+                readFileAsBase64(file);
+            }
+
+            Tool.bindDropZone($('fileDropZone'), $('fileInput'), handleFile);
+
+            Array.prototype.forEach.call(document.querySelectorAll('input[name="fileFormat"]'), function (r) {
+                r.addEventListener('change', function () { if (currentFile) readFileAsBase64(currentFile); });
+            });
+            $('optFileWrap').addEventListener('change', function () { if (currentFile) readFileAsBase64(currentFile); });
+
+            $('btnCopyFileB64').addEventListener('click', function () {
+                Tool.copy($('fileB64').value, '文件 Base64 已复制');
+            });
+            $('btnDownloadB64').addEventListener('click', function () {
+                var v = $('fileB64').value;
+                if (!v) { Tool.toast('还没有可下载的内容', 'err'); return; }
+                var name = (currentFile ? currentFile.name : 'base64') + '.base64.txt';
+                Tool.download(v, name, 'text/plain;charset=utf-8');
+            });
+
+            /* ---------------------------------------------------- Base64 → 文件 */
+            var MIME_EXT = {
+                'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp',
+                'image/bmp': 'bmp', 'image/svg+xml': 'svg', 'image/x-icon': 'ico', 'image/avif': 'avif',
+                'application/pdf': 'pdf', 'application/zip': 'zip', 'application/json': 'json',
+                'application/javascript': 'js', 'application/xml': 'xml', 'text/plain': 'txt',
+                'text/html': 'html', 'text/css': 'css', 'text/csv': 'csv', 'audio/mpeg': 'mp3',
+                'audio/wav': 'wav', 'audio/ogg': 'ogg', 'video/mp4': 'mp4', 'video/webm': 'webm',
+                'application/octet-stream': 'bin', 'application/msword': 'doc',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx'
+            };
+
+            /* 无 MIME 信息时按文件头猜测类型 */
+            function sniffMime(bytes) {
+                var sig = function (arr, offset) {
+                    for (var i = 0; i < arr.length; i++) {
+                        if (bytes[offset + i] !== arr[i]) return false;
+                    }
+                    return true;
+                };
+                if (bytes.length > 8 && sig([0x89, 0x50, 0x4E, 0x47], 0)) return 'image/png';
+                if (bytes.length > 3 && sig([0xFF, 0xD8, 0xFF], 0)) return 'image/jpeg';
+                if (bytes.length > 6 && sig([0x47, 0x49, 0x46, 0x38], 0)) return 'image/gif';
+                if (bytes.length > 12 && sig([0x52, 0x49, 0x46, 0x46], 0) && sig([0x57, 0x45, 0x42, 0x50], 8)) return 'image/webp';
+                if (bytes.length > 4 && sig([0x25, 0x50, 0x44, 0x46], 0)) return 'application/pdf';
+                if (bytes.length > 4 && sig([0x50, 0x4B, 0x03, 0x04], 0)) return 'application/zip';
+                if (bytes.length > 4 && sig([0x7B, 0x22], 0)) return 'application/json';
+                return '';
+            }
+
+            function parseRestore() {
+                var raw = $('restoreInput').value.trim();
+                var statusEl = $('restoreStatus');
+                if (!raw) {
+                    Tool.setStatus(statusEl, 'warn', '请先粘贴 Base64 或 Data URI 内容。');
+                    return null;
+                }
+                var mime = '', data = raw;
+                var m = /^data:([^;,]*)(;[^,]*)?,/.exec(raw);
+                if (m) {
+                    mime = m[1] || 'application/octet-stream';
+                    data = raw.slice(m[0].length);
+                    var isB64 = /;base64/i.test(m[2] || '') || /;base64/i.test(raw.slice(0, m[0].length));
+                    if (!isB64) {
+                        Tool.setStatus(statusEl, 'warn', '该 Data URI 不是 base64 编码（可能使用了百分号转义），暂不支持。');
+                        return null;
+                    }
+                }
+                var n = normalizeBase64(data);
+                if (!n) {
+                    Tool.setStatus(statusEl, 'err', '内容不是合法的 Base64：只允许 A-Z a-z 0-9 + / = 以及 - _，空格换行会被自动忽略。');
+                    $('restoreState').textContent = '解析失败';
+                    return null;
+                }
+                var bytes;
+                try {
+                    bytes = base64ToBytes(n);
+                } catch (e) {
+                    Tool.setStatus(statusEl, 'err', 'Base64 解码失败：' + e.message);
+                    return null;
+                }
+                if (!mime) mime = sniffMime(bytes) || 'application/octet-stream';
+                var ext = MIME_EXT[mime] || 'bin';
+                var suggest = 'decoded.' + ext;
+
+                $('restoreState').textContent = '解析成功';
+                $('restoreMime').textContent = mime;
+                $('restoreSize').textContent = Tool.formatBytes(bytes.length) + '（' + bytes.length + ' 字节）';
+                $('restoreSuggest').textContent = suggest;
+                if (!$('restoreName').value) $('restoreName').value = suggest;
+
+                var previewWrap = $('restorePreviewWrap');
+                if (/^image\//.test(mime)) {
+                    var blob = new Blob([bytes], { type: mime });
+                    var url = URL.createObjectURL(blob);
+                    $('restorePreview').src = url;
+                    previewWrap.style.display = 'block';
+                } else {
+                    previewWrap.style.display = 'none';
+                    $('restorePreview').removeAttribute('src');
+                }
+
+                Tool.setStatus(statusEl, 'ok', '解析成功：' + Tool.formatBytes(bytes.length) + '，类型 ' + mime + '，点击“解析并下载”即可保存为文件。');
+                return { bytes: bytes, mime: mime };
+            }
+
+            var restoreDebounced = Tool.debounce(function () {
+                if ($('restoreInput').value.trim()) parseRestore();
+            }, 320);
+            $('restoreInput').addEventListener('input', restoreDebounced);
+
+            $('btnRestore').addEventListener('click', function () {
+                var r = parseRestore();
+                if (!r) return;
+                var name = $('restoreName').value.trim() || $('restoreSuggest').textContent || 'decoded.bin';
+                Tool.download(new Blob([r.bytes], { type: r.mime }), name);
+                Tool.toast('已开始下载：' + name, 'ok');
+            });
+
+            $('btnClearRestore').addEventListener('click', function () {
+                $('restoreInput').value = '';
+                $('restoreName').value = '';
+                $('restoreState').textContent = '等待输入';
+                $('restoreMime').textContent = '—';
+                $('restoreSize').textContent = '—';
+                $('restoreSuggest').textContent = '—';
+                $('restorePreviewWrap').style.display = 'none';
+                Tool.setStatus($('restoreStatus'), '', '');
+            });
+        })();
+    </script>
+</body>
+
+</html>

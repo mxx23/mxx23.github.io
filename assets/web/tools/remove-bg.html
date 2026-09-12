@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>在线图片去背景工具 - 一键把背景变透明</title>
+    <meta name="description" content="纯浏览器本地运行的在线抠图工具：自动识别纯色/渐变背景并使其透明，支持容差、边缘羽化、去杂边与手动擦除修补，导出透明 PNG。">
+    <link rel="stylesheet" href="css/tool.css">
+    <script>try { var t = localStorage.getItem('tool-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) { }</script>
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="tool-header-inner">
+            <a class="tool-back" href="/" data-back>← 返回</a>
+            <div class="tool-title-wrap">
+                <h1 class="tool-title">在线图片去背景（透明背景）</h1>
+                <p class="tool-subtitle">自动识别纯色 / 渐变背景并转为透明，可手动修补 · 图片不上传，全部在浏览器本地处理</p>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="themeToggle" type="button" title="切换主题">☾</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="tool-main">
+
+        <!-- ============================ 1. 选择图片 ============================ -->
+        <section class="card" id="loadCard">
+            <div class="card-head">
+                <h2 class="card-title">1. 选择图片</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnDemo" type="button">生成示例图片</button>
+                    <button class="btn btn-sm" id="btnResetAll" type="button">重新开始</button>
+                </div>
+            </div>
+            <div class="drop-zone" id="imgDropZone">
+                <div class="dz-title">点击选择图片，或把图片拖到这里</div>
+                <div class="dz-sub">支持 PNG / JPG / WebP / GIF（取首帧）等 · 也可以直接 Ctrl + V 粘贴剪贴板中的图片</div>
+            </div>
+            <input type="file" id="imgInput" accept="image/*" class="hidden">
+            <p class="hint" id="imgInfo">尚未选择图片。</p>
+            <div class="status" id="loadStatus"></div>
+        </section>
+
+        <!-- ============================ 2. 编辑区 ============================ -->
+        <section class="card hidden" id="editorCard">
+            <div class="card-head">
+                <h2 class="card-title">2. 预览与编辑</h2>
+                <div class="btn-group">
+                    <label class="check-line" style="margin:0"><input type="checkbox" id="optShowOrig"> 显示原图（对比）</label>
+                    <button class="btn btn-sm" id="btnUndo" type="button">撤销</button>
+                    <button class="btn btn-sm" id="btnResetMask" type="button">清除所有抠图</button>
+                </div>
+            </div>
+
+            <div class="canvas-wrap checker" id="canvasWrap" style="max-height:66vh">
+                <div id="canvasStack" style="position:relative;display:inline-block;line-height:0;max-width:100%">
+                    <canvas id="viewCanvas" style="position:relative;z-index:1"></canvas>
+                    <canvas id="overlayCanvas"
+                        style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2"></canvas>
+                </div>
+            </div>
+            <p class="hint" id="canvasHint">提示：使用“魔棒”模式时，直接点击图片中的背景即可抠除；处理后可切换到“橡皮擦 / 恢复笔”手动修补边缘。</p>
+
+            <div class="grid-3 mt-16">
+                <div class="field">
+                    <label class="field-label" for="optMode">处理模式</label>
+                    <select id="optMode">
+                        <option value="auto" selected>自动边缘取样（推荐：纯色背景）</option>
+                        <option value="global">全局颜色（删除所有相近颜色）</option>
+                        <option value="wand">魔棒点选（点击图片中的背景）</option>
+                    </select>
+                    <p class="hint" id="modeHint">自动从图片四周边框取样背景色，并只删除与边框相连的背景区域。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="optTool">手动修补工具</label>
+                    <select id="optTool">
+                        <option value="none" selected>不使用（仅查看）</option>
+                        <option value="erase">橡皮擦（擦成透明）</option>
+                        <option value="restore">恢复笔（找回原图内容）</option>
+                        <option value="pick">吸管（拾取背景色）</option>
+                    </select>
+                    <div class="mt-8">
+                        <label class="field-label" for="optBrush">笔刷大小：<b id="brushVal">24</b> px</label>
+                        <input type="range" id="optBrush" min="2" max="200" step="1" value="24">
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="field-label">背景色（用于容差比较 / 去杂边）</label>
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <input type="color" id="optBgColor" value="#ffffff">
+                        <span class="hint mono" id="bgColorText" style="margin:0">rgb(255, 255, 255)</span>
+                    </div>
+                    <div class="btn-group mt-8">
+                        <button class="btn btn-sm" id="btnDetect" type="button">重新自动检测</button>
+                    </div>
+                    <p class="hint" id="detectHint">—</p>
+                </div>
+            </div>
+
+            <div class="grid-2 mt-16">
+                <div class="field">
+                    <label class="field-label" for="optTolerance">颜色容差：<b id="tolVal">42</b></label>
+                    <input type="range" id="optTolerance" min="0" max="150" step="1" value="42">
+                    <p class="hint">容差越大，被判定为背景的颜色范围越宽（也越容易误删主体内容）。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="optFeather">边缘羽化：<b id="featherVal">1</b> px</label>
+                    <input type="range" id="optFeather" min="0" max="8" step="1" value="1">
+                    <p class="hint">让抠图边缘过渡更自然，避免锯齿。</p>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <label class="check-line"><input type="checkbox" id="optDespill" checked> 去杂边（消除边缘残留的背景色）</label>
+                <label class="check-line"><input type="checkbox" id="optGradient"> 允许渐变背景（按相邻像素相似度扩散，背景为渐变时使用）</label>
+            </div>
+
+            <div class="btn-group mt-12">
+                <button class="btn btn-primary" id="btnApply" type="button">执行抠图</button>
+                <button class="btn" id="btnLiveFeather" type="button">重新渲染（应用羽化 / 去杂边）</button>
+            </div>
+
+            <div class="status" id="procStatus"></div>
+            <div class="mt-12">
+                <div class="stat-list">
+                    <div class="stat"><b id="statRemoved">0</b><span>已抠除像素</span></div>
+                    <div class="stat"><b id="statTotal">0</b><span>总像素</span></div>
+                    <div class="stat"><b id="statRatio">0%</b><span>背景占比</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ 3. 导出 ============================ -->
+        <section class="card hidden" id="exportCard">
+            <div class="card-head">
+                <h2 class="card-title">3. 导出结果</h2>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="btnDownloadPng" type="button">下载透明 PNG</button>
+                    <button class="btn" id="btnDownloadJpg" type="button">下载带背景的 JPG</button>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="field">
+                    <label class="field-label">导出背景</label>
+                    <select id="optExportBg">
+                        <option value="transparent" selected>透明（PNG）</option>
+                        <option value="white">白色</option>
+                        <option value="black">黑色</option>
+                        <option value="custom">自定义颜色…</option>
+                    </select>
+                    <div class="mt-8 hidden" id="exportColorField">
+                        <input type="color" id="optExportColor" value="#3095d4">
+                    </div>
+                    <p class="hint">用于检查抠图效果，或直接生成可用于白底/彩底场景的图片。</p>
+                </div>
+                <div>
+                    <label class="field-label">输出信息</label>
+                    <table class="kv-table">
+                        <tbody>
+                            <tr>
+                                <th>尺寸</th>
+                                <td class="mono" id="outSize">—</td>
+                            </tr>
+                            <tr>
+                                <th>格式</th>
+                                <td class="mono" id="outFormat">PNG（支持透明通道）</td>
+                            </tr>
+                            <tr>
+                                <th>文件名</th>
+                                <td class="mono" id="outFileName">—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ 说明 ============================ -->
+        <section class="card">
+            <h2 class="card-title">能做到什么、做不到什么（请先阅读）</h2>
+            <ul class="hint" style="margin:8px 0 0;padding-left:20px;line-height:1.9">
+                <li><b>本工具的做法</b>：从图片边缘取样背景颜色，把与背景颜色相近、且与边框相连通的区域变成透明，
+                    再通过羽化与去杂边让边缘自然。它对<b>纯色背景（白底商品图、证件照、截图、logo、蓝绿幕素材）</b>效果最好，处理一张 1000×1000 的图片通常在零点几秒内完成。</li>
+                <li><b>它做不到</b>：识别“语义”上的主体。面对背景杂乱、有阴影渐变、主体与背景颜色接近的<b>实景照片</b>，
+                    这类纯算法工具无法可靠分离——那属于 AI 抠图（需要下载数百 MB 的神经网络模型，不适合放在静态博客里）。遇到这类图片，
+                    可以先用本工具处理掉大块背景，再用“橡皮擦 / 恢复笔”手工修补。</li>
+                <li><b>使用建议</b>：容差先小后大；边缘有白边时打开“去杂边”；背景为渐变色时勾选“允许渐变背景”；</li>
+                <li>处理结果以 PNG 导出才能保留透明区域（JPG 不支持透明）。</li>
+                <li>所有计算都在你的浏览器里进行，图片不会被上传；处理超大图片（长边 &gt; 4096）时会自动等比缩小以保证流畅。</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <p class="footer-note">mxx 的博客 · 在线工具 ｜ <a href="/">返回首页</a></p>
+
+    <script src="js/tool.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var $ = function (id) { return document.getElementById(id); };
+            var MAX_DIM = 4096;          /* 处理尺寸上限，超过则等比缩小 */
+            var UNDO_BYTES_LIMIT = 64 * 1024 * 1024;
+
+            var viewCanvas = $('viewCanvas'), overlayCanvas = $('overlayCanvas');
+            var viewCtx = viewCanvas.getContext('2d');
+            var overlayCtx = overlayCanvas.getContext('2d');
+
+            var app = {
+                width: 0,
+                height: 0,
+                origData: null,      /* 原图 ImageData */
+                outData: null,       /* 输出 ImageData（被 putImageData 到画布） */
+                mask: null,          /* Uint8ClampedArray：255 = 保留，0 = 透明 */
+                alphaCache: null,    /* 羽化后的 alpha 缓存 */
+                alphaCacheKey: '',
+                bg: { r: 255, g: 255, b: 255 },
+                fileName: 'image',
+                undo: [],
+                undoBytes: 0,
+                painting: false,
+                paintValue: 0,
+                lastPt: null,
+                renderPending: false
+            };
+
+            /* =====================================================================
+               一、加载图片
+               ===================================================================== */
+            function setStatus(el, type, msg) { Tool.setStatus(el, type, msg); }
+
+            function loadFromSource(src, name, isFile) {
+                setStatus($('loadStatus'), 'info', '正在读取图片…');
+                var done = function (bitmap, w, h) {
+                    var scale = 1;
+                    var longSide = Math.max(w, h);
+                    if (longSide > MAX_DIM) scale = MAX_DIM / longSide;
+                    var cw = Math.max(1, Math.round(w * scale));
+                    var ch = Math.max(1, Math.round(h * scale));
+
+                    var off = document.createElement('canvas');
+                    off.width = cw;
+                    off.height = ch;
+                    var octx = off.getContext('2d');
+                    octx.drawImage(bitmap, 0, 0, cw, ch);
+                    var data;
+                    try {
+                        data = octx.getImageData(0, 0, cw, ch);
+                    } catch (e) {
+                        setStatus($('loadStatus'), 'err', '无法读取图片像素：' + e.message);
+                        return;
+                    }
+                    if (bitmap.close) bitmap.close();
+
+                    initApp(data, cw, ch, name || 'image');
+                    var msg = '已载入图片：' + cw + ' × ' + ch + ' 像素。';
+                    if (scale < 1) msg += '（原图 ' + w + ' × ' + h + '，为保证流畅已等比缩小到长边 ' + MAX_DIM + ' 像素）';
+                    setStatus($('loadStatus'), 'ok', msg + ' 现在可以执行抠图了。');
+                };
+
+                var fail = function (msg) {
+                    setStatus($('loadStatus'), 'err', msg);
+                };
+
+                if (window.createImageBitmap) {
+                    createImageBitmap(src, { imageOrientation: 'from-image' }).then(function (bmp) {
+                        done(bmp, bmp.width, bmp.height);
+                    }).catch(function () {
+                        /* 某些浏览器不支持 imageOrientation 选项，退回普通解码 */
+                        createImageBitmap(src).then(function (bmp) {
+                            done(bmp, bmp.width, bmp.height);
+                        }).catch(function (e) {
+                            fail('图片解码失败：' + (e && e.message ? e.message : '未知原因') + '。请换一张 PNG / JPG 图片试试。');
+                        });
+                    });
+                } else {
+                    var img = new Image();
+                    var url = URL.createObjectURL(src);
+                    img.onload = function () {
+                        done(img, img.naturalWidth, img.naturalHeight);
+                        URL.revokeObjectURL(url);
+                    };
+                    img.onerror = function () { fail('图片解码失败，请换一张图片试试。'); };
+                    img.src = url;
+                }
+            }
+
+            function initApp(data, w, h, name) {
+                app.width = w;
+                app.height = h;
+                app.origData = data;
+                app.outData = new ImageData(new Uint8ClampedArray(data.data), w, h);
+                app.mask = new Uint8ClampedArray(w * h);
+                app.mask.fill(255);
+                app.alphaCache = null;
+                app.alphaCacheKey = '';
+                app.undo = [];
+                app.undoBytes = 0;
+                app.fileName = String(name || 'image').replace(/\.[^.]+$/, '');
+
+                viewCanvas.width = w;
+                viewCanvas.height = h;
+                overlayCanvas.width = w;
+                overlayCanvas.height = h;
+
+                $('editorCard').classList.remove('hidden');
+                $('exportCard').classList.remove('hidden');
+                $('optShowOrig').checked = false;
+                setStatus($('procStatus'), '', '');
+                $('imgInfo').innerHTML = '当前图片：<b>' + Tool.escapeHtml(name) + '</b>（' + w + ' × ' + h + '）';
+                $('outSize').textContent = w + ' × ' + h + ' 像素';
+                $('outFileName').textContent = app.fileName + '-transparent.png';
+
+                detectBackground(true);
+                renderFull();
+                updateStats();
+                $('editorCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            /* 粘贴图片 */
+            document.addEventListener('paste', function (e) {
+                var items = e.clipboardData && e.clipboardData.items;
+                if (!items) return;
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].type && items[i].type.indexOf('image') === 0) {
+                        var f = items[i].getAsFile();
+                        if (f) {
+                            loadFromSource(f, f.name || 'clipboard.png');
+                            Tool.toast('已载入剪贴板中的图片', 'ok');
+                        }
+                        return;
+                    }
+                }
+            });
+
+            /* 示例图片：白底 + 彩色图形 */
+            function makeDemo() {
+                var c = document.createElement('canvas');
+                c.width = 640;
+                c.height = 440;
+                var x = c.getContext('2d');
+                x.fillStyle = '#f2f5f8';
+                x.fillRect(0, 0, c.width, c.height);
+                x.fillStyle = '#3095d4';
+                x.beginPath();
+                x.arc(230, 215, 120, 0, Math.PI * 2);
+                x.fill();
+                x.fillStyle = '#67c23a';
+                x.beginPath();
+                x.moveTo(400, 340);
+                x.lineTo(560, 340);
+                x.lineTo(480, 120);
+                x.closePath();
+                x.fill();
+                x.fillStyle = '#f7b731';
+                x.fillRect(120, 320, 130, 70);
+                x.fillStyle = '#ffffff';
+                x.font = 'bold 40px sans-serif';
+                x.fillText('DEMO', 200, 120);
+                c.toBlob(function (blob) {
+                    loadFromSource(blob, 'demo.png');
+                }, 'image/png');
+            }
+
+            /* =====================================================================
+               二、背景色检测
+               ===================================================================== */
+            function detectBackground(silent) {
+                var d = app.origData.data, w = app.width, h = app.height;
+                /* 统计四周 2~3 像素宽边框上的颜色（按 16 级量化后聚类） */
+                var buckets = {};
+                var sampled = 0;
+                var add = function (x, y) {
+                    var i = (y * w + x) * 4;
+                    var key = (d[i] >> 4) + ',' + (d[i + 1] >> 4) + ',' + (d[i + 2] >> 4);
+                    if (!buckets[key]) buckets[key] = { n: 0, r: 0, g: 0, b: 0 };
+                    var b = buckets[key];
+                    b.n++; b.r += d[i]; b.g += d[i + 1]; b.b += d[i + 2];
+                    sampled++;
+                };
+                var ring = Math.max(1, Math.min(3, Math.floor(Math.min(w, h) * 0.02)));
+                var y, x, k;
+                for (y = 0; y < h; y++) {
+                    for (k = 0; k < ring && k < w; k++) {
+                        add(k, y);
+                        if (w - 1 - k !== k) add(w - 1 - k, y);
+                    }
+                }
+                for (x = 0; x < w; x++) {
+                    for (k = 0; k < ring && k < h; k++) {
+                        add(x, k);
+                        if (h - 1 - k !== k) add(x, h - 1 - k);
+                    }
+                }
+                var best = null;
+                for (var key2 in buckets) {
+                    if (!best || buckets[key2].n > best.n) best = buckets[key2];
+                }
+                if (!best) return;
+                app.bg = {
+                    r: Math.round(best.r / best.n),
+                    g: Math.round(best.g / best.n),
+                    b: Math.round(best.b / best.n)
+                };
+                syncBgUI();
+                var pct = best.n / Math.max(1, sampled) * 100;
+                $('detectHint').textContent = '边框取样中最主要的颜色占 ' + pct.toFixed(0) +
+                    '%（rgb(' + app.bg.r + ', ' + app.bg.g + ', ' + app.bg.b + ')）' +
+                    (pct > 60 ? '，背景比较统一，适合自动抠图。' : '，背景可能较复杂或为渐变，建议勾选“允许渐变背景”或改用魔棒点选。');
+                if (!silent) Tool.toast('已重新检测背景色');
+            }
+
+            function syncBgUI() {
+                var hex = '#' + [app.bg.r, app.bg.g, app.bg.b].map(function (v) {
+                    var s = v.toString(16);
+                    return s.length < 2 ? '0' + s : s;
+                }).join('');
+                $('optBgColor').value = hex;
+                $('bgColorText').textContent = 'rgb(' + app.bg.r + ', ' + app.bg.g + ', ' + app.bg.b + ')';
+            }
+
+            function hexToRgb(hex) {
+                var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : { r: 255, g: 255, b: 255 };
+            }
+
+            /* =====================================================================
+               三、抠图算法
+               ===================================================================== */
+            function colorDistance(d, i, c) {
+                var dr = d[i] - c.r, dg = d[i + 1] - c.g, db = d[i + 2] - c.b;
+                return Math.sqrt(dr * dr + dg * dg + db * db);
+            }
+
+            function pushUndo() {
+                var snap = new Uint8ClampedArray(app.mask);
+                app.undo.push(snap);
+                app.undoBytes += snap.length;
+                while (app.undoBytes > UNDO_BYTES_LIMIT && app.undo.length > 1) {
+                    var dropped = app.undo.shift();
+                    app.undoBytes -= dropped.length;
+                }
+                if (app.undo.length > 30) {
+                    var d2 = app.undo.shift();
+                    app.undoBytes -= d2.length;
+                }
+            }
+
+            function undo() {
+                if (!app.undo.length) { Tool.toast('没有可撤销的操作了', 'err'); return; }
+                var snap = app.undo.pop();
+                app.undoBytes -= snap.length;
+                app.mask = snap;
+                invalidateAlpha();
+                renderFull();
+                updateStats();
+                Tool.toast('已撤销上一步');
+            }
+
+            /* 连通区域抠除（从 seeds 出发的洪水填充）
+               技巧：直接用 mask 自身记录访问状态（128 = 已入队），省下一份 visited 数组 */
+            function floodRemove(seeds, tolerance, useGradient) {
+                var w = app.width, h = app.height, d = app.origData.data, mask = app.mask;
+                var total = w * h;
+                var stack = new Int32Array(total);
+                var sp = 0;
+                var removed = 0;
+                var bg = app.bg;
+                var tol2 = tolerance * tolerance;
+                var s, idx, i4;
+                var k, nx, ny, nIdx, ni;
+
+                for (s = 0; s < seeds.length; s++) {
+                    idx = seeds[s];
+                    if (idx < 0 || idx >= total) continue;
+                    if (mask[idx] !== 255) continue;             /* 已处理 / 已是透明 */
+                    i4 = idx * 4;
+                    if (colorDistance(d, i4, bg) > tolerance) continue;
+                    mask[idx] = 128;
+                    stack[sp++] = idx;
+                }
+
+                while (sp > 0) {
+                    var cur = stack[--sp];
+                    var ci = cur * 4;
+                    mask[cur] = 0;
+                    removed++;
+                    var cx = cur % w, cy = (cur - cx) / w;
+                    var cr = d[ci], cg = d[ci + 1], cb = d[ci + 2];
+
+                    for (k = 0; k < 4; k++) {
+                        nx = cx + (k === 0 ? 1 : k === 1 ? -1 : 0);
+                        ny = cy + (k === 2 ? 1 : k === 3 ? -1 : 0);
+                        if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+                        nIdx = ny * w + nx;
+                        if (mask[nIdx] !== 255) continue;        /* 0 = 已抠除，128 = 已入队 */
+                        ni = nIdx * 4;
+                        var nr = d[ni], ng = d[ni + 1], nb = d[ni + 2];
+                        var dr = nr - bg.r, dg = ng - bg.g, db = nb - bg.b;
+                        var ok = (dr * dr + dg * dg + db * db) <= tol2;
+                        if (!ok && useGradient) {
+                            /* 渐变模式：允许与相邻像素相近的像素继续扩散 */
+                            var lr = nr - cr, lg = ng - cg, lb = nb - cb;
+                            ok = (lr * lr + lg * lg + lb * lb) <= tol2;
+                        }
+                        if (!ok) continue;
+                        mask[nIdx] = 128;
+                        stack[sp++] = nIdx;
+                    }
+                }
+                return removed;
+            }
+
+            /* 全局颜色抠除 */
+            function globalRemove(tolerance) {
+                var total = app.width * app.height, d = app.origData.data, mask = app.mask;
+                var removed = 0, bg = app.bg;
+                for (var p = 0; p < total; p++) {
+                    if (mask[p] === 0) continue;
+                    if (colorDistance(d, p * 4, bg) <= tolerance) { mask[p] = 0; removed++; }
+                }
+                return removed;
+            }
+
+            function borderSeeds() {
+                var w = app.width, h = app.height, out = [];
+                for (var x = 0; x < w; x++) { out.push(x); out.push((h - 1) * w + x); }
+                for (var y = 0; y < h; y++) { out.push(y * w); out.push(y * w + w - 1); }
+                return out;
+            }
+
+            /* =====================================================================
+               四、渲染：mask → 羽化 alpha → 去杂边 → 画布
+               ===================================================================== */
+            function invalidateAlpha() { app.alphaCache = null; app.alphaCacheKey = ''; }
+
+            function buildAlpha(feather) {
+                var key = feather + ':' + app.width + 'x' + app.height + ':' + app.undoBytes + ':' + maskVersion();
+                if (app.alphaCache && app.alphaCacheKey === key) return app.alphaCache;
+                var total = app.width * app.height;
+                var alpha = new Uint8ClampedArray(total);
+                alpha.set(app.mask.subarray(0, total));
+                if (feather > 0) alpha = boxBlurAlpha(alpha, app.width, app.height, feather);
+                app.alphaCache = alpha;
+                app.alphaCacheKey = key;
+                return alpha;
+            }
+
+            /* 简易版本号：mask 被整体替换或修改时递增 */
+            var _maskVersion = 0;
+            function maskVersion() { return _maskVersion; }
+            function bumpMaskVersion() { _maskVersion++; invalidateAlpha(); }
+
+            function boxBlurAlpha(src, w, h, radius) {
+                var tmp = new Uint8ClampedArray(src.length);
+                var out = new Uint8ClampedArray(src.length);
+                var x, y, i, sum, count, r = radius;
+                /* 横向 */
+                for (y = 0; y < h; y++) {
+                    var row = y * w;
+                    sum = 0; count = 0;
+                    for (x = 0; x <= r && x < w; x++) { sum += src[row + x]; count++; }
+                    for (x = 0; x < w; x++) {
+                        tmp[row + x] = sum / count;
+                        var addX = x + r + 1;
+                        var subX = x - r;
+                        if (addX < w) { sum += src[row + addX]; count++; }
+                        if (subX >= 0) { sum -= src[row + subX]; count--; }
+                    }
+                }
+                /* 纵向 */
+                for (x = 0; x < w; x++) {
+                    sum = 0; count = 0;
+                    for (y = 0; y <= r && y < h; y++) { sum += tmp[y * w + x]; count++; }
+                    for (y = 0; y < h; y++) {
+                        out[y * w + x] = sum / count;
+                        var addY = y + r + 1;
+                        var subY = y - r;
+                        if (addY < h) { sum += tmp[addY * w + x]; count++; }
+                        if (subY >= 0) { sum -= tmp[subY * w + x]; count--; }
+                    }
+                }
+                return out;
+            }
+
+            function renderFull() {
+                var w = app.width, h = app.height;
+                if (!w) return;
+                var feather = parseInt($('optFeather').value, 10) || 0;
+                var alpha = buildAlpha(feather);
+                var src = app.origData.data;
+                var out = app.outData.data;
+                var bg = app.bg;
+                var despill = $('optDespill').checked;
+
+                for (var p = 0, n = w * h; p < n; p++) {
+                    var i = p * 4;
+                    var a = alpha[p];
+                    out[i] = src[i];
+                    out[i + 1] = src[i + 1];
+                    out[i + 2] = src[i + 2];
+                    out[i + 3] = a;
+                    if (despill && a > 0 && a < 255) {
+                        /* 反混合：从半透明像素中扣除背景色贡献，消除白边/杂边 */
+                        var f = a / 255;
+                        var inv = 1 - f;
+                        var r = (src[i] - bg.r * inv) / f;
+                        var g = (src[i + 1] - bg.g * inv) / f;
+                        var b = (src[i + 2] - bg.b * inv) / f;
+                        out[i] = r < 0 ? 0 : (r > 255 ? 255 : r);
+                        out[i + 1] = g < 0 ? 0 : (g > 255 ? 255 : g);
+                        out[i + 2] = b < 0 ? 0 : (b > 255 ? 255 : b);
+                    }
+                }
+                viewCtx.putImageData(app.outData, 0, 0);
+            }
+
+            /* 仅更新某个矩形区域（笔刷绘制时使用，避免整图重绘） */
+            function renderRegion(x0, y0, x1, y1) {
+                var w = app.width, h = app.height;
+                x0 = Math.max(0, Math.floor(x0));
+                y0 = Math.max(0, Math.floor(y0));
+                x1 = Math.min(w - 1, Math.ceil(x1));
+                y1 = Math.min(h - 1, Math.ceil(y1));
+                if (x1 < x0 || y1 < y0) return;
+                var rw = x1 - x0 + 1, rh = y1 - y0 + 1;
+                var src = app.origData.data, out = app.outData.data;
+                for (var y = y0; y <= y1; y++) {
+                    for (var x = x0; x <= x1; x++) {
+                        var p = y * w + x, i = p * 4;
+                        out[i] = src[i];               /* 绘制过程中先还原原始颜色 */
+                        out[i + 1] = src[i + 1];
+                        out[i + 2] = src[i + 2];
+                        out[i + 3] = app.mask[p];      /* 先用硬边，松手后再整体羽化 */
+                    }
+                }
+                viewCtx.putImageData(app.outData, 0, 0, x0, y0, rw, rh);
+            }
+
+            function updateStats() {
+                var total = app.width * app.height;
+                if (!total) return;
+                var removed = 0;
+                for (var p = 0; p < total; p++) if (app.mask[p] === 0) removed++;
+                $('statRemoved').textContent = removed.toLocaleString();
+                $('statTotal').textContent = total.toLocaleString();
+                $('statRatio').textContent = (removed / total * 100).toFixed(1) + '%';
+            }
+
+            /* =====================================================================
+               五、执行抠图
+               ===================================================================== */
+            function applyRemoval(seedPoint) {
+                if (!app.width) { Tool.toast('请先选择图片', 'err'); return; }
+                var tol = parseInt($('optTolerance').value, 10);
+                var mode = $('optMode').value;
+                var gradient = $('optGradient').checked;
+
+                if (mode === 'wand' && !seedPoint) {
+                    setStatus($('procStatus'), 'info', '魔棒模式：请直接在上方图片中点击要抠除的背景区域（可多次点击不同位置）。');
+                    return;
+                }
+
+                pushUndo();
+                var t0 = performance.now();
+                var removed = 0;
+
+                if (mode === 'global') {
+                    removed = globalRemove(tol);
+                } else if (mode === 'wand') {
+                    removed = floodRemove([seedPoint.y * app.width + seedPoint.x], tol, gradient);
+                } else {
+                    removed = floodRemove(borderSeeds(), tol, gradient);
+                }
+
+                bumpMaskVersion();
+                renderFull();
+                updateStats();
+                var ms = performance.now() - t0;
+                if (removed === 0) {
+                    setStatus($('procStatus'), 'warn',
+                        '没有像素被抠除：可能是容差太小，或该处的颜色与背景色差异较大。\n建议把“颜色容差”调大一些，或改用“魔棒点选”点击背景区域。');
+                } else {
+                    setStatus($('procStatus'), 'ok',
+                        '已抠除 ' + removed.toLocaleString() + ' 个像素（耗时 ' + ms.toFixed(0) + ' ms）。\n' +
+                        '若边缘有残留，可继续调大容差后再点一次“执行抠图”；若删多了，点“撤销”或使用“恢复笔”补回来。');
+                }
+            }
+
+            /* =====================================================================
+               六、画布交互（魔棒 / 吸管 / 笔刷）
+               ===================================================================== */
+            function canvasPoint(e) {
+                var rect = viewCanvas.getBoundingClientRect();
+                var x = (e.clientX - rect.left) / rect.width * app.width;
+                var y = (e.clientY - rect.top) / rect.height * app.height;
+                return {
+                    x: Math.max(0, Math.min(app.width - 1, Math.round(x))),
+                    y: Math.max(0, Math.min(app.height - 1, Math.round(y)))
+                };
+            }
+
+            function drawCursor(pt) {
+                overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                if (!pt) return;
+                var tool = $('optTool').value;
+                var mode = $('optMode').value;
+                if (tool !== 'erase' && tool !== 'restore' && tool !== 'pick' && mode !== 'wand') return;
+                var radius = (tool === 'erase' || tool === 'restore')
+                    ? (parseInt($('optBrush').value, 10) / 2)
+                    : Math.max(6, app.width / 160);
+                overlayCtx.beginPath();
+                overlayCtx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
+                overlayCtx.strokeStyle = 'rgba(0,0,0,0.65)';
+                overlayCtx.lineWidth = Math.max(1, app.width / 600);
+                overlayCtx.stroke();
+                overlayCtx.beginPath();
+                overlayCtx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
+                overlayCtx.strokeStyle = 'rgba(255,255,255,0.85)';
+                overlayCtx.lineWidth = Math.max(1, app.width / 900);
+                overlayCtx.stroke();
+            }
+
+            function paintAt(x, y) {
+                var radius = parseInt($('optBrush').value, 10) / 2;
+                var value = app.paintValue;
+                var w = app.width, h = app.height;
+                var r2 = radius * radius;
+                var x0 = Math.max(0, Math.floor(x - radius)), x1 = Math.min(w - 1, Math.ceil(x + radius));
+                var y0 = Math.max(0, Math.floor(y - radius)), y1 = Math.min(h - 1, Math.ceil(y + radius));
+                for (var py = y0; py <= y1; py++) {
+                    for (var px = x0; px <= x1; px++) {
+                        var dx = px - x, dy = py - y;
+                        if (dx * dx + dy * dy <= r2) app.mask[py * w + px] = value;
+                    }
+                }
+                renderRegion(x0 - 1, y0 - 1, x1 + 1, y1 + 1);
+            }
+
+            function paintLine(from, to) {
+                var dx = to.x - from.x, dy = to.y - from.y;
+                var dist = Math.sqrt(dx * dx + dy * dy);
+                var steps = Math.max(1, Math.ceil(dist / 2));
+                for (var s = 0; s <= steps; s++) {
+                    paintAt(from.x + dx * s / steps, from.y + dy * s / steps);
+                }
+            }
+
+            viewCanvas.addEventListener('pointerdown', function (e) {
+                if (!app.width) return;
+                var pt = canvasPoint(e);
+                var tool = $('optTool').value;
+                var mode = $('optMode').value;
+
+                if (tool === 'pick') {
+                    var i = (pt.y * app.width + pt.x) * 4;
+                    var d = app.origData.data;
+                    app.bg = { r: d[i], g: d[i + 1], b: d[i + 2] };
+                    syncBgUI();
+                    Tool.toast('已拾取背景色 rgb(' + app.bg.r + ', ' + app.bg.g + ', ' + app.bg.b + ')', 'ok');
+                    return;
+                }
+                if (tool === 'erase' || tool === 'restore') {
+                    try { viewCanvas.setPointerCapture(e.pointerId); } catch (err) { /* 指针已释放等情况会抛错，忽略即可 */ }
+                    pushUndo();
+                    app.painting = true;
+                    app.paintValue = tool === 'erase' ? 0 : 255;
+                    app.lastPt = pt;
+                    paintAt(pt.x, pt.y);
+                    return;
+                }
+                if (mode === 'wand') {
+                    applyRemoval(pt);
+                }
+            });
+
+            viewCanvas.addEventListener('pointermove', function (e) {
+                if (!app.width) return;
+                var pt = canvasPoint(e);
+                drawCursor(pt);
+                if (!app.painting) return;
+                if (app.lastPt) paintLine(app.lastPt, pt);
+                else paintAt(pt.x, pt.y);
+                app.lastPt = pt;
+            });
+
+            var endPaint = function () {
+                if (!app.painting) return;
+                app.painting = false;
+                app.lastPt = null;
+                bumpMaskVersion();
+                renderFull();       /* 松手后统一应用羽化与去杂边 */
+                updateStats();
+            };
+            viewCanvas.addEventListener('pointerup', endPaint);
+            viewCanvas.addEventListener('pointercancel', endPaint);
+            viewCanvas.addEventListener('pointerleave', function () {
+                overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                endPaint();
+            });
+
+            /* =====================================================================
+               七、导出
+               ===================================================================== */
+            function exportCanvas(withBg, bgColor) {
+                var w = app.width, h = app.height;
+                var tmp = document.createElement('canvas');
+                tmp.width = w;
+                tmp.height = h;
+                tmp.getContext('2d').putImageData(app.outData, 0, 0);
+                var c = document.createElement('canvas');
+                c.width = w;
+                c.height = h;
+                var x = c.getContext('2d');
+                if (withBg) {
+                    x.fillStyle = bgColor;
+                    x.fillRect(0, 0, w, h);
+                }
+                x.drawImage(tmp, 0, 0);   /* drawImage 才会与背景正确合成 */
+                return c;
+            }
+
+            function exportBgChoice() {
+                var v = $('optExportBg').value;
+                if (v === 'transparent') return { withBg: false, color: '' };
+                if (v === 'white') return { withBg: true, color: '#ffffff' };
+                if (v === 'black') return { withBg: true, color: '#000000' };
+                return { withBg: true, color: $('optExportColor').value };
+            }
+
+            $('btnDownloadPng').addEventListener('click', function () {
+                if (!app.width) return;
+                var choice = exportBgChoice();
+                exportCanvas(choice.withBg, choice.color).toBlob(function (blob) {
+                    var suffix = choice.withBg ? '-bg' : '-transparent';
+                    var name = app.fileName + suffix + '.png';
+                    Tool.download(blob, name);
+                    Tool.toast('已导出 ' + name + '（' + Tool.formatBytes(blob.size) + '）', 'ok');
+                }, 'image/png');
+            });
+
+            $('btnDownloadJpg').addEventListener('click', function () {
+                if (!app.width) return;
+                var choice = exportBgChoice();
+                if (!choice.withBg) choice = { withBg: true, color: '#ffffff' };
+                exportCanvas(true, choice.color).toBlob(function (blob) {
+                    var name = app.fileName + '-bg.jpg';
+                    Tool.download(blob, name);
+                    Tool.toast('已导出 ' + name + '（' + Tool.formatBytes(blob.size) + '）', 'ok');
+                }, 'image/jpeg', 0.92);
+            });
+
+            /* =====================================================================
+               八、事件绑定
+               ===================================================================== */
+            Tool.bindDropZone($('imgDropZone'), $('imgInput'), function (f) {
+                if (!/^image\//.test(f.type)) { setStatus($('loadStatus'), 'err', '请选择图片文件。'); return; }
+                loadFromSource(f, f.name);
+            });
+            $('btnDemo').addEventListener('click', makeDemo);
+            $('btnResetAll').addEventListener('click', function () {
+                app.width = 0;
+                $('editorCard').classList.add('hidden');
+                $('exportCard').classList.add('hidden');
+                $('imgInfo').textContent = '尚未选择图片。';
+                setStatus($('loadStatus'), '', '');
+                setStatus($('procStatus'), '', '');
+                $('imgInput').value = '';
+            });
+
+            $('btnDetect').addEventListener('click', function () {
+                if (!app.width) { Tool.toast('请先选择图片', 'err'); return; }
+                detectBackground(false);
+            });
+            $('optBgColor').addEventListener('input', function () {
+                app.bg = hexToRgb($('optBgColor').value);
+                $('bgColorText').textContent = 'rgb(' + app.bg.r + ', ' + app.bg.g + ', ' + app.bg.b + ')';
+                renderFull();
+            });
+            $('optTolerance').addEventListener('input', function () {
+                $('tolVal').textContent = $('optTolerance').value;
+            });
+            $('optFeather').addEventListener('input', function () {
+                $('featherVal').textContent = $('optFeather').value;
+            });
+            var liveRender = Tool.debounce(function () {
+                if (app.width) renderFull();
+            }, 180);
+            $('optFeather').addEventListener('change', liveRender);
+            $('optDespill').addEventListener('change', function () { if (app.width) renderFull(); });
+            $('optBrush').addEventListener('input', function () {
+                $('brushVal').textContent = $('optBrush').value;
+            });
+            $('optMode').addEventListener('change', function () {
+                var hints = {
+                    auto: '自动从图片四周边框取样背景色，并只删除与边框相连的背景区域。',
+                    global: '删除全图中所有与背景色相近的像素（包括主体内部的同色区域），适合图标、logo 等素材。',
+                    wand: '点击图片中要抠除的背景区域，只删除与点击处相连通的部分，适合背景颜色不统一的图片。'
+                };
+                $('modeHint').textContent = hints[$('optMode').value] || '';
+                $('canvasHint').textContent = $('optMode').value === 'wand'
+                    ? '当前为“魔棒点选”模式：直接点击图片中的背景即可立即抠除该连通区域，可多次点击不同位置。'
+                    : '提示：使用“魔棒”模式时，直接点击图片中的背景即可抠除；处理后可切换到“橡皮擦 / 恢复笔”手动修补边缘。';
+            });
+            $('optTool').addEventListener('change', function () {
+                viewCanvas.style.cursor = ($('optTool').value === 'none' && $('optMode').value !== 'wand') ? 'default' : 'crosshair';
+            });
+            $('optExportBg').addEventListener('change', function () {
+                $('exportColorField').classList.toggle('hidden', $('optExportBg').value !== 'custom');
+            });
+
+            $('btnApply').addEventListener('click', function () { applyRemoval(null); });
+            $('btnUndo').addEventListener('click', undo);
+            $('btnResetMask').addEventListener('click', function () {
+                if (!app.width) return;
+                pushUndo();
+                app.mask.fill(255);
+                bumpMaskVersion();
+                renderFull();
+                updateStats();
+                setStatus($('procStatus'), 'info', '已清除所有抠图结果，恢复到原图状态。');
+            });
+            $('btnLiveFeather').addEventListener('click', function () {
+                if (!app.width) return;
+                invalidateAlpha();
+                renderFull();
+                Tool.toast('已按当前羽化 / 去杂边参数重新渲染');
+            });
+            $('optShowOrig').addEventListener('change', function () {
+                if (!app.width) return;
+                if ($('optShowOrig').checked) {
+                    viewCtx.putImageData(app.origData, 0, 0);
+                } else {
+                    renderFull();
+                }
+            });
+
+            /* 初始化界面文案 */
+            $('optMode').dispatchEvent(new Event('change'));
+            viewCanvas.style.cursor = 'crosshair';
+        })();
+    </script>
+</body>
+
+</html>

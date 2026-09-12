@@ -4,6 +4,114 @@
   
   
   <entry>
+    <title>在线图片去背景工具</title>
+    <link href="/2026/09/12/%E5%9C%A8%E7%BA%BF%E5%9B%BE%E7%89%87%E5%8E%BB%E8%83%8C%E6%99%AF%E5%B7%A5%E5%85%B7/"/>
+    <url>/2026/09/12/%E5%9C%A8%E7%BA%BF%E5%9B%BE%E7%89%87%E5%8E%BB%E8%83%8C%E6%99%AF%E5%B7%A5%E5%85%B7/</url>
+    
+    <content type="html"><![CDATA[<p>　　在线图片去背景（抠图）工具：自动识别纯色或渐变背景并变成透明，支持容差、边缘羽化、去杂边，以及橡皮擦与恢复笔手工修补，导出透明 PNG。图片不上传。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/tools/remove-bg.html"     style="display:inline-block;padding:12px 36px;background:#3095d4;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(48,149,212,.32)">    👉 打开在线图片去背景工具  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
+    
+    
+    <categories>
+      
+      <category>在线工具</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>在线工具</tag>
+      
+      <tag>抠图</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>在线视频压缩工具</title>
+    <link href="/2026/09/12/%E5%9C%A8%E7%BA%BF%E8%A7%86%E9%A2%91%E5%8E%8B%E7%BC%A9%E5%B7%A5%E5%85%B7/"/>
+    <url>/2026/09/12/%E5%9C%A8%E7%BA%BF%E8%A7%86%E9%A2%91%E5%8E%8B%E7%BC%A9%E5%B7%A5%E5%85%B7/</url>
+    
+    <content type="html"><![CDATA[<p>　　在线视频压缩工具：在浏览器里重新编码视频，可调整分辨率、码率、帧率，支持片段裁剪，导出 MP4 或 WebM。视频不上传，压缩耗时约等于视频时长。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/tools/video-compress.html"     style="display:inline-block;padding:12px 36px;background:#3095d4;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(48,149,212,.32)">    👉 打开在线视频压缩工具  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
+    
+    
+    <categories>
+      
+      <category>在线工具</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>在线工具</tag>
+      
+      <tag>视频压缩</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>JSON在线解析工具</title>
+    <link href="/2026/09/12/JSON%E5%9C%A8%E7%BA%BF%E8%A7%A3%E6%9E%90%E5%B7%A5%E5%85%B7/"/>
+    <url>/2026/09/12/JSON%E5%9C%A8%E7%BA%BF%E8%A7%A3%E6%9E%90%E5%B7%A5%E5%85%B7/</url>
+    
+    <content type="html"><![CDATA[<p>　　在线 JSON 解析工具：校验 JSON 是否合法并精确指出错误的行列与原因，支持格式化、压缩、键名排序、转义，以及可折叠的结构树浏览与搜索统计。全部在浏览器本地完成，数据不上传。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/tools/json.html"     style="display:inline-block;padding:12px 36px;background:#3095d4;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(48,149,212,.32)">    👉 打开 JSON 在线解析工具  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
+    
+    
+    <categories>
+      
+      <category>在线工具</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>在线工具</tag>
+      
+      <tag>JSON</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Base64在线编码解码工具</title>
+    <link href="/2026/09/12/Base64%E5%9C%A8%E7%BA%BF%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81%E5%B7%A5%E5%85%B7/"/>
+    <url>/2026/09/12/Base64%E5%9C%A8%E7%BA%BF%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81%E5%B7%A5%E5%85%B7/</url>
+    
+    <content type="html"><![CDATA[<p>　　在线 Base64 编码解码工具：文本与 Base64 互转（支持中文、emoji），还可以把文件、图片转成 Base64，或把 Base64 还原成文件下载。全部在浏览器本地完成，数据不上传。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/tools/base64.html"     style="display:inline-block;padding:12px 36px;background:#3095d4;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(48,149,212,.32)">    👉 打开 Base64 在线编码解码工具  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
+    
+    
+    <categories>
+      
+      <category>在线工具</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>在线工具</tag>
+      
+      <tag>Base64</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>他村聚会</title>
     <link href="/2025/01/30/%E4%BB%96%E6%9D%91%E8%81%9A%E4%BC%9A/"/>
     <url>/2025/01/30/%E4%BB%96%E6%9D%91%E8%81%9A%E4%BC%9A/</url>

@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>JSON 在线解析工具 - 校验 / 格式化 / 压缩 / 结构分析</title>
+    <meta name="description" content="纯浏览器本地运行的 JSON 在线解析工具：JSON 合法性校验并精确定位错误行列、格式化美化、压缩、转义处理、树形结构解析与统计。">
+    <link rel="stylesheet" href="css/tool.css">
+    <script>try { var t = localStorage.getItem('tool-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) { }</script>
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="tool-header-inner">
+            <a class="tool-back" href="/" data-back>← 返回</a>
+            <div class="tool-title-wrap">
+                <h1 class="tool-title">JSON 在线解析</h1>
+                <p class="tool-subtitle">合法性校验 · 错误精确定位 · 格式化 / 压缩 · 树形结构解析与统计 · 数据不上传</p>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="themeToggle" type="button" title="切换主题">☾</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="tool-main">
+
+        <!-- ============================ 输入 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">JSON 输入</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnSample" type="button">示例</button>
+                    <button class="btn btn-sm" id="btnMinSample" type="button">错误示例</button>
+                    <button class="btn btn-sm" id="btnPaste" type="button">从剪贴板粘贴</button>
+                    <button class="btn btn-sm" id="btnClear" type="button">清空</button>
+                </div>
+            </div>
+            <textarea id="input" class="mono" rows="11" spellcheck="false"
+                placeholder='在这里粘贴或输入 JSON，例如：{"name":"mxx","age":18,"tags":["hexo","js"],"ok":true}'></textarea>
+            <div class="btn-group mt-12">
+                <button class="btn btn-primary" id="btnFormat" type="button">格式化 / 美化</button>
+                <button class="btn btn-primary" id="btnMinify" type="button">压缩（去掉空白）</button>
+                <button class="btn" id="btnValidate" type="button">仅校验合法性</button>
+                <button class="btn" id="btnSortKeys" type="button">键名排序</button>
+                <button class="btn" id="btnEscape" type="button">转义为字符串</button>
+                <button class="btn" id="btnUnescape" type="button">去转义</button>
+                <span class="hint nowrap" style="margin-left:4px">快捷键：Ctrl / ⌘ + Enter 格式化</span>
+            </div>
+            <p class="hint mt-8">
+                <label class="check-line"><input type="checkbox" id="optAuto" checked> 输入时自动校验（停止输入 0.4 秒后）</label>
+                <label class="check-line"><input type="checkbox" id="optStrict"> 严格模式：把重复键名也视为错误</label>
+            </p>
+            <div class="status" id="parseStatus"></div>
+        </section>
+
+        <!-- ============================ 结果 + 统计 ============================ -->
+        <section class="grid-2">
+            <div class="card" style="margin-bottom:0">
+                <div class="card-head">
+                    <h2 class="card-title">处理结果</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-sm" id="btnCopyOut" type="button">复制</button>
+                        <button class="btn btn-sm" id="btnDownloadOut" type="button">下载 .json</button>
+                        <button class="btn btn-sm" id="btnUseOut" type="button">用作输入</button>
+                    </div>
+                </div>
+                <div class="grid-2" style="gap:12px">
+                    <div class="field">
+                        <label class="field-label" for="optIndent">缩进方式</label>
+                        <select id="optIndent">
+                            <option value="2" selected>2 个空格</option>
+                            <option value="4">4 个空格</option>
+                            <option value="tab">Tab</option>
+                            <option value="1">1 个空格</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="optSort">键名排序</label>
+                        <select id="optSort">
+                            <option value="none" selected>保持原顺序</option>
+                            <option value="asc">按字母升序</option>
+                        </select>
+                    </div>
+                </div>
+                <textarea id="output" class="mono" rows="14" spellcheck="false" readonly placeholder="格式化或压缩的结果会显示在这里"></textarea>
+                <p class="hint" id="outputHint">—</p>
+            </div>
+
+            <div class="card" style="margin-bottom:0">
+                <div class="card-head">
+                    <h2 class="card-title">解析统计</h2>
+                    <span class="badge" id="validBadge">等待输入</span>
+                </div>
+                <div class="stat-list" id="statList">
+                    <div class="stat"><b>—</b><span>节点总数</span></div>
+                    <div class="stat"><b>—</b><span>对象数</span></div>
+                    <div class="stat"><b>—</b><span>数组数</span></div>
+                    <div class="stat"><b>—</b><span>键值对</span></div>
+                    <div class="stat"><b>—</b><span>最大深度</span></div>
+                </div>
+                <div class="mt-16">
+                    <label class="field-label">类型分布</label>
+                    <div class="stat-list" id="typeList">
+                        <div class="stat"><b>—</b><span>字符串</span></div>
+                        <div class="stat"><b>—</b><span>数字</span></div>
+                        <div class="stat"><b>—</b><span>布尔</span></div>
+                        <div class="stat"><b>—</b><span>null</span></div>
+                    </div>
+                </div>
+                <div class="mt-16">
+                    <label class="field-label">体积</label>
+                    <div class="stat-list" id="sizeList">
+                        <div class="stat"><b>—</b><span>输入字符</span></div>
+                        <div class="stat"><b>—</b><span>UTF-8 字节</span></div>
+                        <div class="stat"><b>—</b><span>结果字符</span></div>
+                        <div class="stat"><b>—</b><span>结果字节</span></div>
+                    </div>
+                </div>
+                <div class="status" id="statStatus"></div>
+            </div>
+        </section>
+
+        <!-- ============================ 树形视图 ============================ -->
+        <section class="card mt-16">
+            <div class="card-head">
+                <h2 class="card-title">内容元素解析（树形视图）</h2>
+                <div class="btn-group">
+                    <input type="search" id="searchInput" placeholder="搜索键名或值…" style="width:180px">
+                    <button class="btn btn-sm" id="btnSearchPrev" type="button" title="上一个匹配">↑</button>
+                    <button class="btn btn-sm" id="btnSearchNext" type="button" title="下一个匹配">↓</button>
+                    <button class="btn btn-sm" id="btnExpandAll" type="button">全部展开</button>
+                    <button class="btn btn-sm" id="btnCollapseAll" type="button">全部折叠</button>
+                    <button class="btn btn-sm" id="btnCopyTree" type="button">复制树</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col" style="flex:2 1 0">
+                    <div class="json-tree" id="tree">
+                        <p class="hint" style="margin:0">解析成功后，这里会显示可折叠的 JSON 结构树。点击键名或值可以查看它的路径与详情。</p>
+                    </div>
+                </div>
+                <div class="col" style="flex:1 1 0;min-width:260px">
+                    <label class="field-label">选中节点详情</label>
+                    <table class="kv-table">
+                        <tbody>
+                            <tr>
+                                <th>路径</th>
+                                <td class="mono" id="nodePath">—</td>
+                            </tr>
+                            <tr>
+                                <th>类型</th>
+                                <td id="nodeType">—</td>
+                            </tr>
+                            <tr>
+                                <th>值 / 摘要</th>
+                                <td class="mono" id="nodeValue">—</td>
+                            </tr>
+                            <tr>
+                                <th>子项</th>
+                                <td class="mono" id="nodeCount">—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="btn-group mt-8">
+                        <button class="btn btn-sm" id="btnCopyPath" type="button">复制路径</button>
+                        <button class="btn btn-sm" id="btnCopyValue" type="button">复制该节点 JSON</button>
+                    </div>
+                    <p class="hint">提示：左侧树中 <b>▸ / ▾</b> 可以折叠展开；双击键名可直接复制其路径。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ 说明 ============================ -->
+        <section class="card">
+            <h2 class="card-title">使用说明</h2>
+            <ul class="hint" style="margin:8px 0 0;padding-left:20px;line-height:1.9">
+                <li><b>校验</b>采用自行实现的严格 JSON 解析器（遵循 RFC 8259），出错时会给出<b>行号、列号与具体原因</b>，并附上出错位置的原始行。</li>
+                <li>支持标准 JSON 之外的少量“类 JSON”写法提示：单引号字符串、注释、尾随逗号、<code>NaN</code>、十六进制数字等非标准语法都会被指出。</li>
+                <li><b>大整数保护</b>：树形视图按原文显示数字，超出 <code>Number.MAX_SAFE_INTEGER</code> 的整数会给出精度提示。</li>
+                <li>严格模式下，同一个对象中重复出现的键名会被视为错误；非严格模式只在状态栏提示，并按“后者覆盖前者”的常规行为处理。</li>
+                <li>全部解析在浏览器本地完成，输入的敏感数据不会发送到网络上。</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <p class="footer-note">mxx 的博客 · 在线工具 ｜ <a href="/">返回首页</a></p>
+
+    <script src="js/tool.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var $ = function (id) { return document.getElementById(id); };
+            var input = $('input'), output = $('output'), parseStatus = $('parseStatus');
+            var MAX_SAFE = 9007199254740991;
+
+            /* =====================================================================
+               一、严格 JSON 解析器：返回语法树，出错时给出位置与中文原因
+               ===================================================================== */
+            function JsonError(message, index, hint) {
+                this.name = 'JsonError';
+                this.message = message;
+                this.index = index;
+                this.hint = hint || '';
+            }
+
+            var ESCAPES = { '"': '"', '\\': '\\', '/': '/', b: '\b', f: '\f', n: '\n', r: '\r', t: '\t' };
+
+            function parseJson(text) {
+                var i = 0;
+                var len = text.length;
+                var stats = {
+                    nodes: 0, objects: 0, arrays: 0, strings: 0, numbers: 0,
+                    booleans: 0, nulls: 0, keys: 0, maxDepth: 0, maxArrayLen: 0,
+                    duplicateKeys: [], bigNumbers: []
+                };
+
+                function fail(msg, idx, hint) {
+                    throw new JsonError(msg, idx == null ? i : idx, hint);
+                }
+
+                function skipWs() {
+                    while (i < len) {
+                        var c = text.charCodeAt(i);
+                        if (c === 32 || c === 9 || c === 10 || c === 13) { i++; continue; }
+                        break;
+                    }
+                }
+
+                /* 出现在不该出现字符的位置时，给出常见错误原因 */
+                function describeUnexpected(ch, idx) {
+                    var rest = text.slice(idx, idx + 24);
+                    if (ch === "'") return { msg: 'JSON 字符串必须使用双引号 " ，不能使用单引号 \'', hint: '把单引号改成双引号，或确认内容确实需要作为字符串。' };
+                    if (rest.indexOf('//') === 0 || rest.indexOf('/*') === 0) return { msg: 'JSON 标准不支持注释', hint: '请删除注释（// 与 /* */），或把注释移到 JSON 之外。' };
+                    if (rest.indexOf('NaN') === 0) return { msg: 'JSON 标准不支持 NaN', hint: '如需表示“非数字”，可改用 null 或字符串 "NaN"。' };
+                    if (rest.indexOf('Infinity') === 0) return { msg: 'JSON 标准不支持 Infinity', hint: '可改用字符串 "Infinity" 或使用一个极大数值。' };
+                    if (rest.indexOf('undefined') === 0) return { msg: 'JSON 标准不支持 undefined', hint: '请改用 null。' };
+                    if (ch === '}') return { msg: '这里出现了多余的 }，对象提前结束', hint: '检查上一项后面是否多写了逗号，或括号配对是否正确。' };
+                    if (ch === ']') return { msg: '这里出现了多余的 ]，数组提前结束', hint: '检查上一项后面是否多写了逗号，或括号配对是否正确。' };
+                    if (ch === ',') return { msg: '这里出现了多余的逗号', hint: 'JSON 不允许尾随逗号（最后一项后面不能有逗号）。' };
+                    return { msg: '出现了无法识别的字符 ' + JSON.stringify(ch), hint: '' };
+                }
+
+                function parseValue(depth) {
+                    if (depth > stats.maxDepth) stats.maxDepth = depth;
+                    skipWs();
+                    if (i >= len) fail('内容意外结束：这里还需要一个值', i, '可能是括号或引号没有闭合。');
+                    var ch = text[i];
+                    if (ch === '{') return parseObject(depth);
+                    if (ch === '[') return parseArray(depth);
+                    if (ch === '"') { stats.nodes++; stats.strings++; return { type: 'string', value: parseString() }; }
+                    if (ch === '-' || (ch >= '0' && ch <= '9')) { stats.nodes++; stats.numbers++; return parseNumber(); }
+                    if (text.substr(i, 4) === 'true') { i += 4; stats.nodes++; stats.booleans++; return { type: 'boolean', value: true }; }
+                    if (text.substr(i, 5) === 'false') { i += 5; stats.nodes++; stats.booleans++; return { type: 'boolean', value: false }; }
+                    if (text.substr(i, 4) === 'null') { i += 4; stats.nodes++; stats.nulls++; return { type: 'null', value: null }; }
+                    var d = describeUnexpected(ch, i);
+                    fail(d.msg, i, d.hint);
+                }
+
+                function parseString() {
+                    var start = i;
+                    i++; // 跳过起始引号
+                    var out = '';
+                    while (true) {
+                        if (i >= len) fail('字符串没有闭合：缺少结尾的双引号', start, '从第 ' + (start + 1) + ' 个字符开始的字符串一直没有遇到 "。');
+                        var c = text[i];
+                        if (c === '"') { i++; return out; }
+                        if (c === '\\') {
+                            i++;
+                            if (i >= len) fail('字符串在转义符 \\ 之后意外结束', i);
+                            var e = text[i];
+                            if (Object.prototype.hasOwnProperty.call(ESCAPES, e)) {
+                                out += ESCAPES[e];
+                                i++;
+                            } else if (e === 'u') {
+                                var hex = text.substr(i + 1, 4);
+                                if (!/^[0-9a-fA-F]{4}$/.test(hex)) {
+                                    fail('\\u 转义格式错误：应为 \\u 加 4 位十六进制数字', i, '当前内容是 "\\u' + hex + '"');
+                                }
+                                out += String.fromCharCode(parseInt(hex, 16));
+                                i += 5;
+                            } else {
+                                fail('无法识别的转义字符 \\' + e, i - 1, 'JSON 允许的转义只有 \\" \\\\ \\/ \\b \\f \\n \\r \\t 与 \\uXXXX。');
+                            }
+                            continue;
+                        }
+                        var code = text.charCodeAt(i);
+                        if (code < 0x20) {
+                            fail('字符串中不能直接包含控制字符（如未转义的换行、Tab）', i, '请使用 \\n、\\t 等转义写法。');
+                        }
+                        out += c;
+                        i++;
+                    }
+                }
+
+                function parseNumber() {
+                    var start = i;
+                    if (text[i] === '-') i++;
+                    if (text[i] === '0') {
+                        i++;
+                        if (text[i] >= '0' && text[i] <= '9') {
+                            fail('数字不允许以 0 开头', start, '例如 012 应写作 12。');
+                        }
+                    } else if (text[i] >= '1' && text[i] <= '9') {
+                        while (text[i] >= '0' && text[i] <= '9') i++;
+                    } else {
+                        fail('负号 - 后面必须紧跟数字', start);
+                    }
+                    if (text[i] === '.') {
+                        i++;
+                        if (!(text[i] >= '0' && text[i] <= '9')) fail('小数点后面必须至少有一位数字', i);
+                        while (text[i] >= '0' && text[i] <= '9') i++;
+                    }
+                    if (text[i] === 'e' || text[i] === 'E') {
+                        i++;
+                        if (text[i] === '+' || text[i] === '-') i++;
+                        if (!(text[i] >= '0' && text[i] <= '9')) fail('指数部分 e 后面必须至少有一位数字', i);
+                        while (text[i] >= '0' && text[i] <= '9') i++;
+                    }
+                    var raw = text.slice(start, i);
+                    var isInt = raw.indexOf('.') < 0 && raw.indexOf('e') < 0 && raw.indexOf('E') < 0;
+                    if (isInt) {
+                        var digits = raw.replace(/^-/, '');
+                        if (digits.length > 15) {
+                            var asNum = Number(raw);
+                            if (!isFinite(asNum) || Math.abs(asNum) > MAX_SAFE) {
+                                stats.bigNumbers.push({ raw: raw, index: start });
+                            }
+                        }
+                    }
+                    return { type: 'number', value: raw };
+                }
+
+                function parseObject(depth) {
+                    stats.nodes++;
+                    stats.objects++;
+                    i++; // {
+                    var node = { type: 'object', children: [] };
+                    var seen = {};
+                    skipWs();
+                    if (text[i] === '}') { i++; return node; }
+                    while (true) {
+                        skipWs();
+                        if (i >= len) fail('对象没有闭合：缺少 }', i, '对象从第 ' + (i + 1) + ' 个字符附近开始。');
+                        if (text[i] !== '"') {
+                            if (text[i] === '}') fail('对象中出现了多余的逗号', i, 'JSON 不允许尾随逗号。');
+                            var d0 = describeUnexpected(text[i], i);
+                            fail('对象的键名必须是双引号包裹的字符串，' + d0.msg, i, d0.hint);
+                        }
+                        var keyStart = i;
+                        var key = parseString();
+                        if (Object.prototype.hasOwnProperty.call(seen, key)) {
+                            stats.duplicateKeys.push({ key: key, index: keyStart });
+                        }
+                        seen[key] = true;
+                        stats.keys++;
+                        skipWs();
+                        if (text[i] !== ':') {
+                            fail('键名 ' + JSON.stringify(key) + ' 后面缺少冒号 :', i, text[i] === '=' ? '是不是把 : 写成了 = ？' : '');
+                        }
+                        i++;
+                        var child = parseValue(depth + 1);
+                        node.children.push({ key: key, node: child });
+                        skipWs();
+                        if (text[i] === ',') {
+                            i++;
+                            skipWs();
+                            if (text[i] === '}') fail('对象中出现了多余的逗号', i, 'JSON 不允许尾随逗号。');
+                            continue;
+                        }
+                        if (text[i] === '}') { i++; return node; }
+                        if (i >= len) fail('对象没有闭合：缺少 }', i);
+                        var d = describeUnexpected(text[i], i);
+                        fail('对象中两个键值对之间缺少逗号，或对象未正确闭合。' + d.msg, i, d.hint);
+                    }
+                }
+
+                function parseArray(depth) {
+                    stats.nodes++;
+                    stats.arrays++;
+                    i++; // [
+                    var node = { type: 'array', children: [] };
+                    skipWs();
+                    if (text[i] === ']') { i++; return node; }
+                    while (true) {
+                        var child = parseValue(depth + 1);
+                        node.children.push({ key: null, node: child });
+                        skipWs();
+                        if (text[i] === ',') {
+                            i++;
+                            skipWs();
+                            if (text[i] === ']') fail('数组中出现了多余的逗号', i, 'JSON 不允许尾随逗号。');
+                            continue;
+                        }
+                        if (text[i] === ']') {
+                            i++;
+                            if (node.children.length > stats.maxArrayLen) stats.maxArrayLen = node.children.length;
+                            return node;
+                        }
+                        if (i >= len) fail('数组没有闭合：缺少 ]', i);
+                        var d = describeUnexpected(text[i], i);
+                        fail('数组元素之间缺少逗号，或数组未正确闭合。' + d.msg, i, d.hint);
+                    }
+                }
+
+                skipWs();
+                if (i >= len) throw new JsonError('输入为空：没有任何可解析的内容', 0);
+                if (text.charCodeAt(0) === 0xFEFF) { i = 1; skipWs(); }
+                var root = parseValue(0);
+                skipWs();
+                if (i < len) {
+                    var ch = text[i];
+                    if (ch === ',') fail('根节点之后出现了多余的逗号', i, '一个 JSON 文档只能有一个顶层值。');
+                    fail('JSON 文档只能有一个顶层值，这里还有多余的内容', i,
+                        '常见原因：粘贴了多个 JSON 对象（如 NDJSON / JSON Lines），或最外层缺少 [ ]。');
+                }
+                return { root: root, stats: stats };
+            }
+
+            /* 位置 → 行列 */
+            function posToLineCol(text, index) {
+                var line = 1, col = 1;
+                for (var k = 0; k < index && k < text.length; k++) {
+                    if (text.charCodeAt(k) === 10) { line++; col = 1; }
+                    else col++;
+                }
+                return { line: line, col: col };
+            }
+
+            function getLineText(text, line) {
+                var lines = text.split(/\r\n|\r|\n/);
+                return lines[line - 1] == null ? '' : lines[line - 1];
+            }
+
+            /* =====================================================================
+               二、序列化 / 转换工具
+               ===================================================================== */
+            function nodeToValue(node) {
+                if (node.type === 'object') {
+                    var o = {};
+                    node.children.forEach(function (c) { o[c.key] = nodeToValue(c.node); });
+                    return o;
+                }
+                if (node.type === 'array') return node.children.map(function (c) { return nodeToValue(c.node); });
+                if (node.type === 'number') return Number(node.value);
+                return node.value;
+            }
+
+            function sortValue(value) {
+                if (Array.isArray(value)) return value.map(sortValue);
+                if (value && typeof value === 'object') {
+                    var out = {};
+                    Object.keys(value).sort(function (a, b) { return a < b ? -1 : (a > b ? 1 : 0); })
+                        .forEach(function (k) { out[k] = sortValue(value[k]); });
+                    return out;
+                }
+                return value;
+            }
+
+            function serializedValue(node) {
+                var v = nodeToValue(node);
+                if ($('optSort').value === 'asc') v = sortValue(v);
+                var indentOpt = $('optIndent').value;
+                var indent = indentOpt === 'tab' ? '\t' : Number(indentOpt);
+                return JSON.stringify(v, null, indent);
+            }
+
+            /* 直接从语法树生成格式化文本（可保留大整数原样） */
+            function nodeToText(node, indentUnit, level) {
+                level = level || 0;
+                var pad = new Array(level + 1).join(indentUnit);
+                var padIn = new Array(level + 2).join(indentUnit);
+                if (node.type === 'object') {
+                    if (!node.children.length) return '{}';
+                    var pairs = node.children.map(function (c) {
+                        return padIn + JSON.stringify(c.key) + ': ' + nodeToText(c.node, indentUnit, level + 1);
+                    });
+                    return '{\n' + pairs.join(',\n') + '\n' + pad + '}';
+                }
+                if (node.type === 'array') {
+                    if (!node.children.length) return '[]';
+                    var items = node.children.map(function (c) {
+                        return padIn + nodeToText(c.node, indentUnit, level + 1);
+                    });
+                    return '[\n' + items.join(',\n') + '\n' + pad + ']';
+                }
+                if (node.type === 'string') return JSON.stringify(node.value);
+                if (node.type === 'number') return node.value;
+                if (node.type === 'boolean') return node.value ? 'true' : 'false';
+                return 'null';
+            }
+
+            function minifyText(node) {
+                if (node.type === 'object') {
+                    return '{' + node.children.map(function (c) {
+                        return JSON.stringify(c.key) + ':' + minifyText(c.node);
+                    }).join(',') + '}';
+                }
+                if (node.type === 'array') {
+                    return '[' + node.children.map(function (c) { return minifyText(c.node); }).join(',') + ']';
+                }
+                if (node.type === 'string') return JSON.stringify(node.value);
+                if (node.type === 'number') return node.value;
+                if (node.type === 'boolean') return node.value ? 'true' : 'false';
+                return 'null';
+            }
+
+            function sortedNode(node) {
+                if (node.type === 'object') {
+                    return {
+                        type: 'object',
+                        children: node.children.slice().sort(function (a, b) {
+                            return a.key < b.key ? -1 : (a.key > b.key ? 1 : 0);
+                        }).map(function (c) { return { key: c.key, node: sortedNode(c.node) }; })
+                    };
+                }
+                if (node.type === 'array') {
+                    return { type: 'array', children: node.children.map(function (c) { return { key: null, node: sortedNode(c.node) }; }) };
+                }
+                return node;
+            }
+
+            function typeName(t) {
+                return { object: '对象 Object', array: '数组 Array', string: '字符串 String', number: '数字 Number', boolean: '布尔 Boolean', null: '空值 null' }[t] || t;
+            }
+
+            /* =====================================================================
+               三、状态与渲染
+               ===================================================================== */
+            var state = { tree: null, stats: null, text: '', selected: null, matches: [], matchIndex: -1 };
+
+            function setStat(containerId, index, value, label) {
+                var box = $(containerId);
+                var stats = box.querySelectorAll('.stat');
+                if (!stats[index]) return;
+                stats[index].querySelector('b').textContent = value;
+                if (label) stats[index].querySelector('span').textContent = label;
+            }
+
+            function resetStats() {
+                $('validBadge').textContent = '等待输入';
+                $('validBadge').className = 'badge';
+                ['statList', 'typeList', 'sizeList'].forEach(function (id) {
+                    Array.prototype.forEach.call($(id).querySelectorAll('.stat b'), function (b) { b.textContent = '—'; });
+                });
+                $('outputHint').textContent = '—';
+            }
+
+            function showError(err, text) {
+                var pos = (err instanceof JsonError && err.index != null)
+                    ? posToLineCol(text, err.index)
+                    : null;
+                var msg = '';
+                if (pos) {
+                    var lineText = getLineText(text, pos.line);
+                    var caret = new Array(Math.max(0, pos.col - 1) + 1).join(' ') + '^';
+                    if (lineText.length > 200) lineText = lineText.slice(0, 200) + ' …';
+                    msg = '✗ JSON 格式错误\n位置：第 ' + pos.line + ' 行，第 ' + pos.col + ' 列（第 ' + (err.index + 1) + ' 个字符）\n原因：' + err.message;
+                    if (err.hint) msg += '\n建议：' + err.hint;
+                    msg += '\n\n出错位置上下文：\n' + lineText + '\n' + caret;
+                } else {
+                    msg = '✗ JSON 格式错误：' + (err.message || err);
+                }
+                Tool.setStatus(parseStatus, 'err', msg);
+                $('validBadge').textContent = '✗ 不合法';
+                $('validBadge').className = 'badge err';
+            }
+
+            function renderTree(root, text) {
+                state.text = text;
+                state.matches = [];
+                state.matchIndex = -1;
+                state.selected = null;
+                var box = $('tree');
+                box.innerHTML = '';
+                var ul = document.createElement('ul');
+                box.appendChild(ul);
+                var rootLine = buildNode(root, null, '$', 0);
+                ul.appendChild(rootLine);
+                // 默认展开前两层
+                autoExpand(rootLine, 2);
+                clearNodeDetail();
+            }
+
+            function autoExpand(li, depth) {
+                if (depth <= 0) return;
+                var node = li.__node;
+                if (!node || (node.type !== 'object' && node.type !== 'array')) return;
+                ensureChildren(li);
+                if (li.__collapsed) toggleNode(li, false);
+                if (li.__childUl) {
+                    Array.prototype.forEach.call(li.__childUl.children, function (c) { autoExpand(c, depth - 1); });
+                }
+            }
+
+            function valuePreview(node) {
+                if (node.type === 'object') return '{ ' + node.children.length + ' 项 }';
+                if (node.type === 'array') return '[ ' + node.children.length + ' 项 ]';
+                if (node.type === 'string') {
+                    var s = node.value.length > 120 ? node.value.slice(0, 120) + '…' : node.value;
+                    return '"' + s + '"';
+                }
+                if (node.type === 'number') return node.value;
+                if (node.type === 'boolean') return String(node.value);
+                return 'null';
+            }
+
+            /* 类型 → 语法高亮类名（jt- 前缀） */
+            function valueClass(type) {
+                return { string: 'jt-str', number: 'jt-num', boolean: 'jt-bool', 'null': 'jt-null' }[type] || 'jt-plain';
+            }
+
+            function buildNode(node, key, path, depth) {
+                var li = document.createElement('li');
+                li.className = 'jt-node';
+                li.__node = node;
+                li.__path = path;
+
+                var line = document.createElement('span');
+                line.className = 'jt-line';
+                li.appendChild(line);
+
+                var isContainer = node.type === 'object' || node.type === 'array';
+                var toggle = document.createElement('span');
+                toggle.className = 'jt-toggle';
+                toggle.textContent = isContainer ? '▾' : '·';
+                line.appendChild(toggle);
+                if (isContainer) {
+                    toggle.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        toggleNode(li, !li.__collapsed);
+                    });
+                }
+
+                if (key !== null) {
+                    var keyEl = document.createElement('span');
+                    keyEl.className = 'jt-key';
+                    keyEl.textContent = JSON.stringify(key);
+                    keyEl.title = '双击复制路径';
+                    keyEl.addEventListener('dblclick', function (e) {
+                        e.stopPropagation();
+                        Tool.copy(path, '路径已复制：' + path);
+                    });
+                    line.appendChild(keyEl);
+                    var colon = document.createElement('span');
+                    colon.className = 'jt-colon';
+                    colon.textContent = ': ';
+                    line.appendChild(colon);
+                }
+
+                var valEl = document.createElement('span');
+                valEl.className = valueClass(node.type);
+                valEl.textContent = isContainer
+                    ? (node.type === 'object' ? '{' : '[')
+                    : valuePreview(node);
+                line.appendChild(valEl);
+
+                if (isContainer) {
+                    var closeEl = document.createElement('span');
+                    closeEl.className = 'jt-colon';
+                    closeEl.textContent = (node.type === 'object' ? '}' : ']');
+                    line.appendChild(closeEl);
+                    var meta = document.createElement('span');
+                    meta.className = 'jt-meta';
+                    meta.textContent = '  // ' + node.children.length + ' 项' + (depth > 0 ? '' : ' · 根节点');
+                    line.appendChild(meta);
+                } else if (node.type === 'string' && node.value.length > 120) {
+                    var meta2 = document.createElement('span');
+                    meta2.className = 'jt-meta';
+                    meta2.textContent = '  // 共 ' + node.value.length + ' 字符';
+                    line.appendChild(meta2);
+                } else if (node.type === 'number') {
+                    var big = /^-?\d+$/.test(node.value) && Math.abs(Number(node.value)) > MAX_SAFE;
+                    if (big) {
+                        var warn = document.createElement('span');
+                        warn.className = 'jt-meta';
+                        warn.textContent = '  // ⚠ 超出安全整数范围，使用 JSON.parse 会丢精度';
+                        line.appendChild(warn);
+                    }
+                }
+
+                line.addEventListener('click', function () {
+                    selectNode(node, path, li);
+                });
+
+                if (isContainer && node.children.length) {
+                    var childUl = document.createElement('ul');
+                    li.appendChild(childUl);
+                    li.__built = false;
+                    li.__childUl = childUl;
+                }
+                return li;
+            }
+
+            function ensureChildren(li) {
+                if (!li.__childUl || li.__built) return;
+                var node = li.__node;
+                var frag = document.createDocumentFragment();
+                node.children.forEach(function (c, idx) {
+                    var childPath = c.key === null ? (li.__path + '[' + idx + ']') : pathJoin(li.__path, c.key);
+                    frag.appendChild(buildNode(c.node, c.key === null ? idx : c.key, childPath, 0));
+                });
+                li.__childUl.appendChild(frag);
+                li.__built = true;
+            }
+
+            function pathJoin(base, key) {
+                if (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key)) return base + '.' + key;
+                return base + '[' + JSON.stringify(key) + ']';
+            }
+
+            function toggleNode(li, collapse) {
+                if (!li.__childUl) return;
+                ensureChildren(li);
+                if (collapse) {
+                    li.classList.add('jt-collapsed');
+                    li.__collapsed = true;
+                    li.querySelector(':scope > .jt-line > .jt-toggle').textContent = '▸';
+                } else {
+                    li.classList.remove('jt-collapsed');
+                    li.__collapsed = false;
+                    li.querySelector(':scope > .jt-line > .jt-toggle').textContent = '▾';
+                }
+            }
+
+            function clearNodeDetail() {
+                state.selected = null;
+                $('nodePath').textContent = '—';
+                $('nodeType').textContent = '—';
+                $('nodeValue').textContent = '—';
+                $('nodeCount').textContent = '—';
+            }
+
+            function selectNode(node, path, li) {
+                state.selected = { node: node, path: path };
+                $('nodePath').textContent = path;
+                $('nodeType').textContent = typeName(node.type);
+                var v = valuePreview(node);
+                $('nodeValue').textContent = v.length > 260 ? v.slice(0, 260) + ' …' : v;
+                $('nodeCount').textContent = (node.type === 'object' || node.type === 'array')
+                    ? node.children.length + ' 项'
+                    : (node.type === 'string' ? node.value.length + ' 个字符' : '—');
+            }
+
+            function forEachNode(node, path, fn) {
+                fn(node, path);
+                if (node.children) {
+                    node.children.forEach(function (c, idx) {
+                        var p = c.key === null ? (path + '[' + idx + ']') : pathJoin(path, c.key);
+                        forEachNode(c.node, p, fn);
+                    });
+                }
+            }
+
+            /* =====================================================================
+               四、主流程
+               ===================================================================== */
+            function parseNow() {
+                var text = input.value;
+                if (!text.trim()) {
+                    Tool.setStatus(parseStatus, '', '');
+                    resetStats();
+                    $('tree').innerHTML = '<p class="hint" style="margin:0">解析成功后，这里会显示可折叠的 JSON 结构树。</p>';
+                    output.value = '';
+                    return null;
+                }
+
+                var result;
+                try {
+                    result = parseJson(text);
+                } catch (e) {
+                    state.tree = null;
+                    state.stats = null;
+                    showError(e, text);
+                    resetStats();
+                    $('validBadge').textContent = '✗ 不合法';
+                    $('validBadge').className = 'badge err';
+                    output.value = '';
+                    $('tree').innerHTML = '<p class="hint" style="margin:0">JSON 不合法，修正后即可看到结构树。</p>';
+                    return null;
+                }
+
+                state.tree = result.root;
+                state.stats = result.stats;
+                var s = result.stats;
+
+                /* 统计面板 */
+                var keyCount = s.keys;
+                $('validBadge').textContent = '✓ 合法 JSON';
+                $('validBadge').className = 'badge ok';
+                setStat('statList', 0, s.nodes, '节点总数');
+                setStat('statList', 1, s.objects, '对象数');
+                setStat('statList', 2, s.arrays, '数组数');
+                setStat('statList', 3, keyCount, '键值对');
+                setStat('statList', 4, s.maxDepth, '最大深度');
+                setStat('typeList', 0, s.strings, '字符串');
+                setStat('typeList', 1, s.numbers, '数字');
+                setStat('typeList', 2, s.booleans, '布尔');
+                setStat('typeList', 3, s.nulls, 'null');
+
+                var bytesIn = new TextEncoder().encode(text).length;
+                setStat('sizeList', 0, text.length, '输入字符');
+                setStat('sizeList', 1, Tool.formatBytes(bytesIn), 'UTF-8 字节');
+
+                /* 状态栏 */
+                var msgs = [];
+                msgs.push('✓ JSON 合法：共 ' + s.nodes + ' 个节点，' + s.objects + ' 个对象，' + s.arrays +
+                    ' 个数组，' + keyCount + ' 个键值对，最大嵌套深度 ' + s.maxDepth + '。');
+                var type = 'ok';
+                if (s.duplicateKeys.length) {
+                    var names = s.duplicateKeys.slice(0, 5).map(function (d) {
+                        var p = posToLineCol(text, d.index);
+                        return JSON.stringify(d.key) + '（第 ' + p.line + ' 行）';
+                    }).join('、');
+                    if ($('optStrict').checked) {
+                        type = 'err';
+                        msgs.push('✗ 严格模式检测到 ' + s.duplicateKeys.length + ' 处重复键名：' + names +
+                            (s.duplicateKeys.length > 5 ? ' 等' : '') + '。重复键名在多数解析器中会被后者覆盖，建议修正。');
+                    } else {
+                        if (type === 'ok') type = 'warn';
+                        msgs.push('⚠ 检测到 ' + s.duplicateKeys.length + ' 处重复键名：' + names +
+                            (s.duplicateKeys.length > 5 ? ' 等' : '') + '（按常规行为取最后一个值，勾选“严格模式”可将其视为错误）。');
+                    }
+                }
+                if (s.bigNumbers.length) {
+                    if (type === 'ok') type = 'warn';
+                    msgs.push('⚠ 检测到 ' + s.bigNumbers.length + ' 个超出 JS 安全整数范围（±' + MAX_SAFE +
+                        '）的整数，例如 ' + s.bigNumbers[0].raw + '。树形视图按原文展示；若用 JSON.parse 处理会丢失精度，' +
+                        '建议在业务侧用字符串或 BigInt 接收。');
+                }
+                if (text.length > 2 * 1024 * 1024) {
+                    msgs.push('ℹ 输入较大（' + Tool.formatBytes(bytesIn) + '），树形渲染可能稍慢，建议使用格式化结果直接处理。');
+                }
+                Tool.setStatus(parseStatus, type, msgs.join('\n'));
+
+                renderTree(result.root, text);
+                return result;
+            }
+
+            function doFormat() {
+                var r = state.tree ? { root: state.tree } : parseNow();
+                if (!r || !state.tree) return;
+                var node = state.tree;
+                if ($('optSort').value === 'asc') node = sortedNode(node);
+                var indentOpt = $('optIndent').value;
+                var text = nodeToText(node, indentOpt === 'tab' ? '\t' : new Array(Number(indentOpt) + 1).join(' '), 0);
+                output.value = text;
+                updateOutputHint(text);
+                Tool.toast('格式化完成', 'ok');
+            }
+
+            function doMinify() {
+                var r = state.tree ? { root: state.tree } : parseNow();
+                if (!r || !state.tree) return;
+                var node = $('optSort').value === 'asc' ? sortedNode(state.tree) : state.tree;
+                var text = minifyText(node);
+                output.value = text;
+                updateOutputHint(text);
+                Tool.toast('压缩完成', 'ok');
+            }
+
+            function updateOutputHint(text) {
+                if (!text) { $('outputHint').textContent = '—'; return; }
+                var inBytes = new TextEncoder().encode(input.value).length;
+                var outBytes = new TextEncoder().encode(text).length;
+                var ratio = inBytes ? (outBytes / inBytes * 100) : 0;
+                setStat('sizeList', 2, text.length, '结果字符');
+                setStat('sizeList', 3, Tool.formatBytes(outBytes), '结果字节');
+                $('outputHint').textContent = '结果 ' + text.length + ' 个字符 / ' + Tool.formatBytes(outBytes) +
+                    '，为输入的 ' + ratio.toFixed(1) + '%（压缩 ' + (inBytes > outBytes ? '减少 ' + Tool.formatBytes(inBytes - outBytes) : '无变化') + '）';
+            }
+
+            /* 事件绑定 */
+            $('btnFormat').addEventListener('click', doFormat);
+            $('btnMinify').addEventListener('click', doMinify);
+            $('btnValidate').addEventListener('click', function () {
+                var r = parseNow();
+                if (r) Tool.toast('JSON 合法 ✓', 'ok');
+            });
+            $('btnSortKeys').addEventListener('click', function () {
+                $('optSort').value = 'asc';
+                doFormat();
+            });
+            $('btnEscape').addEventListener('click', function () {
+                var v = output.value || input.value;
+                if (!v) { Tool.toast('没有可处理的内容', 'err'); return; }
+                output.value = JSON.stringify(v);
+                $('outputHint').textContent = '已转义为 JSON 字符串字面量（可直接嵌入代码）。';
+                Tool.toast('已转义', 'ok');
+            });
+            $('btnUnescape').addEventListener('click', function () {
+                var v = input.value.trim();
+                if (!v) { Tool.toast('输入为空', 'err'); return; }
+                if (v[0] !== '"' && v[0] !== "'") { Tool.toast('去转义需要输入以引号包裹的字符串', 'err'); return; }
+                try {
+                    var out;
+                    if (v[0] === '"') {
+                        out = JSON.parse(v);
+                    } else {
+                        out = v.slice(1, -1)
+                            .replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t')
+                            .replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+                    }
+                    input.value = out;
+                    parseNow();
+                    doFormat();
+                    Tool.toast('已去转义', 'ok');
+                } catch (e) {
+                    Tool.toast('去转义失败：' + e.message, 'err');
+                }
+            });
+            $('btnCopyOut').addEventListener('click', function () {
+                if (!output.value) { Tool.toast('结果为空，请先格式化或压缩', 'err'); return; }
+                Tool.copy(output.value, '结果已复制');
+            });
+            $('btnDownloadOut').addEventListener('click', function () {
+                if (!output.value) { Tool.toast('结果为空，请先格式化或压缩', 'err'); return; }
+                Tool.download(output.value, 'data.json', 'application/json;charset=utf-8');
+            });
+            $('btnUseOut').addEventListener('click', function () {
+                if (!output.value) { Tool.toast('结果为空', 'err'); return; }
+                input.value = output.value;
+                parseNow();
+                Tool.toast('已把结果放回输入框', 'ok');
+            });
+            $('btnClear').addEventListener('click', function () {
+                input.value = '';
+                output.value = '';
+                parseNow();
+                Tool.setStatus(parseStatus, '', '');
+            });
+            $('btnPaste').addEventListener('click', function () {
+                if (!navigator.clipboard || !navigator.clipboard.readText) {
+                    Tool.toast('当前浏览器不支持读取剪贴板，请手动 Ctrl+V 粘贴', 'err');
+                    return;
+                }
+                navigator.clipboard.readText().then(function (t) {
+                    input.value = t;
+                    parseNow();
+                    Tool.toast('已粘贴剪贴板内容', 'ok');
+                }).catch(function () {
+                    Tool.toast('读取剪贴板被拒绝，请手动粘贴', 'err');
+                });
+            });
+            $('btnSample').addEventListener('click', function () {
+                input.value = JSON.stringify({
+                    name: 'mxx的博客',
+                    url: 'https://mxx23.github.io',
+                    version: 2,
+                    active: true,
+                    updatedAt: '2024-05-11T12:00:00+08:00',
+                    theme: { name: 'fluid', dark: false, colors: ['#2f4154', '#3095d4'] },
+                    posts: [
+                        { title: 'KMP算法', tags: ['算法'], views: 1234 },
+                        { title: '矩阵快速幂算法', tags: ['算法', '数学'], views: 987 }
+                    ],
+                    extra: null
+                }, null, 2);
+                parseNow();
+                doFormat();
+            });
+            $('btnMinSample').addEventListener('click', function () {
+                input.value = '{\n  "name": "test",\n  "list": [1, 2, 3,],\n  "note": \'单引号是非法的\'\n}';
+                parseNow();
+            });
+
+            var autoParse = Tool.debounce(function () {
+                if ($('optAuto').checked) parseNow();
+            }, 400);
+            input.addEventListener('input', autoParse);
+            $('optStrict').addEventListener('change', function () { if (input.value.trim()) parseNow(); });
+            $('optIndent').addEventListener('change', function () { if (state.tree && output.value) doFormat(); });
+            $('optSort').addEventListener('change', function () { if (state.tree && output.value) doFormat(); });
+
+            input.addEventListener('keydown', function (e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    doFormat();
+                }
+            });
+
+            /* 树工具栏 */
+            $('btnExpandAll').addEventListener('click', function () {
+                Array.prototype.forEach.call($('tree').querySelectorAll('.jt-node'), function (li) {
+                    if (li.__childUl) toggleNode(li, false);
+                });
+                Tool.toast('已全部展开');
+            });
+            $('btnCollapseAll').addEventListener('click', function () {
+                var rootLi = $('tree').querySelector('.jt-node');
+                Array.prototype.forEach.call($('tree').querySelectorAll('.jt-node'), function (li) {
+                    if (li !== rootLi && li.__childUl) toggleNode(li, true);
+                });
+                Tool.toast('已全部折叠');
+            });
+            $('btnCopyTree').addEventListener('click', function () {
+                if (!state.tree) { Tool.toast('还没有可复制的结构', 'err'); return; }
+                var lines = [];
+                (function walk(node, label, depth) {
+                    var pad = new Array(depth + 1).join('  ');
+                    lines.push(pad + label + ' : ' + typeName(node.type) +
+                        ((node.type === 'object' || node.type === 'array') ? '（' + node.children.length + ' 项）' : ' = ' + valuePreview(node)));
+                    if (node.children) {
+                        node.children.forEach(function (c, idx) {
+                            walk(c.node, c.key === null ? ('[' + idx + ']') : c.key, depth + 1);
+                        });
+                    }
+                })(state.tree, '$', 0);
+                Tool.copy(lines.join('\n'), '结构树已复制');
+            });
+
+            /* 搜索 */
+            function runSearch(q) {
+                if (!state.tree) { Tool.toast('请先解析合法的 JSON', 'err'); return; }
+                if (!q) { renderTree(state.tree, state.text); Tool.setStatus(parseStatus, '', ''); parseNow(); return; }
+                var needle = q.toLowerCase();
+                var found = [];
+                forEachNode(state.tree, '$', function (node, path) {
+                    var hitKey = false;
+                    var idx = path.lastIndexOf('.');
+                    if (path.indexOf('[') >= 0) {
+                        var m = /\["([^"]*)"\]$/.exec(path);
+                        if (m && m[1].toLowerCase().indexOf(needle) >= 0) hitKey = true;
+                    }
+                    if (idx >= 0 && path.slice(idx + 1).toLowerCase().indexOf(needle) >= 0) hitKey = true;
+                    var hitVal = false;
+                    if (node.type === 'string' || node.type === 'number' || node.type === 'boolean') {
+                        hitVal = String(node.value).toLowerCase().indexOf(needle) >= 0;
+                    }
+                    if (hitKey || hitVal) found.push({ node: node, path: path });
+                });
+                if (!found.length) {
+                    Tool.setStatus(parseStatus, 'warn', '未找到包含 “' + q + '” 的键名或值。');
+                    return;
+                }
+                state.matches = found;
+                state.matchIndex = 0;
+                Tool.setStatus(parseStatus, 'info', '找到 ' + found.length + ' 个匹配项' + (found.length > 300 ? '（仅显示前 300 个）' : '') + '，可使用 ↑ ↓ 按钮在结果中切换。');
+                renderMatches(found.slice(0, 300));
+            }
+
+            function renderMatches(list) {
+                var box = $('tree');
+                box.innerHTML = '';
+                var ul = document.createElement('ul');
+                box.appendChild(ul);
+                list.forEach(function (item) {
+                    var li = buildNode(item.node, null, item.path, 0);
+                    var lineEl = li.querySelector('.jt-line');
+                    var pathTag = document.createElement('span');
+                    pathTag.className = 'jt-key';
+                    pathTag.textContent = item.path + ' = ';
+                    lineEl.insertBefore(pathTag, lineEl.children[1]);
+                    ul.appendChild(li);
+                });
+                Tool.toast('匹配结果已列出');
+            }
+
+            function gotoMatch(delta) {
+                if (!state.matches.length) return;
+                state.matchIndex = (state.matchIndex + delta + state.matches.length) % state.matches.length;
+                var cur = state.matches[state.matchIndex];
+                var items = $('tree').querySelectorAll('.jt-node');
+                if (items[state.matchIndex]) {
+                    selectNode(cur.node, cur.path, items[state.matchIndex]);
+                    items[state.matchIndex].scrollIntoView({ block: 'center', behavior: 'smooth' });
+                    Array.prototype.forEach.call($('tree').querySelectorAll('.jt-hit'), function (e) { e.classList.remove('jt-hit'); });
+                    items[state.matchIndex].classList.add('jt-hit');
+                }
+                Tool.setStatus(parseStatus, 'info', '第 ' + (state.matchIndex + 1) + ' / ' + state.matches.length + ' 个匹配：' + cur.path);
+            }
+
+            var searchDebounced = Tool.debounce(function () { runSearch($('searchInput').value.trim()); }, 320);
+            $('searchInput').addEventListener('input', function () { searchDebounced(); });
+            $('searchInput').addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); gotoMatch(e.shiftKey ? -1 : 1); }
+            });
+            $('btnSearchNext').addEventListener('click', function () { gotoMatch(1); });
+            $('btnSearchPrev').addEventListener('click', function () { gotoMatch(-1); });
+
+            $('btnCopyPath').addEventListener('click', function () {
+                if (!state.selected) { Tool.toast('请先在左侧树中选择一个节点', 'err'); return; }
+                Tool.copy(state.selected.path, '路径已复制');
+            });
+            $('btnCopyValue').addEventListener('click', function () {
+                if (!state.selected) { Tool.toast('请先在左侧树中选择一个节点', 'err'); return; }
+                var t;
+                try {
+                    t = nodeToText(sortedNode(state.selected.node), '  ', 0);
+                } catch (e) {
+                    t = String(nodeToValue(state.selected.node));
+                }
+                Tool.copy(t, '节点 JSON 已复制');
+            });
+
+            resetStats();
+        })();
+    </script>
+</body>
+
+</html>

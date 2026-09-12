@@ -6,7 +6,7 @@
   <link href="https://mxx23.github.io/atom.xml" rel="self"/>
   
   <link href="https://mxx23.github.io/"/>
-  <updated>2026-08-09T17:09:54.878Z</updated>
+  <updated>2026-09-12T15:39:50.290Z</updated>
   <id>https://mxx23.github.io/</id>
   
   <author>
@@ -15,6 +15,116 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>在线图片去背景工具</title>
+    <link href="https://mxx23.github.io/2026/09/12/%E5%9C%A8%E7%BA%BF%E5%9B%BE%E7%89%87%E5%8E%BB%E8%83%8C%E6%99%AF%E5%B7%A5%E5%85%B7/"/>
+    <id>https://mxx23.github.io/2026/09/12/%E5%9C%A8%E7%BA%BF%E5%9B%BE%E7%89%87%E5%8E%BB%E8%83%8C%E6%99%AF%E5%B7%A5%E5%85%B7/</id>
+    <published>2026-09-12T15:35:00.000Z</published>
+    <updated>2026-09-12T15:39:50.290Z</updated>
+    
+    <content type="html"><![CDATA[<p>　　在线图片去背景（抠图）工具：自动识别纯色或渐变背景并变成透明，支持容差、边缘羽化、去杂边，以及橡皮擦与恢复笔手工修补，导出透明 PNG。图片不上传。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/tools/remove-bg.html"     style="display:inline-block;padding:12px 36px;background:#3095d4;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(48,149,212,.32)">    👉 打开在线图片去背景工具  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;　　在线图片去背景（抠图）工具：自动识别纯色或渐变背景并变成透明，支持容差、边缘羽化、去杂边，以及橡皮擦与恢复笔手工修补，导出透明 PNG。图片不上传。&lt;/p&gt;
+&lt;div style=&quot;text-align:center;margin:28px 0 18px&quot;&gt;
+  &lt;a </summary>
+      
+    
+    
+    
+    <category term="在线工具" scheme="https://mxx23.github.io/categories/%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7/"/>
+    
+    
+    <category term="在线工具" scheme="https://mxx23.github.io/tags/%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7/"/>
+    
+    <category term="抠图" scheme="https://mxx23.github.io/tags/%E6%8A%A0%E5%9B%BE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>在线视频压缩工具</title>
+    <link href="https://mxx23.github.io/2026/09/12/%E5%9C%A8%E7%BA%BF%E8%A7%86%E9%A2%91%E5%8E%8B%E7%BC%A9%E5%B7%A5%E5%85%B7/"/>
+    <id>https://mxx23.github.io/2026/09/12/%E5%9C%A8%E7%BA%BF%E8%A7%86%E9%A2%91%E5%8E%8B%E7%BC%A9%E5%B7%A5%E5%85%B7/</id>
+    <published>2026-09-12T15:25:00.000Z</published>
+    <updated>2026-09-12T15:39:48.030Z</updated>
+    
+    <content type="html"><![CDATA[<p>　　在线视频压缩工具：在浏览器里重新编码视频，可调整分辨率、码率、帧率，支持片段裁剪，导出 MP4 或 WebM。视频不上传，压缩耗时约等于视频时长。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/tools/video-compress.html"     style="display:inline-block;padding:12px 36px;background:#3095d4;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(48,149,212,.32)">    👉 打开在线视频压缩工具  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;　　在线视频压缩工具：在浏览器里重新编码视频，可调整分辨率、码率、帧率，支持片段裁剪，导出 MP4 或 WebM。视频不上传，压缩耗时约等于视频时长。&lt;/p&gt;
+&lt;div style=&quot;text-align:center;margin:28px 0 18px&quot;&gt;
+  &lt;a h</summary>
+      
+    
+    
+    
+    <category term="在线工具" scheme="https://mxx23.github.io/categories/%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7/"/>
+    
+    
+    <category term="在线工具" scheme="https://mxx23.github.io/tags/%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7/"/>
+    
+    <category term="视频压缩" scheme="https://mxx23.github.io/tags/%E8%A7%86%E9%A2%91%E5%8E%8B%E7%BC%A9/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>JSON在线解析工具</title>
+    <link href="https://mxx23.github.io/2026/09/12/JSON%E5%9C%A8%E7%BA%BF%E8%A7%A3%E6%9E%90%E5%B7%A5%E5%85%B7/"/>
+    <id>https://mxx23.github.io/2026/09/12/JSON%E5%9C%A8%E7%BA%BF%E8%A7%A3%E6%9E%90%E5%B7%A5%E5%85%B7/</id>
+    <published>2026-09-12T15:15:00.000Z</published>
+    <updated>2026-09-12T15:39:45.467Z</updated>
+    
+    <content type="html"><![CDATA[<p>　　在线 JSON 解析工具：校验 JSON 是否合法并精确指出错误的行列与原因，支持格式化、压缩、键名排序、转义，以及可折叠的结构树浏览与搜索统计。全部在浏览器本地完成，数据不上传。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/tools/json.html"     style="display:inline-block;padding:12px 36px;background:#3095d4;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(48,149,212,.32)">    👉 打开 JSON 在线解析工具  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;　　在线 JSON 解析工具：校验 JSON 是否合法并精确指出错误的行列与原因，支持格式化、压缩、键名排序、转义，以及可折叠的结构树浏览与搜索统计。全部在浏览器本地完成，数据不上传。&lt;/p&gt;
+&lt;div style=&quot;text-align:center;margin:28p</summary>
+      
+    
+    
+    
+    <category term="在线工具" scheme="https://mxx23.github.io/categories/%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7/"/>
+    
+    
+    <category term="在线工具" scheme="https://mxx23.github.io/tags/%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7/"/>
+    
+    <category term="JSON" scheme="https://mxx23.github.io/tags/JSON/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Base64在线编码解码工具</title>
+    <link href="https://mxx23.github.io/2026/09/12/Base64%E5%9C%A8%E7%BA%BF%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81%E5%B7%A5%E5%85%B7/"/>
+    <id>https://mxx23.github.io/2026/09/12/Base64%E5%9C%A8%E7%BA%BF%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81%E5%B7%A5%E5%85%B7/</id>
+    <published>2026-09-12T15:05:00.000Z</published>
+    <updated>2026-09-12T15:39:43.192Z</updated>
+    
+    <content type="html"><![CDATA[<p>　　在线 Base64 编码解码工具：文本与 Base64 互转（支持中文、emoji），还可以把文件、图片转成 Base64，或把 Base64 还原成文件下载。全部在浏览器本地完成，数据不上传。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/tools/base64.html"     style="display:inline-block;padding:12px 36px;background:#3095d4;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(48,149,212,.32)">    👉 打开 Base64 在线编码解码工具  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;　　在线 Base64 编码解码工具：文本与 Base64 互转（支持中文、emoji），还可以把文件、图片转成 Base64，或把 Base64 还原成文件下载。全部在浏览器本地完成，数据不上传。&lt;/p&gt;
+&lt;div style=&quot;text-align:center;mar</summary>
+      
+    
+    
+    
+    <category term="在线工具" scheme="https://mxx23.github.io/categories/%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7/"/>
+    
+    
+    <category term="在线工具" scheme="https://mxx23.github.io/tags/%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7/"/>
+    
+    <category term="Base64" scheme="https://mxx23.github.io/tags/Base64/"/>
+    
+  </entry>
   
   <entry>
     <title>他村聚会</title>

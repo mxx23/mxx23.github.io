@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>在线视频压缩工具 - 浏览器本地压缩，无需上传</title>
+    <meta name="description" content="纯浏览器 JavaScript 实现的在线视频压缩工具：调整分辨率、码率、帧率，裁剪片段，实时重编码导出，视频不上传、不安装任何软件。">
+    <link rel="stylesheet" href="css/tool.css">
+    <script>try { var t = localStorage.getItem('tool-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) { }</script>
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="tool-header-inner">
+            <a class="tool-back" href="/" data-back>← 返回</a>
+            <div class="tool-title-wrap">
+                <h1 class="tool-title">在线视频压缩</h1>
+                <p class="tool-subtitle">调分辨率 / 码率 / 帧率，裁剪片段，浏览器本地实时重编码 · 视频不会上传到服务器</p>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="themeToggle" type="button" title="切换主题">☾</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="tool-main">
+
+        <div class="status show info" id="envStatus" style="margin-top:0"></div>
+
+        <!-- ============================ 选择视频 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">1. 选择视频文件</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnReset" type="button">重新选择</button>
+                </div>
+            </div>
+
+            <div class="drop-zone" id="videoDropZone">
+                <div class="dz-title">点击选择视频，或把视频拖到这里</div>
+                <div class="dz-sub">支持 MP4 / WebM / MOV / MKV 等浏览器能解码的格式；文件仅在本地处理</div>
+            </div>
+            <input type="file" id="videoInput" accept="video/*" class="hidden">
+
+            <p class="hint" id="srcInfo">尚未选择视频。</p>
+            <div class="status" id="loadStatus"></div>
+
+            <div class="mt-12" id="playerWrap" style="display:none">
+                <label class="field-label">原视频预览（压缩过程中会在此同步播放）</label>
+                <video id="srcVideo" controls playsinline preload="metadata"
+                    style="width:100%;max-height:52vh;border-radius:8px;background:#000"></video>
+            </div>
+        </section>
+
+        <!-- ============================ 参数 ============================ -->
+        <section class="card" id="optionCard" style="display:none">
+            <div class="card-head">
+                <h2 class="card-title">2. 压缩参数</h2>
+                <span class="badge" id="estBadge">预估输出 —</span>
+            </div>
+
+            <div class="row" style="margin-bottom:14px;align-items:flex-start">
+                <div class="field" style="flex:0 0 280px;margin:0">
+                    <label class="field-label" for="optEngine">压缩模式</label>
+                    <select id="optEngine">
+                        <option value="fast" selected>快速模式（推荐，快数倍～十几倍）</option>
+                        <option value="compat">兼容模式（实时录制，支持任意格式）</option>
+                    </select>
+                </div>
+                <div class="field" style="flex:1 1 auto;margin:0;min-width:240px">
+                    <label class="field-label">&nbsp;</label>
+                    <p class="hint" id="engineHint" style="margin:0">—</p>
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="field">
+                    <label class="field-label" for="optRes">输出分辨率</label>
+                    <select id="optRes">
+                        <option value="source">保持原始尺寸</option>
+                        <option value="1080">1080p（短边 1080 像素）</option>
+                        <option value="720" selected>720p（短边 720 像素，即 1280×720）</option>
+                        <option value="480">480p（短边 480 像素，即 854×480）</option>
+                        <option value="360">360p（短边 360 像素，即 640×360）</option>
+                        <option value="240">240p（短边 240 像素）</option>
+                        <option value="scale75">原始尺寸的 75%</option>
+                        <option value="scale50">原始尺寸的 50%</option>
+                        <option value="custom">自定义宽度…</option>
+                    </select>
+                    <div class="mt-8 hidden" id="customWidthField">
+                        <input type="number" id="optCustomWidth" min="64" max="4096" step="2" value="960"
+                            placeholder="目标宽度（像素）">
+                    </div>
+                    <p class="hint" id="resHint">—</p>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" for="optBitrate">视频码率：<b id="bitrateVal">1500</b> kbps</label>
+                    <input type="range" id="optBitrate" min="150" max="12000" step="50" value="1500">
+                    <div class="btn-group mt-8">
+                        <button class="btn btn-sm" id="btnRecommend" type="button">使用推荐值</button>
+                        <span class="hint" style="margin:0">码率越低，体积越小、画质越差</span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" for="optFps">帧率</label>
+                    <select id="optFps">
+                        <option value="source">保持原始帧率（自动检测源帧率）</option>
+                        <option value="30" selected>30 fps</option>
+                        <option value="24">24 fps（电影感）</option>
+                        <option value="60">60 fps</option>
+                        <option value="48">48 fps</option>
+                        <option value="120">120 fps（需高刷新率屏幕）</option>
+                        <option value="15">15 fps（体积最小）</option>
+                    </select>
+                    <p class="hint" id="fpsHint">—</p>
+                    <p class="hint" id="fpsWarn" style="display:none"></p>
+                </div>
+            </div>
+
+            <div class="grid-3 mt-16">
+                <div class="field">
+                    <label class="field-label" for="optAudio">音频</label>
+                    <select id="optAudio">
+                        <option value="keep" selected>保留（Opus/AAC，96 kbps）</option>
+                        <option value="keep64">保留（64 kbps，更省体积）</option>
+                        <option value="drop">移除音频（纯画面）</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="optFormat">输出格式</label>
+                    <select id="optFormat"></select>
+                    <p class="hint" id="formatHint">可选格式由当前浏览器支持的编码器决定。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label">片段裁剪（秒，可只压其中一段）</label>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <input type="number" id="optStart" min="0" step="0.1" value="0" placeholder="开始">
+                        <span class="hint" style="margin:0">→</span>
+                        <input type="number" id="optEnd" min="0" step="0.1" placeholder="结束">
+                    </div>
+                    <p class="hint">留空“结束”表示一直压到视频结尾。</p>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <label class="check-line"><input type="checkbox" id="optMonitor"> 压缩时外放声音（默认静音，音频仍会写入输出文件）</label>
+            </div>
+
+            <div class="btn-group mt-12">
+                <button class="btn btn-primary" id="btnStart" type="button">开始压缩</button>
+                <button class="btn btn-danger hidden" id="btnCancel" type="button">停止 / 取消</button>
+            </div>
+
+            <div class="mt-16 hidden" id="progressBox">
+                <div class="progress"><i id="progressBar"></i></div>
+                <p class="hint" id="progressText">—</p>
+            </div>
+
+            <div class="status" id="runStatus"></div>
+        </section>
+
+        <!-- ============================ 结果 ============================ -->
+        <section class="card hidden" id="resultCard">
+            <div class="card-head">
+                <h2 class="card-title">3. 压缩结果</h2>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="btnDownload" type="button">下载压缩后的视频</button>
+                    <button class="btn" id="btnPreviewToggle" type="button">播放 / 暂停</button>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label class="field-label">结果预览</label>
+                    <video id="outVideo" controls playsinline
+                        style="width:100%;max-height:46vh;border-radius:8px;background:#000"></video>
+                </div>
+                <div>
+                    <label class="field-label">压缩对比</label>
+                    <table class="kv-table">
+                        <tbody>
+                            <tr>
+                                <th>文件名</th>
+                                <td class="mono" id="outName">—</td>
+                            </tr>
+                            <tr>
+                                <th>原始体积</th>
+                                <td class="mono" id="outSrcSize">—</td>
+                            </tr>
+                            <tr>
+                                <th>压缩后体积</th>
+                                <td class="mono" id="outSize">—</td>
+                            </tr>
+                            <tr>
+                                <th>体积变化</th>
+                                <td id="outRatio">—</td>
+                            </tr>
+                            <tr>
+                                <th>输出参数</th>
+                                <td class="mono" id="outParams">—</td>
+                            </tr>
+                            <tr>
+                                <th>耗时</th>
+                                <td class="mono" id="outElapsed">—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="hint" id="outTip"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ 说明 ============================ -->
+        <section class="card">
+            <h2 class="card-title">原理、能力与限制（务必先看）</h2>
+            <ul class="hint" style="margin:8px 0 0;padding-left:20px;line-height:1.9">
+                <li><b>能做到什么</b>：本工具用 Canvas 重新绘制每一帧并交给浏览器的 <code>MediaRecorder</code> 实时重新编码，
+                    因此可以得到真正意义上的“重新压缩”（降低分辨率、码率、帧率），而不是改个后缀名。整个过程在你的电脑上完成，视频<b>不会上传</b>。</li>
+                <li><b>速度：为什么兼容模式要等那么久，快速模式为什么快</b>：
+                    <br>· <b>兼容模式</b>用 Canvas 把画面逐帧画出来再交给 <code>MediaRecorder</code> 录制。录制器给每一帧打的时间戳是<b>墙上时钟</b>——
+                    它记录的是“这一帧是什么时候到的”，而不是“这一帧在视频里是第几秒”。所以必须按正常速度播放一遍，录制耗时自然就约等于视频时长
+                    （1 分钟的片段约需 1 分钟）。这也是纯 Canvas 方案能保持可用性能的原因。
+                    <br>· <b>快速模式</b>改用 <b>WebCodecs</b>（<code>VideoDecoder</code> + <code>VideoEncoder</code>）：
+                    直接解开视频的编码数据，把每一帧连同它<b>自带的原始时间戳</b>一起送去重新编码，最后封装成 MP4。
+                    全程不依赖播放，能跑多快就跑多快——在支持硬件编解码的电脑上通常是实时的 5～20 倍，
+                    一段 1 分钟的视频十几秒就能压完，而且分辨率、码率、帧率、片段裁剪这些参数一样有效。
+                    代价是首次使用要临时加载约 107 KB 的编解码组件，并且只支持 MP4 / MOV / WebM / MKV 这几种容器。</li>
+                <li><b>帧率选项说明</b>：快速模式下帧率由编码器直接处理，可以精确地抽帧（例如 60fps 源降到 24fps）；
+                    兼容模式下则受下面这条限制。</li>
+                <li><b>兼容模式的帧率上限（60 fps 天花板是怎么回事）</b>：这不是浏览器的硬性规定，而是“实时录制”这条路线的物理限制——
+                    每一帧都要先画到 Canvas 上，绘制节奏由 <code>requestAnimationFrame</code> 决定，它<b>跟随显示器刷新率</b>
+                    （普通屏幕 60 Hz，高刷新率屏幕 120 / 144 Hz），视频元素的画面呈现也受同一个垂直同步节拍约束。
+                    因此：源视频帧率不高于刷新率时可以原样保留（帧率选项已提供 15 / 24 / 30 / 48 / 60 / 120 fps 与“自动检测源帧率”）；
+                    但源视频是 120 fps 而屏幕只有 60 Hz 时，最多只能录到约 60 fps，多出来的帧采集不到。
+                    <b>想要突破这个限制就用快速模式</b>——它走的是 WebCodecs，不与屏幕刷新率挂钩。</li>
+                <li><b>输出格式</b>：兼容模式下的可选格式取决于浏览器支持的编码器（Chrome / Edge 一般可输出 MP4(H.264) 或 WebM(VP9/VP8)；
+                    Firefox 通常只支持 WebM）。快速模式固定输出 <b>MP4（H.264 + AAC）</b>，这是兼容性最好的组合。</li>
+                <li><b>压缩期间请不要切换标签页</b>，也不要最小化窗口：浏览器会限制后台页面的绘制频率，可能导致丢帧或录制中断。</li>
+                <li>音频通过 <code>AudioContext</code> 重新采样后写入输出文件；压缩过程中默认静音（避免打扰），可在参数区打开声音监听。</li>
+                <li>如果视频很大（超过约 1 GB）或时长很长，浏览器内存与编码压力会明显上升，建议先用“片段裁剪”分段处理。</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <p class="footer-note">mxx 的博客 · 在线工具 ｜ <a href="/">返回首页</a></p>
+
+    <script src="js/tool.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var $ = function (id) { return document.getElementById(id); };
+
+            var srcVideo = $('srcVideo'), srcInfo = $('srcInfo'), loadStatus = $('loadStatus');
+            var envStatus = $('envStatus'), runStatus = $('runStatus');
+            var progressBox = $('progressBox'), progressBar = $('progressBar'), progressText = $('progressText');
+
+            var OPTION_CARD = $('optionCard'), RESULT_CARD = $('resultCard');
+
+            var state = {
+                file: null,
+                source: null,          // { width, height, duration, size, name }
+                srcFps: null,          // 检测到的源视频帧率
+                displayHz: null,       // 估算的显示器刷新率（实时采集的帧率上限）
+                recording: false,
+                cancelled: false,
+                chunks: [],
+                recorder: null,
+                audioCtx: null,
+                audioSource: null,
+                audioDest: null,
+                monitorGain: null,
+                rafId: 0,
+                elapsed: 0,
+                fastConversion: null,  // 快速模式当前的 Conversion 对象（用于取消）
+                engineTouched: false,  // 用户是否手动选择过压缩模式
+                resultBlob: null,
+                resultName: '',
+                resultMime: ''
+            };
+
+            /* =====================================================================
+               环境能力检测
+               ===================================================================== */
+            var FORMATS = [
+                { mime: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', label: 'MP4 (H.264 + AAC) — 兼容性最好', ext: 'mp4' },
+                { mime: 'video/mp4', label: 'MP4（浏览器默认编码器）', ext: 'mp4' },
+                { mime: 'video/webm;codecs=vp9,opus', label: 'WebM (VP9 + Opus) — 同画质体积更小', ext: 'webm' },
+                { mime: 'video/webm;codecs=vp8,opus', label: 'WebM (VP8 + Opus) — 编码速度快', ext: 'webm' },
+                { mime: 'video/webm', label: 'WebM（浏览器默认编码器）', ext: 'webm' }
+            ];
+
+            function supportedFormats() {
+                if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return [];
+                return FORMATS.filter(function (f) { return MediaRecorder.isTypeSupported(f.mime); });
+            }
+
+            function initEnv() {
+                var problems = [];
+                if (typeof MediaRecorder === 'undefined') problems.push('当前浏览器不支持 MediaRecorder API');
+                if (!HTMLCanvasElement.prototype.captureStream) problems.push('当前浏览器不支持 canvas.captureStream()');
+                if (typeof AudioContext === 'undefined' && typeof webkitAudioContext === 'undefined') {
+                    problems.push('当前浏览器不支持 Web Audio（将只能输出无声视频）');
+                }
+                var fmts = supportedFormats();
+                if (!fmts.length && !problems.length) problems.push('当前浏览器没有可用的视频编码器');
+
+                var sel = $('optFormat');
+                sel.innerHTML = '';
+                fmts.forEach(function (f, i) {
+                    var o = document.createElement('option');
+                    o.value = f.mime;
+                    o.textContent = f.label;
+                    o.dataset.ext = f.ext;
+                    if (i === 0) o.selected = true;
+                    sel.appendChild(o);
+                });
+
+                if (problems.length) {
+                    Tool.setStatus(envStatus, 'err',
+                        '✗ 无法使用视频压缩功能：' + problems.join('；') +
+                        '。\n建议使用最新版的桌面版 Chrome、Edge 或 Firefox 打开本页面（手机浏览器与老旧内核通常不支持）。');
+                    $('btnStart').disabled = true;
+                } else {
+                    Tool.setStatus(envStatus, 'ok',
+                        '✓ 当前浏览器支持在线视频压缩，可用编码器：' + fmts.map(function (f) { return f.label.replace(/ —.*/, ''); }).join('、') +
+                        '。\n提示：压缩耗时约等于视频时长，期间请保持本标签页在前台。');
+                }
+            }
+
+            /* =====================================================================
+               载入视频
+               ===================================================================== */
+            function extOf(name) { var m = /\.([a-z0-9]+)$/i.exec(name || ''); return m ? m[1].toLowerCase() : ''; }
+
+            function handleFile(file) {
+                if (!file) return;
+                if (!/^video\//.test(file.type) && !/\.(mp4|webm|mov|mkv|avi|m4v|ogv|flv|3gp)$/i.test(file.name)) {
+                    Tool.setStatus(loadStatus, 'err', '这看起来不是视频文件（类型 ' + (file.type || '未知') + '），请选择视频文件。');
+                    return;
+                }
+                state.file = file;
+                state.resultBlob = null;
+                state.srcFps = null;
+                RESULT_CARD.classList.add('hidden');
+                Tool.setStatus(loadStatus, 'info', '正在读取视频信息…');
+
+                var url = URL.createObjectURL(file);
+                srcVideo.src = url;
+                $('playerWrap').style.display = 'block';
+                setupAudioGraph();
+
+                srcVideo.onloadedmetadata = function () {
+                    state.source = {
+                        width: srcVideo.videoWidth,
+                        height: srcVideo.videoHeight,
+                        duration: srcVideo.duration,
+                        size: file.size,
+                        name: file.name
+                    };
+                    if (!state.source.width || !state.source.height) {
+                        Tool.setStatus(loadStatus, 'err', '无法解析该视频的画面尺寸。可能是浏览器不支持该编码格式（例如部分 MKV / HEVC 文件），建议先用其它工具转成 MP4(H.264) 再试。');
+                        OPTION_CARD.style.display = 'none';
+                        return;
+                    }
+                    Tool.setStatus(loadStatus, 'ok', '视频信息读取成功，请在下方设置压缩参数。');
+                    OPTION_CARD.style.display = '';
+                    $('optStart').value = 0;
+                    $('optEnd').value = isFinite(state.source.duration) ? state.source.duration.toFixed(1) : '';
+                    refreshSourceInfo();
+                    applyResolution();
+                    updateEngineHint();
+
+                    /* WebM（尤其是其它工具用 MediaRecorder 生成的文件）常常读不到时长，
+                       此时先尝试让浏览器重新计算时长，失败则提示用户手动填写结束时间 */
+                    if (!isFinite(state.source.duration)) {
+                        Tool.setStatus(loadStatus, 'info', '该视频没有时长信息（常见于录制生成的 WebM），正在尝试重新计算…');
+                        resolveDuration(function (dur) {
+                            if (dur) {
+                                state.source.duration = dur;
+                                $('optEnd').value = dur.toFixed(1);
+                                refreshSourceInfo();
+                                applyResolution();
+                                Tool.setStatus(loadStatus, 'ok', '已推算出视频时长：' + Tool.formatDuration(dur) + '。');
+                            } else {
+                                Tool.setStatus(loadStatus, 'warn',
+                                    '无法自动推算视频时长。请在下方的“片段裁剪”里手动填写结束时间（秒），否则无法确定压缩到何时为止。');
+                            }
+                        });
+                    }
+                };
+                srcVideo.onerror = function () {
+                    Tool.setStatus(loadStatus, 'err',
+                        '浏览器无法解码这个视频文件。常见原因是编码格式不受支持（如 HEVC/H.265、部分 MKV、AVI）。' +
+                        '可以先用其它工具转成 MP4(H.264) 后再压缩。');
+                    OPTION_CARD.style.display = 'none';
+                    $('playerWrap').style.display = 'none';
+                };
+            }
+
+            /* 显示已选视频的信息（流式 / 录制生成的文件可能没有时长） */
+            function refreshSourceInfo() {
+                var s = state.source;
+                if (!s) return;
+                var hasDur = isFinite(s.duration) && s.duration > 0;
+                srcInfo.innerHTML = '已选择：<b>' + Tool.escapeHtml(s.name) + '</b>（' + Tool.formatBytes(s.size) +
+                    '，' + s.width + '×' + s.height +
+                    '，时长 ' + (hasDur ? Tool.formatDuration(s.duration) : '未知，请在“片段裁剪”中手动填写结束时间') +
+                    '，码率约 ' + (hasDur ? Math.round(s.size * 8 / s.duration / 1000) + ' kbps' : '未知') + '）';
+            }
+
+            /* WebM（尤其是其它工具用 MediaRecorder 生成的文件）常常读不到时长，
+               把播放位置设为极大值可以迫使浏览器重新扫描并算出时长 */
+            function resolveDuration(cb) {
+                var vid = srcVideo;
+                if (isFinite(vid.duration) && vid.duration > 0) { cb(vid.duration); return; }
+                var settled = false;
+                var done = function (value) {
+                    if (settled) return;
+                    settled = true;
+                    vid.removeEventListener('durationchange', onDur);
+                    try { vid.currentTime = 0; } catch (e) { }
+                    cb(value);
+                };
+                var onDur = function () {
+                    if (isFinite(vid.duration) && vid.duration > 0) done(vid.duration);
+                };
+                vid.addEventListener('durationchange', onDur);
+                try { vid.currentTime = 1e101; } catch (e) { /* 个别浏览器会直接抛错，忽略 */ }
+                setTimeout(function () {
+                    done(isFinite(vid.duration) && vid.duration > 0 ? vid.duration : null);
+                }, 3000);
+            }
+
+            /* 音频通路：<video> → AudioContext → MediaStreamDestination（录制用） */
+            function setupAudioGraph() {
+                if (state.audioCtx) return;
+                var Ctx = window.AudioContext || window.webkitAudioContext;
+                if (!Ctx) return;
+                try {
+                    state.audioCtx = new Ctx();
+                    state.audioSource = state.audioCtx.createMediaElementSource(srcVideo);
+                    state.audioDest = state.audioCtx.createMediaStreamDestination();
+                    state.monitorGain = state.audioCtx.createGain();
+                    state.monitorGain.gain.value = 0;      // 默认静音监听
+                    state.audioSource.connect(state.audioDest);
+                    state.audioSource.connect(state.monitorGain);
+                    state.monitorGain.connect(state.audioCtx.destination);
+                } catch (e) {
+                    state.audioCtx = null;
+                    state.audioSource = null;
+                    state.audioDest = null;
+                    console.warn('音频通路创建失败，将只录制画面：', e);
+                }
+            }
+
+            /* =====================================================================
+               分辨率与体积预估
+               ===================================================================== */
+            function computeTargetSize() {
+                var s = state.source;
+                if (!s) return { width: 0, height: 0 };
+                var mode = $('optRes').value;
+                var w = s.width, h = s.height;
+                var longSide = Math.max(w, h);
+                if (mode === 'source') {
+                    /* 保持原样 */
+                } else if (mode === 'custom') {
+                    var cw = parseInt($('optCustomWidth').value, 10) || 960;
+                    cw = Math.max(64, Math.min(4096, cw));
+                    if (s.width >= s.height) { w = Math.min(cw, s.width); h = Math.round(s.height * w / s.width); }
+                    else { h = Math.min(cw, s.height); w = Math.round(s.width * h / s.height); }
+                } else if (mode === 'scale75' || mode === 'scale50') {
+                    var k = mode === 'scale75' ? 0.75 : 0.5;
+                    w = Math.max(2, Math.round(s.width * k));
+                    h = Math.max(2, Math.round(s.height * k));
+                } else {
+                    /* 数字档位按“短边”理解：720p 即 1280×720（竖屏视频则为 720×1280） */
+                    var target = parseInt(mode, 10);
+                    var shortSide = Math.min(s.width, s.height);
+                    if (shortSide > target) {
+                        var scale = target / shortSide;
+                        w = Math.max(2, Math.round(s.width * scale));
+                        h = Math.max(2, Math.round(s.height * scale));
+                    }
+                }
+                /* 编码器要求宽高为偶数，避免部分设备报错 */
+                w = Math.max(2, w - (w % 2));
+                h = Math.max(2, h - (h % 2));
+                return { width: w, height: h };
+            }
+
+            function recommendedBitrate(width, height, fps) {
+                /* 经验值：按像素数与帧率估算，约等于 0.09 bit/像素/帧 */
+                var bpp = 0.09;
+                var b = width * height * fps * bpp / 1000;
+                return Math.max(300, Math.min(12000, Math.round(b / 50) * 50));
+            }
+
+            function applyResolution() {
+                var t = computeTargetSize();
+                if (!state.source) return;
+                var srcPixels = state.source.width * state.source.height;
+                var dstPixels = t.width * t.height;
+                $('resHint').textContent = '输出：' + t.width + ' × ' + t.height +
+                    '（像素量约为原视频的 ' + (srcPixels ? (dstPixels / srcPixels * 100).toFixed(0) : 0) + '%）';
+                var fps = chooseFps();
+                var rec = recommendedBitrate(t.width, t.height, fps);
+                $('optBitrate').value = String(rec);
+                $('bitrateVal').textContent = rec;
+                updateEstimate();
+            }
+
+            /* 当前实际采用的录制帧率 */
+            function chooseFps() {
+                var v = $('optFps').value;
+                if (v === 'source') return state.srcFps || 30;
+                return parseInt(v, 10);
+            }
+
+            /* 把测得的帧率归一到常见帧率（23.976 / 29.97 / 59.94 等） */
+            function snapFps(raw) {
+                var common = [15, 20, 23.976, 24, 25, 29.97, 30, 48, 50, 59.94, 60, 100, 119.88, 120];
+                var best = null, bestDiff = Infinity;
+                for (var i = 0; i < common.length; i++) {
+                    var d = Math.abs(common[i] - raw);
+                    if (d < bestDiff) { bestDiff = d; best = common[i]; }
+                }
+                if (best && bestDiff / best <= 0.12) return Math.round(best * 100) / 100;
+                return Math.round(raw * 100) / 100;
+            }
+
+            /* 检测源视频帧率：统计一段时间内真正呈现了多少帧。
+               浏览器没有直接读取帧率的 API，这里用 requestVideoFrameCallback 的
+               mediaTime 与呈现帧数反推；检测过程会静音播放约 0.6 秒 */
+            function detectSourceFps(cb) {
+                var vid = srcVideo;
+                if (!vid.requestVideoFrameCallback) { cb(null); return; }
+                var startMeta = null, startWall = 0, frames = 0, finished = false;
+                var restoreTime = vid.currentTime;
+                var wasPlaying = !vid.paused;
+                var finish = function (fps) {
+                    if (finished) return;
+                    finished = true;
+                    try { if (!wasPlaying) vid.pause(); } catch (e) { }
+                    try { vid.currentTime = restoreTime; } catch (e) { }
+                    cb(fps);
+                };
+                var onFrame = function (now, meta) {
+                    if (finished) return;
+                    if (startMeta === null) { startMeta = meta; startWall = now; frames = 1; }
+                    else frames++;
+                    var dtMedia = meta.mediaTime - startMeta.mediaTime;
+                    var dtWall = (now - startWall) / 1000;
+                    /* 无时长的 WebM 里 mediaTime 可能不可靠，此时退回墙钟计时 */
+                    var dt = (isFinite(dtMedia) && dtMedia > 0.15) ? dtMedia : dtWall;
+                    if (dt >= 0.6 && frames > 2) { finish(snapFps((frames - 1) / dt)); return; }
+                    if (dtWall > 8) { finish(null); return; }
+                    vid.requestVideoFrameCallback(onFrame);
+                };
+                try { vid.requestVideoFrameCallback(onFrame); } catch (e) { cb(null); return; }
+                var p = vid.play();
+                if (p && p.catch) p.catch(function () { finish(null); });
+                setTimeout(function () { finish(null); }, 5000);
+            }
+
+            /* 估算显示器刷新率：实时录制每秒能采集到的帧数上限就取决于它 */
+            function measureDisplayHz(cb) {
+                var times = [];
+                var tick = function (t) {
+                    times.push(t);
+                    if (times.length < 24) { requestAnimationFrame(tick); return; }
+                    var gaps = [];
+                    for (var i = 1; i < times.length; i++) gaps.push(times[i] - times[i - 1]);
+                    gaps.sort(function (a, b) { return a - b; });
+                    var median = gaps[Math.floor(gaps.length / 2)];
+                    cb(median > 1 ? Math.round(1000 / median) : null);
+                };
+                requestAnimationFrame(tick);
+            }
+
+            function probeSourceFps() {
+                if (!state.source || state.recording) return;
+                $('fpsHint').textContent = '正在检测源视频帧率…（会静音播放约 0.6 秒，请不要操作）';
+                detectSourceFps(function (fps) {
+                    state.srcFps = fps;
+                    applyResolution();
+                });
+            }
+
+            function updateFpsHint() {
+                var fps = chooseFps();
+                var dur = clipDuration();
+                var text = '按 ' + fps + ' fps 录制，片段时长 ' + Tool.formatDuration(dur) + '。';
+                if ($('optFps').value === 'source') {
+                    text = (state.srcFps
+                        ? '检测到源视频约 ' + state.srcFps + ' fps。'
+                        : '未能检测到源帧率（可能是流式或损坏的文件），暂按 30 fps 处理。') + text;
+                }
+                $('fpsHint').textContent = text;
+                var warn = $('fpsWarn');
+                if (state.displayHz && fps > state.displayHz && $('optEngine').value !== 'fast') {
+                    warn.style.display = '';
+                    warn.textContent = '⚠ 检测到当前显示器刷新率约 ' + state.displayHz + ' Hz。兼容模式按实时录制，每秒最多只能采集到刷新率那么多的帧，' +
+                        '因此实际输出会接近 ' + state.displayHz + ' fps，而不是设定的 ' + fps + ' fps。' +
+                        '想要真正达到设定帧率，请把“压缩模式”切换为快速模式（WebCodecs 不受屏幕刷新率限制）。';
+                } else {
+                    warn.style.display = 'none';
+                }
+            }
+
+            function clipDuration() {
+                var s = state.source;
+                if (!s) return 0;
+                var start = parseFloat($('optStart').value) || 0;
+                var end = parseFloat($('optEnd').value);
+                if (!isFinite(end) || end <= 0 || end > s.duration) end = s.duration;
+                if (!isFinite(end)) return 0;
+                return Math.max(0, end - start);
+            }
+
+            function updateEstimate() {
+                var t = computeTargetSize();
+                var dur = clipDuration();
+                var vk = parseInt($('optBitrate').value, 10) || 1500;
+                var ak = $('optAudio').value === 'drop' ? 0 : ($('optAudio').value === 'keep64' ? 64 : 96);
+                var bytes = (vk + ak) * 1000 / 8 * dur;
+                $('estBadge').textContent = '预估输出 ' + Tool.formatBytes(bytes) +
+                    (state.source && state.source.size ? '（原始 ' + Tool.formatBytes(state.source.size) + '）' : '');
+                updateFpsHint();
+            }
+
+            /* =====================================================================
+               压缩主流程
+               ===================================================================== */
+            function stopEverything(discard) {
+                state.recording = false;
+                if (state.rafId) { cancelAnimationFrame(state.rafId); state.rafId = 0; }
+                try { srcVideo.pause(); } catch (e) { }
+                if (state.recorder && state.recorder.state !== 'inactive') {
+                    state.cancelled = !!discard;
+                    try { state.recorder.stop(); } catch (e) { }
+                }
+                $('btnStart').classList.remove('hidden');
+                $('btnCancel').classList.add('hidden');
+            }
+
+            /* =====================================================================
+               快速模式：WebCodecs + Mediabunny
+               一次性解码 → 缩放 → 编码 → 封装，不依赖“播放一遍”的实时节拍
+               ===================================================================== */
+            var FAST_LIB_SRC = 'js/vendor/mediabunny-tool.min.js';
+
+            function loadScriptOnce(src) {
+                return new Promise(function (resolve, reject) {
+                    var exist = document.querySelector('script[data-tool-src="' + src + '"]');
+                    if (exist) {
+                        if (exist.getAttribute('data-loaded') === '1') { resolve(); return; }
+                        exist.addEventListener('load', function () { resolve(); });
+                        exist.addEventListener('error', function () { reject(new Error('组件加载失败：' + src)); });
+                        return;
+                    }
+                    var s = document.createElement('script');
+                    s.src = src;
+                    s.setAttribute('data-tool-src', src);
+                    s.onload = function () { s.setAttribute('data-loaded', '1'); resolve(); };
+                    s.onerror = function () { reject(new Error('组件加载失败：' + src + '（请检查网络或文件是否完整）')); };
+                    document.head.appendChild(s);
+                });
+            }
+
+            function webCodecsReady() {
+                return typeof window.VideoEncoder === 'function' && typeof window.VideoDecoder === 'function';
+            }
+
+            function isLikelyVideoContainer(file) {
+                if (!file) return false;
+                if (/\.(mp4|m4v|mov|webm|mkv)$/i.test(file.name || '')) return true;
+                return /^video\/(mp4|quicktime|webm|x-matroska)$/i.test(file.type || '');
+            }
+
+            /* 返回空字符串表示可用快速模式，否则返回不可用的原因 */
+            function fastModeReason() {
+                if (!webCodecsReady()) return '当前浏览器不支持 WebCodecs（VideoEncoder / VideoDecoder）';
+                if (!state.file) return '尚未选择视频文件';
+                if (!isLikelyVideoContainer(state.file)) return '快速模式只支持 MP4 / MOV / WebM / MKV 容器';
+                return '';
+            }
+
+            function updateEngineHint() {
+                var reason = fastModeReason();
+                var sel = $('optEngine');
+                var fastOpt = sel.querySelector('option[value="fast"]');
+                if (fastOpt) fastOpt.disabled = !!reason;
+                if (reason) {
+                    if (sel.value === 'fast') sel.value = 'compat';
+                    $('engineHint').innerHTML = '⚠ 只能使用兼容模式：' + Tool.escapeHtml(reason) +
+                        '。兼容模式会按播放速度实时录制，耗时约等于视频时长。';
+                } else {
+                    if (!state.engineTouched) sel.value = 'fast';
+                    $('engineHint').innerHTML = (sel.value === 'fast')
+                        ? '✓ 快速模式：用 WebCodecs 直接解码再编码，不受实时播放限制，通常比兼容模式快数倍到十几倍。首次使用会临时加载约 107 KB 的编解码组件。'
+                        : '兼容模式：按播放速度实时录制，耗时约等于视频时长，但几乎什么格式都能压。';
+                }
+                /* 快速模式固定输出 MP4/H.264，格式下拉只在兼容模式生效 */
+                var isFast = sel.value === 'fast' && !reason;
+                $('optFormat').disabled = isFast;
+                $('formatHint').textContent = isFast
+                    ? '快速模式固定输出 MP4（H.264 + AAC），兼容性最好。'
+                    : '可选格式由当前浏览器支持的编码器决定。';
+            }
+
+            /* 两种模式共用的参数校验 */
+            function validateRunParams() {
+                var start = Math.max(0, parseFloat($('optStart').value) || 0);
+                var end = parseFloat($('optEnd').value);
+                var dur = state.source ? state.source.duration : NaN;
+                if (isFinite(end) && end > 0 && isFinite(dur)) end = Math.min(end, dur);
+                if (!isFinite(end) || end <= 0) {
+                    return { error: '无法确定结束时间：该视频没有时长信息，请在“片段裁剪”里手动填写结束时间（秒）后再开始压缩。' };
+                }
+                if (end - start < 0.2) {
+                    return { error: '裁剪区间太短或无效：结束时间必须大于开始时间。' };
+                }
+                var target = computeTargetSize();
+                if (!isFinite(target.width) || target.width < 2) {
+                    return { error: '无法确定输出分辨率，请检查参数。' };
+                }
+                return { start: start, end: end, target: target, dur: dur };
+            }
+
+            function restoreRunUI() {
+                state.recording = false;
+                state.fastConversion = null;
+                $('btnStart').classList.remove('hidden');
+                $('btnCancel').classList.add('hidden');
+            }
+
+            function runFastMode(p) {
+                var MB = window.Mediabunny;
+                var vk = parseInt($('optBitrate').value, 10) || 1500;
+                var keepAudio = $('optAudio').value !== 'drop';
+                var ak = $('optAudio').value === 'keep64' ? 64000 : 96000;
+                var fpsSel = $('optFps').value;
+
+                var input = new MB.Input({ source: new MB.BlobSource(state.file), formats: MB.INPUT_FORMATS });
+                var output = new MB.Output({ format: new MB.Mp4OutputFormat(), target: new MB.BufferTarget() });
+
+                var opts = {
+                    input: input,
+                    output: output,
+                    video: {
+                        width: p.target.width,
+                        height: p.target.height,
+                        fit: 'contain',
+                        bitrate: vk * 1000,
+                        forceTranscode: true,
+                        keyFrameInterval: 2,
+                        codec: 'avc'
+                    },
+                    audio: keepAudio ? { bitrate: ak } : { discard: true },
+                    showWarnings: false
+                };
+                if (isFinite(p.end) && p.end > 0) opts.trim = { start: p.start, end: p.end };
+                if (fpsSel !== 'source') opts.video.frameRate = parseInt(fpsSel, 10);
+
+                var startedAt = Date.now();
+                var clipLen = Math.max(0.1, p.end - p.start);
+                progressText.textContent = '正在分析视频结构…';
+
+                return MB.Conversion.init(opts).then(function (conversion) {
+                    if (state.cancelled) { throw new Error('__CANCELED__'); }
+                    if (!conversion.isValid) {
+                        var why = (conversion.discardedTracks || []).map(function (t) { return t.reason; }).join('；');
+                        throw new Error('这个文件无法用快速模式处理' + (why ? '：' + why : '') + '（可能是编码格式不受支持）');
+                    }
+                    state.fastConversion = conversion;
+                    conversion.onProgress = function (ratio, processedTime) {
+                        var pct = Math.max(0, Math.min(1, ratio || 0));
+                        progressBar.style.width = (pct * 100).toFixed(1) + '%';
+                        var elapsed = (Date.now() - startedAt) / 1000;
+                        progressText.textContent = '已处理 ' + Tool.formatDuration(processedTime || 0) + ' / ' + Tool.formatDuration(clipLen) +
+                            '（' + (pct * 100).toFixed(0) + '%）· 已用 ' + Tool.formatDuration(elapsed) +
+                            ' · 速度约 ' + (elapsed > 0.3 ? (processedTime / elapsed).toFixed(1) + ' 倍速' : '计算中');
+                    };
+                    return conversion.execute();
+                }).then(function () {
+                    if (state.cancelled) { throw new Error('__CANCELED__'); }
+                    var blob = new Blob([output.target.buffer], { type: 'video/mp4' });
+                    state.elapsed = (Date.now() - startedAt) / 1000;
+                    state.resultBlob = blob;
+                    state.resultName = (state.source.name || 'video').replace(/\.[^.]+$/, '') + '-compressed.mp4';
+                    restoreRunUI();
+                    progressBar.style.width = '100%';
+                    showResult(blob, 'video/mp4', 'mp4', p.target, vk, keepAudio ? ak : 0, p.dur, p.start, p.end);
+                    Tool.setStatus(runStatus, 'ok', '快速模式压缩完成：耗时 ' + Tool.formatDuration(state.elapsed) +
+                        '，约为片段时长的 ' + Math.round(state.elapsed / clipLen * 100) + '%（兼容模式约为 100%）。');
+                });
+            }
+
+            /* 入口：按当前选择的模式分派 */
+            function startCompress() {
+                if (!state.source || state.recording) return;
+                var p = validateRunParams();
+                if (p.error) { Tool.setStatus(runStatus, 'err', p.error); return; }
+
+                if ($('optEngine').value === 'fast' && !fastModeReason()) {
+                    state.cancelled = false;
+                    state.recording = true;
+                    $('btnStart').classList.add('hidden');
+                    $('btnCancel').classList.remove('hidden');
+                    progressBox.classList.remove('hidden');
+                    progressBar.style.width = '0%';
+                    progressText.textContent = '正在加载快速模式组件…';
+                    Tool.setStatus(runStatus, 'info', '快速模式：解码 → 缩放 → 编码 → 封装，不受播放速度限制，请稍候…');
+                    loadScriptOnce(FAST_LIB_SRC)
+                        .then(function () {
+                            if (state.cancelled) { throw new Error('__CANCELED__'); }
+                            return runFastMode(p);
+                        })
+                        .catch(function (err) {
+                            var canceled = state.cancelled || (err && err.message === '__CANCELED__') ||
+                                (err && err.name === 'ConversionCanceledError');
+                            restoreRunUI();
+                            progressBox.classList.add('hidden');
+                            if (canceled) {
+                                Tool.setStatus(runStatus, 'warn', '已取消压缩，未生成文件。');
+                                return;
+                            }
+                            var msg = err && err.message ? err.message : String(err);
+                            Tool.setStatus(runStatus, 'err', '快速模式失败：' + msg +
+                                '\n可以切换到“兼容模式”再试一次——兼容模式几乎什么格式都能压，只是耗时约等于视频时长。');
+                        });
+                    return;
+                }
+                startCompatCompress();
+            }
+
+            /* 兼容模式（实时录制）：播放一遍 → 录一遍，耗时约等于视频时长 */
+            function startCompatCompress() {
+                if (!state.source || state.recording) return;
+                var fmts = supportedFormats();
+                if (!fmts.length) { Tool.toast('当前浏览器不支持在线视频压缩', 'err'); return; }
+
+                var mime = $('optFormat').value || fmts[0].mime;
+                var target = computeTargetSize();
+                var vk = parseInt($('optBitrate').value, 10) || 1500;
+                var keepAudio = $('optAudio').value !== 'drop';
+                var ak = $('optAudio').value === 'keep64' ? 64000 : 96000;
+                var fps = chooseFps();
+                var start = Math.max(0, parseFloat($('optStart').value) || 0);
+                var end = parseFloat($('optEnd').value);
+                var dur = state.source.duration;
+                if (isFinite(end) && end > 0 && isFinite(dur)) end = Math.min(end, dur);
+                if (!isFinite(end) || end <= 0) {
+                    Tool.setStatus(runStatus, 'err',
+                        '无法确定结束时间：该视频没有时长信息，请在“片段裁剪”里手动填写结束时间（秒）后再开始压缩。');
+                    return;
+                }
+                if (end - start < 0.2) {
+                    Tool.setStatus(runStatus, 'err', '裁剪区间太短或无效：结束时间必须大于开始时间。');
+                    return;
+                }
+                if (!isFinite(target.width) || target.width < 2) {
+                    Tool.setStatus(runStatus, 'err', '无法确定输出分辨率，请检查参数。');
+                    return;
+                }
+
+                state.cancelled = false;
+                state.chunks = [];
+                state.recording = true;
+                $('btnStart').classList.add('hidden');
+                $('btnCancel').classList.remove('hidden');
+                progressBox.classList.remove('hidden');
+                progressBar.style.width = '0%';
+                progressText.textContent = '正在准备…';
+                Tool.setStatus(runStatus, 'info', '压缩进行中：请保持本页面在前台，直到进度条走完。');
+
+                /* 画布与输出视频轨 */
+                var canvas = document.createElement('canvas');
+                canvas.width = target.width;
+                canvas.height = target.height;
+                var ctx2d = canvas.getContext('2d', { alpha: false });
+                ctx2d.fillStyle = '#000';
+                ctx2d.fillRect(0, 0, canvas.width, canvas.height);
+                ctx2d.imageSmoothingEnabled = true;
+                if ('imageSmoothingQuality' in ctx2d) ctx2d.imageSmoothingQuality = 'high';
+
+                var stream = canvas.captureStream(fps);
+                var videoTrack = stream.getVideoTracks()[0];
+
+                /* 音频轨 */
+                var audioTrack = null;
+                if (keepAudio && state.audioDest) {
+                    var at = state.audioDest.stream.getAudioTracks()[0];
+                    if (at) {
+                        audioTrack = at;
+                        stream.addTrack(at);
+                    }
+                }
+                if (keepAudio && state.monitorGain) {
+                    state.monitorGain.gain.value = $('optMonitor').checked ? 1 : 0;
+                }
+                if (state.audioCtx && state.audioCtx.state === 'suspended') {
+                    state.audioCtx.resume().catch(function () { });
+                }
+
+                /* 录制器 */
+                var recorder;
+                try {
+                    recorder = new MediaRecorder(stream, {
+                        mimeType: mime,
+                        videoBitsPerSecond: vk * 1000,
+                        audioBitsPerSecond: ak
+                    });
+                } catch (e) {
+                    /* 部分浏览器不接受自定义参数，退回默认 */
+                    try {
+                        recorder = new MediaRecorder(stream, { mimeType: mime });
+                        Tool.setStatus(runStatus, 'warn', '浏览器未接受自定义码率参数，将使用默认码率录制。');
+                    } catch (e2) {
+                        Tool.setStatus(runStatus, 'err', '无法创建录制器：' + e2.message + '。请换用最新版 Chrome / Edge / Firefox。');
+                        stopEverything(true);
+                        return;
+                    }
+                }
+                state.recorder = recorder;
+                var actualMime = recorder.mimeType || mime;
+                state.resultMime = actualMime;
+                var fmtDef = FORMATS.filter(function (f) { return f.mime === actualMime; })[0] ||
+                    FORMATS.filter(function (f) { return actualMime.indexOf(f.mime.split(';')[0]) === 0; })[0] || { ext: 'webm' };
+
+                recorder.ondataavailable = function (e) {
+                    if (e.data && e.data.size > 0) state.chunks.push(e.data);
+                };
+                recorder.onerror = function (e) {
+                    Tool.setStatus(runStatus, 'err', '录制过程出错：' + (e.error && e.error.message ? e.error.message : '未知错误'));
+                    stopEverything(true);
+                };
+                recorder.onstop = function () {
+                    srcVideo.controls = true;
+                    if (state.cancelled) {
+                        Tool.setStatus(runStatus, 'warn', '已取消压缩，未生成文件。');
+                        progressText.textContent = '已取消（未生成文件）';
+                        progressBar.style.width = '0%';
+                        if (videoTrack) videoTrack.stop();
+                        return;
+                    }
+                    if (videoTrack) videoTrack.stop();
+                    var blob = new Blob(state.chunks, { type: actualMime });
+                    state.resultBlob = blob;
+                    var base = (state.source.name || 'video').replace(/\.[^.]+$/, '');
+                    state.resultName = base + '-compressed.' + fmtDef.ext;
+                    showResult(blob, actualMime, fmtDef.ext, target, vk, ak, dur, start, end);
+                };
+
+                /* 定位到起点后开始播放与录制 */
+                var seekTo = Math.min(start, Math.max(0, dur - 0.05));
+                var beginPlayback = function () {
+                    srcVideo.currentTime = seekTo;
+                };
+
+                var onSeeked = function () {
+                    srcVideo.removeEventListener('seeked', onSeeked);
+                    var startedAt = Date.now();
+                    srcVideo.controls = false;   /* 录制期间禁止拖动进度条，否则会打乱录制时序 */
+                    recorder.start(1000);
+                    var playPromise = srcVideo.play();
+                    if (playPromise && playPromise.catch) {
+                        playPromise.catch(function (err) {
+                            Tool.setStatus(runStatus, 'err', '无法播放视频：' + err.message + '。请先点击视频预览区的播放按钮，确认视频可以正常播放后再试。');
+                            stopEverything(true);
+                        });
+                    }
+
+                    var frameInterval = 1000 / fps;
+                    var lastDraw = 0;
+                    var clipLen = Math.max(0.1, end - seekTo);
+
+                    var loop = function (ts) {
+                        if (!state.recording) return;
+                        if (!lastDraw || ts - lastDraw >= frameInterval - 1) {
+                            lastDraw = ts;
+                            try {
+                                ctx2d.drawImage(srcVideo, 0, 0, canvas.width, canvas.height);
+                            } catch (e) { /* 忽略偶发的绘制失败 */ }
+                        }
+                        var cur = srcVideo.currentTime;
+                        var done = cur >= end - 0.03 || srcVideo.ended;
+                        var ratio = Math.min(1, Math.max(0, (cur - seekTo) / clipLen));
+                        progressBar.style.width = (ratio * 100).toFixed(1) + '%';
+                        var elapsed = (Date.now() - startedAt) / 1000;
+                        state.elapsed = elapsed;
+                        var remain = Math.max(0, clipLen - (cur - seekTo));
+                        progressText.textContent = '已处理 ' + Tool.formatDuration(cur - seekTo) + ' / ' + Tool.formatDuration(clipLen) +
+                            '（' + (ratio * 100).toFixed(0) + '%）· 已用 ' + Tool.formatDuration(elapsed) +
+                            ' · 预计剩余 ' + Tool.formatDuration(remain);
+                        if (done) {
+                            state.recording = false;
+                            try { srcVideo.pause(); } catch (e) { }
+                            setTimeout(function () {
+                                if (state.recorder && state.recorder.state !== 'inactive') {
+                                    try { state.recorder.stop(); } catch (e) { }
+                                }
+                                $('btnStart').classList.remove('hidden');
+                                $('btnCancel').classList.add('hidden');
+                                progressBar.style.width = '100%';
+                                progressText.textContent = '编码收尾中…';
+                            }, 320);   /* 稍等片刻，让最后几帧写入 */
+                            return;
+                        }
+                        state.rafId = requestAnimationFrame(loop);
+                    };
+                    state.rafId = requestAnimationFrame(loop);
+                };
+
+                srcVideo.addEventListener('seeked', onSeeked);
+                if (Math.abs(srcVideo.currentTime - seekTo) < 0.05) {
+                    srcVideo.removeEventListener('seeked', onSeeked);
+                    onSeeked();
+                } else {
+                    beginPlayback();
+                }
+            }
+
+            function showResult(blob, mime, ext, target, vk, ak, dur, start, end) {
+                RESULT_CARD.classList.remove('hidden');
+                var url = URL.createObjectURL(blob);
+                $('outVideo').src = url;
+                $('outName').textContent = state.resultName;
+                $('outSrcSize').textContent = Tool.formatBytes(state.source.size);
+                $('outSize').textContent = Tool.formatBytes(blob.size);
+                var pct = state.source.size ? blob.size / state.source.size * 100 : 0;
+                var diff = state.source.size - blob.size;
+                var ratioEl = $('outRatio');
+                if (diff > 0) {
+                    ratioEl.innerHTML = '<span class="badge ok">减小 ' + Tool.formatBytes(diff) +
+                        '（保留原体积的 ' + pct.toFixed(1) + '%）</span>';
+                } else if (diff < 0) {
+                    ratioEl.innerHTML = '<span class="badge warn">反而增大 ' + Tool.formatBytes(-diff) +
+                        '（原体积的 ' + pct.toFixed(1) + '%）</span>';
+                } else {
+                    ratioEl.innerHTML = '<span class="badge gray">体积基本不变</span>';
+                }
+                var clipLen = Math.max(0.1, (isFinite(end) ? end : dur) - start);
+                $('outParams').textContent = target.width + '×' + target.height + ' · ' + vk + ' kbps · ' +
+                    (ak ? ak / 1000 + ' kbps 音频' : '无音频') + ' · ' + Tool.formatDuration(clipLen) +
+                    ' · ' + mime.replace(/^video\//, '');
+                $('outElapsed').textContent = Tool.formatDuration(state.elapsed || 0) +
+                    '（约为片段时长的 ' + Math.round((state.elapsed || 0) / clipLen * 100) + '%）';
+                var realBitrate = blob.size * 8 / clipLen / 1000;
+                $('outTip').textContent = '实际平均码率约 ' + Math.round(realBitrate) + ' kbps。' +
+                    (diff > 0 ? '' : '提示：原视频本身已经压得很小（或码率设置偏高），此时可以调低码率或降低分辨率以获得更小的文件。');
+                progressText.textContent = '压缩完成 ✓';
+                Tool.setStatus(runStatus, 'ok', '压缩完成：' + Tool.formatBytes(state.source.size) + ' → ' +
+                    Tool.formatBytes(blob.size) + '，点击“下载压缩后的视频”保存到本地。');
+                Tool.toast('压缩完成', 'ok');
+                RESULT_CARD.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            /* =====================================================================
+               事件绑定
+               ===================================================================== */
+            Tool.bindDropZone($('videoDropZone'), $('videoInput'), handleFile);
+
+            $('btnReset').addEventListener('click', function () {
+                if (state.recording) { Tool.toast('请先停止当前的压缩任务', 'err'); return; }
+                $('videoInput').value = '';
+                $('playerWrap').style.display = 'none';
+                OPTION_CARD.style.display = 'none';
+                RESULT_CARD.classList.add('hidden');
+                srcInfo.textContent = '尚未选择视频。';
+                Tool.setStatus(loadStatus, '', '');
+                state.source = null;
+                state.file = null;
+                if (srcVideo.src) { URL.revokeObjectURL(srcVideo.src); srcVideo.removeAttribute('src'); srcVideo.load(); }
+            });
+
+            $('optRes').addEventListener('change', function () {
+                $('customWidthField').classList.toggle('hidden', $('optRes').value !== 'custom');
+                applyResolution();
+            });
+            $('optCustomWidth').addEventListener('input', Tool.debounce(function () {
+                if ($('optRes').value === 'custom') applyResolution();
+            }, 260));
+            $('optBitrate').addEventListener('input', function () {
+                $('bitrateVal').textContent = $('optBitrate').value;
+                updateEstimate();
+            });
+            $('optEngine').addEventListener('change', function () {
+                state.engineTouched = true;
+                updateEngineHint();
+                if (state.source) updateFpsHint();
+            });
+            $('optFps').addEventListener('change', function () {
+                if ($('optFps').value === 'source' && state.srcFps === null) {
+                    probeSourceFps();
+                } else {
+                    applyResolution();
+                }
+            });
+            $('optAudio').addEventListener('change', updateEstimate);
+            $('optStart').addEventListener('input', updateEstimate);
+            $('optEnd').addEventListener('input', updateEstimate);
+            $('btnRecommend').addEventListener('click', function () {
+                var t = computeTargetSize();
+                var rec = recommendedBitrate(t.width, t.height, chooseFps());
+                $('optBitrate').value = String(rec);
+                $('bitrateVal').textContent = rec;
+                updateEstimate();
+                Tool.toast('已填入推荐码率 ' + rec + ' kbps');
+            });
+
+            $('btnStart').addEventListener('click', startCompress);
+            $('btnCancel').addEventListener('click', function () {
+                if (!state.recording) return;
+                if (state.fastConversion) {
+                    /* 快速模式：取消 Conversion，收尾由 runFastMode 的 catch 处理 */
+                    state.cancelled = true;
+                    try { state.fastConversion.cancel(); } catch (e) { }
+                    return;
+                }
+                stopEverything(true);
+                Tool.setStatus(runStatus, 'warn', '已停止压缩，未生成文件。');
+            });
+
+            $('btnDownload').addEventListener('click', function () {
+                if (!state.resultBlob) { Tool.toast('还没有可下载的结果', 'err'); return; }
+                Tool.download(state.resultBlob, state.resultName);
+                Tool.toast('已开始下载：' + state.resultName, 'ok');
+            });
+            $('btnPreviewToggle').addEventListener('click', function () {
+                var v = $('outVideo');
+                if (v.paused) v.play(); else v.pause();
+            });
+
+            initEnv();
+            updateEngineHint();
+
+            /* 估算显示器刷新率，用于提示“帧率设得再高也采集不到”（仅兼容模式受此限制） */
+            measureDisplayHz(function (hz) {
+                state.displayHz = hz;
+                if (state.source) updateFpsHint();
+            });
+        })();
+    </script>
+</body>
+
+</html>
