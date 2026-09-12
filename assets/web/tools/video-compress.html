@@ -277,6 +277,8 @@
                 elapsed: 0,
                 fastConversion: null,  // 快速模式当前的 Conversion 对象（用于取消）
                 engineTouched: false,  // 用户是否手动选择过压缩模式
+                srcUrl: null,          // 原视频预览的 object URL
+                resultUrl: null,       // 结果预览的 object URL
                 resultBlob: null,
                 resultName: '',
                 resultMime: ''
@@ -349,6 +351,8 @@
                 Tool.setStatus(loadStatus, 'info', '正在读取视频信息…');
 
                 var url = URL.createObjectURL(file);
+                if (state.srcUrl) { try { URL.revokeObjectURL(state.srcUrl); } catch (e) { } }
+                state.srcUrl = url;
                 srcVideo.src = url;
                 $('playerWrap').style.display = 'block';
                 setupAudioGraph();
@@ -1028,7 +1032,13 @@
 
             function showResult(blob, mime, ext, target, vk, ak, dur, start, end) {
                 RESULT_CARD.classList.remove('hidden');
+                /* 释放上一次结果的 object URL，否则旧的 Blob 会一直留在内存里 */
+                if (state.resultUrl) {
+                    try { URL.revokeObjectURL(state.resultUrl); } catch (e) { }
+                    state.resultUrl = null;
+                }
                 var url = URL.createObjectURL(blob);
+                state.resultUrl = url;
                 $('outVideo').src = url;
                 $('outName').textContent = state.resultName;
                 $('outSrcSize').textContent = Tool.formatBytes(state.source.size);
@@ -1076,7 +1086,12 @@
                 Tool.setStatus(loadStatus, '', '');
                 state.source = null;
                 state.file = null;
+                state.srcFps = null;
+                if (state.srcUrl) { try { URL.revokeObjectURL(state.srcUrl); } catch (e) { } state.srcUrl = null; }
+                if (state.resultUrl) { try { URL.revokeObjectURL(state.resultUrl); } catch (e) { } state.resultUrl = null; }
                 if (srcVideo.src) { URL.revokeObjectURL(srcVideo.src); srcVideo.removeAttribute('src'); srcVideo.load(); }
+                $('outVideo').removeAttribute('src');
+                Tool.setStatus(runStatus, '', '');
             });
 
             $('optRes').addEventListener('change', function () {
