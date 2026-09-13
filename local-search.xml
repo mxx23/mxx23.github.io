@@ -4,6 +4,35 @@
   
   
   <entry>
+    <title>文件目录差异比较工具</title>
+    <link href="/2026/09/13/%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E5%B7%AE%E5%BC%82%E6%AF%94%E8%BE%83%E5%B7%A5%E5%85%B7/"/>
+    <url>/2026/09/13/%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E5%B7%AE%E5%BC%82%E6%AF%94%E8%BE%83%E5%B7%A5%E5%85%B7/</url>
+    
+    <content type="html"><![CDATA[<p>　　在线文件与目录差异比较工具：对比两个文本文件（逐行对齐、行内高亮）或两个文件夹（递归比较、按状态着色），差异可以按块或整份覆盖到另一侧，有写回权限时直接落盘，否则导出 ZIP。全部在浏览器本地完成，文件不上传。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/tools/diff.html"     style="display:inline-block;padding:12px 36px;background:#14a085;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(20,160,133,.32)">    👉 打开文件 / 目录差异比较工具  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
+    
+    
+    <categories>
+      
+      <category>在线工具</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>在线工具</tag>
+      
+      <tag>差异比较</tag>
+      
+      <tag>Diff</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>AES在线加解密工具</title>
     <link href="/2026/09/13/AES%E5%9C%A8%E7%BA%BF%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%B7%A5%E5%85%B7/"/>
     <url>/2026/09/13/AES%E5%9C%A8%E7%BA%BF%E5%8A%A0%E8%A7%A3%E5%AF%86%E5%B7%A5%E5%85%B7/</url>
