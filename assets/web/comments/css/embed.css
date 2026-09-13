@@ -1,0 +1,345 @@
+/* ==========================================================================
+   文章页嵌入式评论区样式 (assets/web/comments/css/embed.css)
+
+   完全自带变量（不依赖主题的 CSS 变量），并跟随主题的三种配色：
+     data-user-color-scheme="dark"      手动暗色
+     data-default-color-scheme="auto"   + 系统偏好暗色
+   ========================================================================== */
+
+.cmt-embed {
+    --ce-text: #24292f;
+    --ce-text-2: #57606a;
+    --ce-text-3: #8b949e;
+    --ce-border: #d8dee4;
+    --ce-panel: #ffffff;
+    --ce-panel-2: #f6f8fa;
+    --ce-primary: #4a6fd4;
+    --ce-avatar: 38px;
+    margin-top: 8px;
+    color: var(--ce-text);
+    font-size: 14px;
+    line-height: 1.75;
+}
+
+html[data-user-color-scheme="dark"] .cmt-embed {
+    --ce-text: #e6edf3;
+    --ce-text-2: #adbac7;
+    --ce-text-3: #768390;
+    --ce-border: #30363d;
+    --ce-panel: #1c2128;
+    --ce-panel-2: #22272e;
+    --ce-primary: #7aa2f7;
+}
+
+@media (prefers-color-scheme: dark) {
+    html[data-default-color-scheme="auto"]:not([data-user-color-scheme="light"]) .cmt-embed {
+        --ce-text: #e6edf3;
+        --ce-text-2: #adbac7;
+        --ce-text-3: #768390;
+        --ce-border: #30363d;
+        --ce-panel: #1c2128;
+        --ce-panel-2: #22272e;
+        --ce-primary: #7aa2f7;
+    }
+}
+
+.cmt-embed-head-bar {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-bottom: 1px solid var(--ce-border);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+}
+
+.cmt-embed-head-bar h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    border: 0;
+}
+
+.cmt-embed-stat {
+    color: var(--ce-text-3);
+    font-size: 12.5px;
+}
+
+/* ---------------------------------------------------------------- 列表 */
+.cmt-embed-list {
+    margin-bottom: 18px;
+}
+
+.cmt-embed-empty {
+    color: var(--ce-text-3);
+    font-size: 13px;
+    margin: 6px 0;
+}
+
+.cmt-embed-item {
+    display: grid;
+    grid-template-columns: var(--ce-avatar) 1fr;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--ce-border);
+}
+
+.cmt-embed-item.is-child {
+    border-bottom: 0;
+    padding: 6px 0;
+    opacity: 0.96;
+}
+
+.cmt-embed-item:last-child {
+    border-bottom: 0;
+}
+
+.cmt-embed-avatar {
+    width: var(--ce-avatar);
+    height: var(--ce-avatar);
+    border-radius: 50%;
+    background: var(--ce-panel-2);
+    border: 1px solid var(--ce-border);
+}
+
+.cmt-embed-main {
+    min-width: 0;
+}
+
+.cmt-embed-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ce-text-3);
+}
+
+.cmt-embed-head b {
+    color: var(--ce-text);
+    font-weight: 600;
+}
+
+.cmt-embed-head b.is-owner {
+    color: var(--ce-primary);
+}
+
+.cmt-embed-head a {
+    color: var(--ce-primary);
+    text-decoration: none;
+}
+
+.cmt-embed-badge {
+    font-size: 11px;
+    padding: 0 6px;
+    border-radius: 999px;
+    border: 1px solid var(--ce-primary);
+    color: var(--ce-primary);
+    line-height: 17px;
+}
+
+.cmt-embed-badge.mine {
+    border-color: var(--ce-text-3);
+    color: var(--ce-text-3);
+}
+
+.cmt-embed-body {
+    margin: 4px 0 6px;
+    word-break: break-word;
+    white-space: normal;
+}
+
+.cmt-embed-body p {
+    margin: 0 0 4px;
+}
+
+.cmt-embed-body code {
+    background: var(--ce-panel-2);
+    border: 1px solid var(--ce-border);
+    border-radius: 4px;
+    padding: 0 4px;
+    font-size: 0.9em;
+}
+
+.cmt-embed-body a {
+    color: var(--ce-primary);
+    word-break: break-all;
+}
+
+.cmt-embed-mention {
+    color: var(--ce-primary);
+}
+
+.cmt-embed-foot {
+    display: flex;
+    gap: 12px;
+}
+
+.cmt-embed-link {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: 12.5px;
+    color: var(--ce-text-2);
+    cursor: pointer;
+}
+
+.cmt-embed-link:hover {
+    color: var(--ce-primary);
+    text-decoration: underline;
+}
+
+.cmt-embed-link.warn:hover {
+    color: #d9534f;
+}
+
+.cmt-embed-kids {
+    grid-column: 1 / -1;
+    margin: 4px 0 0 calc(var(--ce-avatar) / 2);
+    padding-left: 12px;
+    border-left: 2px solid var(--ce-border);
+}
+
+/* ---------------------------------------------------------------- 表单 */
+.cmt-embed-form {
+    background: var(--ce-panel-2);
+    border: 1px solid var(--ce-border);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.cmt-embed-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.cmt-embed input[type="text"],
+.cmt-embed textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--ce-panel);
+    color: var(--ce-text);
+    border: 1px solid var(--ce-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13.5px;
+    font-family: inherit;
+    outline: none;
+}
+
+.cmt-embed textarea {
+    resize: vertical;
+    line-height: 1.7;
+}
+
+.cmt-embed input[type="text"]:focus,
+.cmt-embed textarea:focus {
+    border-color: var(--ce-primary);
+}
+
+.cmt-embed-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.cmt-embed-hint {
+    flex: 1 1 auto;
+    font-size: 12.5px;
+    color: var(--ce-text-3);
+}
+
+.cmt-embed-hint.is-reply {
+    color: var(--ce-primary);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.cmt-embed-btn {
+    background: var(--ce-primary);
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    padding: 7px 16px;
+    font-size: 13.5px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.cmt-embed-btn:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+
+.cmt-embed-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.cmt-embed-status {
+    font-size: 12.5px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    color: var(--ce-text-2);
+}
+
+.cmt-embed-status.is-ok { color: #2da44e; }
+.cmt-embed-status.is-err { color: #d9534f; }
+.cmt-embed-status.is-warn { color: #bf8700; }
+
+.cmt-embed-more {
+    font-size: 12.5px;
+    color: var(--ce-text-3);
+    margin: 12px 0 0;
+}
+
+.cmt-embed-more a {
+    color: var(--ce-primary);
+}
+
+/* ------------------------------------------------- 文章页/首页的统计小组件 */
+.post-view-count {
+    font-size: 12.5px;
+    color: var(--ce-text-3, #8b949e);
+}
+
+.home-hot {
+    max-width: 1000px;
+    margin: 20px auto 8px;
+    padding: 14px 18px;
+    background: var(--ce-panel, #fff);
+    border: 1px solid var(--ce-border, #d8dee4);
+    border-radius: 10px;
+}
+
+.home-hot h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ce-text, #24292f);
+    border: 0;
+}
+
+.home-hot ol {
+    margin: 0;
+    padding-left: 22px;
+    font-size: 13px;
+    line-height: 1.9;
+}
+
+.home-hot a {
+    color: var(--ce-text, #24292f);
+    text-decoration: none;
+}
+
+.home-hot a:hover {
+    color: var(--ce-primary, #4a6fd4);
+    text-decoration: underline;
+}
+
+.home-hot .n {
+    color: var(--ce-text-3, #8b949e);
+    font-size: 12.5px;
+    margin-left: 4px;
+}

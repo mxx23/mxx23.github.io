@@ -1,7 +1,8 @@
 /* ==========================================================================
-   工具页跳转脚本 (assets/web/tools/js/tool-redirect.js)
-   用途：让博客里的“工具介绍”文章自动跳到对应的工具页面。
-   用法：文章正文里放一个指向 /assets/web/tools/xxx.html 的链接，
+   独立页面跳转脚本 (assets/web/tools/js/tool-redirect.js)
+   用途：让博客里的“介绍文章”自动跳到对应的独立页面
+        （工具页在 /assets/web/tools/，评论管理页在 /assets/web/comments/）。
+   用法：文章正文里放一个指向该独立页面的链接，
          然后在正文末尾引入本脚本即可（取第一个匹配的链接作为跳转目标）。
 
    说明：
@@ -14,7 +15,8 @@
     /* 允许用 ?noredirect=1 临时关闭跳转（方便查看/编辑文章本身） */
     if (/[?&]noredirect=1(&|$)/.test(window.location.search)) return;
 
-    var link = document.querySelector('a[href*="/assets/web/tools/"]');
+    /* 独立页面都放在 /assets/web/ 下面：tools/ 是工具，comments/ 是评论管理 */
+    var link = document.querySelector('a[href*="/assets/web/"]');
     if (!link) return;
 
     var target = link.getAttribute('href');

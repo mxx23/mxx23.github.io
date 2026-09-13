@@ -67,6 +67,10 @@
 
 
 
+  
+<link rel="stylesheet" href="/assets/web/comments/css/embed.css">
+
+
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
@@ -183,6 +187,18 @@
             </li>
           
         
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/assets/web/comments/" target="_self">
+                <i class="iconfont icon-comment"></i>
+                <span>评论区</span>
+              </a>
+            </li>
+          
+        
         
           <li class="nav-item" id="search-btn">
             <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
@@ -288,6 +304,20 @@
                 <div class="mobile-grid-item">
                   <i class="iconfont icon-list"></i>
                   <span>工具</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/assets/web/comments/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-comment"></i>
+                  <span>评论区</span>
                 </div>
               </a>
             </div>
@@ -513,37 +543,6 @@
             </div>
 
             
-  
-  
-    <article id="comments" lazyload>
-      
-  <div id="valine"></div>
-  <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
-        var options = Object.assign(
-          {"appId":"gaEdxvtb5Mw7uHbmcNrq8bcR-gzGzoHsz","appKey":"6CeBpFoTHGfW3uDNGBAzzuRK","path":"window.location.pathname","placeholder":"在此处输入内容","avatar":"retro","meta":["nick","mail"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
-          {
-            el: "#valine",
-            path: window.location.pathname
-          }
-        )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
-          Fluid.plugins.imageCaption(imgSelector);
-          Fluid.plugins.fancyBox(imgSelector);
-        })
-      });
-    });
-  </script>
-  <noscript>Please enable JavaScript to view the comments</noscript>
-
-
-    </article>
-  
-
-
           </article>
         </div>
       </div>
@@ -899,6 +898,13 @@
   <script  src="/js/local-search.js" ></script>
 
 
+
+
+  
+<script src="/assets/web/comments/js/api.js"></script>
+<script src="/assets/web/comments/js/post-map.js"></script>
+<script src="/assets/web/comments/js/view.js"></script>
+<script src="/assets/web/comments/js/embed.js"></script>
 
 
 
