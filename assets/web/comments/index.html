@@ -90,14 +90,13 @@
 
       <div class="field">
         <label class="field-label" for="cPost">发到哪篇文章下</label>
-        <input type="text" id="cPost" list="postList" autocomplete="off" placeholder="选一篇文章，或填“公共讨论区”">
+        <input type="text" id="cPost" list="postList" autocomplete="off" placeholder="留空就发到公共讨论区，也可以选一篇文章">
         <datalist id="postList"></datalist>
         <p class="hint" id="postHint"></p>
       </div>
 
       <div class="btn-group mt-8">
         <button class="btn btn-primary" id="btnPublish">发表评论</button>
-        <button class="btn btn-sm" id="btnPickLatest">用最新评论的那篇</button>
         <span class="hint" id="rateHint" style="margin:0"></span>
       </div>
 

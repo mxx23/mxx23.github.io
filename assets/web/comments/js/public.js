@@ -475,30 +475,24 @@
 
     function fillPostList() {
         var keys = Object.keys(state.postMap);
-        var opts = ['<option value="' + esc(GENERAL_LABEL) + '">与具体文章无关的闲聊</option>'];
+        var opts = ['<option value="">公共讨论区（与具体文章无关的闲聊）</option>'];
         keys.sort().forEach(function (k) {
             opts.push('<option value="' + esc(decodeURIComponent(k)) + '">' + esc(state.postMap[k].title) + '</option>');
         });
         $('postList').innerHTML = opts.join('');
     }
 
+    /** 只处理网址上带 ?post= / ?p= 的情况；其余一律留空，
+     *  留空就是发到公共讨论区（不再自动预填「最近有人评论的那篇」）。 */
     function presetPostField() {
-        // 1) 网址带 ?post= 或 ?p= 时优先
         var q = global.location.search;
         var m = q.match(/[?&](?:post|p)=([^&]+)/);
         if (m) {
             var wanted = normUrl(decodeURIComponent(m[1]));
-            var found = state.postMap[wanted] ? wanted
-                : state.postMap[decodeURIComponent(wanted)] ? decodeURIComponent(wanted) : null;
+            var found = postEntry(wanted) ? wanted : null;
             if (found) { $('cPost').value = decodeURIComponent(found); updatePostHint(); return; }
         }
-        // 2) 最近有人评论的文章
-        var newest = state.comments.reduce(function (acc, c) {
-            if (normUrl(c.url) === GENERAL_PATH) return acc;
-            return (!acc || String(c.at) > String(acc.at)) ? c : acc;
-        }, null);
-        if (newest) { $('cPost').value = decodeURIComponent(normUrl(newest.url)); }
-        else { $('cPost').value = GENERAL_LABEL; }
+        $('cPost').value = '';
         updatePostHint();
     }
 
@@ -506,8 +500,8 @@
         var r = resolvePath();
         var el = $('postHint');
         if (!r) {
-            el.innerHTML = '没有找到这篇文章（可以点上面的“用最新评论的那篇”，或从下拉里挑一个）。填 ' +
-                '<b>' + esc(GENERAL_LABEL) + '</b> 就发到公共讨论区。';
+            el.innerHTML = '没有找到这篇文章：可以从下拉里挑一个，或者把这里清空 —— 清空就发到 ' +
+                '<b>' + esc(GENERAL_LABEL) + '</b>。';
             return;
         }
         if (r.info.general) {
@@ -539,7 +533,10 @@
         }
 
         var target = state.replyTo || null;
-        var r = target ? { path: normUrl(target.url), info: postInfo(target.url) } : resolvePath();
+        /* 没选目标文章时留空即可 —— 兜底发到公共讨论区 */
+        var r = target
+            ? { path: normUrl(target.url), info: postInfo(target.url) }
+            : (resolvePath() || { path: GENERAL_PATH, info: postInfo(GENERAL_PATH) });
         if (!r) { Tool.setStatus($('postStatus'), 'err', '请先选择一个要发到哪篇文章下。'); $('cPost').focus(); return; }
 
         var payload = {
@@ -702,10 +699,7 @@
             setReplyTarget(null);
             Tool.setStatus($('postStatus'), '');
         });
-        $('btnPickLatest').addEventListener('click', function () {
-            presetPostField();
-            updatePostHint();
-        });
+        /* 「用最新评论的那篇」按钮已移除 */
 
         $('cBody').addEventListener('input', function () {
             updateBodyHint();
