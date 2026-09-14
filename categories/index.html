@@ -59,10 +59,6 @@
 
 
 
-  
-<link rel="stylesheet" href="/assets/web/comments/css/embed.css">
-
-
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
@@ -184,9 +180,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/assets/web/comments/" target="_self">
-                <i class="iconfont icon-comment"></i>
-                <span>评论区</span>
+              <a class="nav-link" href="/assets/web/stats/" target="_self">
+                <i class="iconfont icon-chart"></i>
+                <span>统计</span>
               </a>
             </li>
           
@@ -306,10 +302,10 @@
           
           
             <div class="col-4 mobile-grid-cell">
-              <a href="/assets/web/comments/" target="_self">
+              <a href="/assets/web/stats/" target="_self">
                 <div class="mobile-grid-item">
-                  <i class="iconfont icon-comment"></i>
-                  <span>评论区</span>
+                  <i class="iconfont icon-chart"></i>
+                  <span>统计</span>
                 </div>
               </a>
             </div>
@@ -403,7 +399,7 @@
       
         <a href="/categories/%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7/" class="category-count col-2 col-md-1 col-xm-1">
           <i class="iconfont icon-articles"></i>
-          <span>6</span>
+          <span>8</span>
         </a>
       
       <div class="category-collapse collapse " id="collapse-9c2232288caaa8ec40948cef6a786ac2"
@@ -413,6 +409,24 @@
           
   <div class="category-post-list">
     
+    
+      
+      
+        <a href="/2026/09/13/%E5%9B%BE%E7%89%87%E5%90%88%E6%88%90%E8%A7%86%E9%A2%91/" title="图片合成视频"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图片合成视频</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2026/09/13/GIF%E5%90%88%E6%88%90%E5%99%A8/" title="GIF 合成器"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">GIF 合成器</span>
+        </a>
+      
     
       
       
@@ -816,48 +830,6 @@
       </div>
     </div>
   
-    
-    
-    
-    <div class="category row nomargin-x">
-      <a class="category-item collapsed
-          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="闲聊"
-        id="heading-1ce719119be99099418bade0b36ddd38" role="tab" data-toggle="collapse" href="#collapse-1ce719119be99099418bade0b36ddd38"
-        aria-expanded="false"
-      >
-        闲聊
-        <span class="list-group-count"></span>
-        <i class="iconfont icon-arrowright"></i>
-      </a>
-      
-        <a href="/categories/%E9%97%B2%E8%81%8A/" class="category-count col-2 col-md-1 col-xm-1">
-          <i class="iconfont icon-articles"></i>
-          <span>1</span>
-        </a>
-      
-      <div class="category-collapse collapse " id="collapse-1ce719119be99099418bade0b36ddd38"
-           role="tabpanel" aria-labelledby="heading-1ce719119be99099418bade0b36ddd38">
-        
-        
-          
-  <div class="category-post-list">
-    
-    
-      
-      
-        <a href="/2026/09/13/%E8%AF%84%E8%AE%BA%E5%8C%BA/" title="评论区"
-           class="list-group-item list-group-item-action
-           ">
-          <span class="category-post">评论区</span>
-        </a>
-      
-    
-  </div>
-
-        
-      </div>
-    </div>
-  
 </div>
 
 
@@ -965,10 +937,9 @@
 
 
   
-<script src="/assets/web/comments/js/api.js"></script>
-<script src="/assets/web/comments/js/post-map.js"></script>
-<script src="/assets/web/comments/js/view.js"></script>
-<script src="/assets/web/comments/js/embed.js"></script>
+<script src="/assets/web/stats/js/api.js"></script>
+<script src="/assets/web/stats/js/post-map.js"></script>
+<script src="/assets/web/stats/js/post-views.js"></script>
 
 
 
@@ -982,5 +953,20 @@
   <noscript>
     <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
   </noscript>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>

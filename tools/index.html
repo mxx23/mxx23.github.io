@@ -19,15 +19,15 @@
   <meta name="author" content="mxx">
   <meta name="keywords" content="">
   
-    <meta name="description" content="这里收集了本站用纯 JavaScript 实现的一些在线小工具。它们全部在浏览器本地运行，不依赖任何后端服务：输入的文本、上传的图片和视频都不会离开你的电脑，断网也能继续使用（把页面另存为本地文件即可）。 　　最后一项「评论区」是个例外：它要读写后端的数据（评论与访问计数都存在自建的 Cloudflare 服务里），因此需要联网；它本身也是公开的，谁都能在上面留言。    🔢 Base64">
+    <meta name="description" content="这里收集了本站用纯 JavaScript 实现的一些在线小工具。它们全部在浏览器本地运行，不依赖任何后端服务：输入的文本、上传的图片和视频都不会离开你的电脑，断网也能继续使用（把页面另存为本地文件即可）。 　　这些工具都是纯前端实现的，不依赖任何后端。 　　另外还有一个需要联网的页面：导航栏里的 访问统计 —— 它要读写访问计数，后端是本仓库 cf&#x2F; 目录里的 Cloudflare Worke">
 <meta property="og:type" content="website">
 <meta property="og:title" content="在线工具">
 <meta property="og:url" content="https://mxx23.github.io/tools/index.html">
 <meta property="og:site_name" content="mxx的博客">
-<meta property="og:description" content="这里收集了本站用纯 JavaScript 实现的一些在线小工具。它们全部在浏览器本地运行，不依赖任何后端服务：输入的文本、上传的图片和视频都不会离开你的电脑，断网也能继续使用（把页面另存为本地文件即可）。 　　最后一项「评论区」是个例外：它要读写后端的数据（评论与访问计数都存在自建的 Cloudflare 服务里），因此需要联网；它本身也是公开的，谁都能在上面留言。    🔢 Base64">
+<meta property="og:description" content="这里收集了本站用纯 JavaScript 实现的一些在线小工具。它们全部在浏览器本地运行，不依赖任何后端服务：输入的文本、上传的图片和视频都不会离开你的电脑，断网也能继续使用（把页面另存为本地文件即可）。 　　这些工具都是纯前端实现的，不依赖任何后端。 　　另外还有一个需要联网的页面：导航栏里的 访问统计 —— 它要读写访问计数，后端是本仓库 cf&#x2F; 目录里的 Cloudflare Worke">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-09-12T15:45:00.000Z">
-<meta property="article:modified_time" content="2026-09-13T07:47:21.851Z">
+<meta property="article:modified_time" content="2026-09-14T14:44:49.007Z">
 <meta property="article:author" content="mxx">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -59,10 +59,6 @@
     <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
   
 
-
-
-  
-<link rel="stylesheet" href="/assets/web/comments/css/embed.css">
 
 
 
@@ -186,9 +182,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/assets/web/comments/" target="_self">
-                <i class="iconfont icon-comment"></i>
-                <span>评论区</span>
+              <a class="nav-link" href="/assets/web/stats/" target="_self">
+                <i class="iconfont icon-chart"></i>
+                <span>统计</span>
               </a>
             </li>
           
@@ -308,10 +304,10 @@
           
           
             <div class="col-4 mobile-grid-cell">
-              <a href="/assets/web/comments/" target="_self">
+              <a href="/assets/web/stats/" target="_self">
                 <div class="mobile-grid-item">
-                  <i class="iconfont icon-comment"></i>
-                  <span>评论区</span>
+                  <i class="iconfont icon-chart"></i>
+                  <span>统计</span>
                 </div>
               </a>
             </div>
@@ -384,7 +380,13 @@
 
 <article class="page-content">
   <p>　　这里收集了本站用纯 JavaScript 实现的一些在线小工具。它们<strong>全部在浏览器本地运行</strong>，不依赖任何后端服务：输入的文本、上传的图片和视频都不会离开你的电脑，断网也能继续使用（把页面另存为本地文件即可）。</p>
-<p>　　最后一项「评论区」是个例外：它要读写后端的数据（评论与访问计数都存在自建的 Cloudflare 服务里），因此需要联网；它本身也是公开的，谁都能在上面留言。</p>
+<p>　　这些工具都是纯前端实现的，不依赖任何后端。</p>
+<p>　　另外还有一个需要联网的页面：导航栏里的 <a href="/assets/web/stats/">访问统计</a> —— 它要读写访问计数，<br>后端是本仓库 <code>cf/</code> 目录里的 Cloudflare Worker + D1 数据库。</p>
+<div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.30);border-radius:10px;padding:16px 18px;margin:18px 0">
+  <h3 style="margin:0 0 6px;font-size:17px"><a href="/assets/web/stats/">📊 访问统计（博客与工具排行）</a></h3>
+  <p style="margin:0;font-size:14px;line-height:1.8;opacity:.88">日访问量、近 30 天访问量、总访问量与独立访客数；博文和在线工具分开排行，附每日趋势。需要联网读取后端数据。</p>
+</div>
+
 <div style="background:rgba(48,149,212,.08);border:1px solid rgba(48,149,212,.28);border-radius:10px;padding:16px 18px;margin:18px 0">
   <h3 style="margin:0 0 6px;font-size:17px"><a href="/assets/web/tools/base64.html">🔢 Base64 在线编码解码</a></h3>
   <p style="margin:0;font-size:14px;line-height:1.8;opacity:.88">文本与 Base64 互转（完整支持中文 UTF-8）、URL 安全字符、MIME 换行；文件与图片转 Base64 / Data URI，Base64 还原为文件下载。</p>
@@ -398,6 +400,16 @@
 <div style="background:rgba(247,183,49,.10);border:1px solid rgba(247,183,49,.32);border-radius:10px;padding:16px 18px;margin:18px 0">
   <h3 style="margin:0 0 6px;font-size:17px"><a href="/assets/web/tools/video-compress.html">🎬 在线视频压缩</a></h3>
   <p style="margin:0;font-size:14px;line-height:1.8;opacity:.88">在浏览器里真正重新编码视频：调整分辨率、码率、帧率，裁剪片段，导出 MP4 / WebM。压缩耗时约等于视频时长，视频不上传。</p>
+</div>
+
+<div style="background:rgba(56,178,172,.08);border:1px solid rgba(56,178,172,.30);border-radius:10px;padding:16px 18px;margin:18px 0">
+  <h3 style="margin:0 0 6px;font-size:17px"><a href="/assets/web/tools/video-make.html">📽️ 图片合成视频（幻灯片视频）</a></h3>
+  <p style="margin:0;font-size:14px;line-height:1.8;opacity:.88">把多张图片做成幻灯片视频：可设每张时长、横竖屏比例、分辨率与帧率，支持淡入淡出、横向滑动与镜头推拉特效，还能配背景音乐，输出 MP4（H.264）或 WebM。</p>
+</div>
+
+<div style="background:rgba(232,106,166,.08);border:1px solid rgba(232,106,166,.30);border-radius:10px;padding:16px 18px;margin:18px 0">
+  <h3 style="margin:0 0 6px;font-size:17px"><a href="/assets/web/tools/gif.html">🎞️ GIF 合成器（图片转动图）</a></h3>
+  <p style="margin:0;font-size:14px;line-height:1.8;opacity:.88">把多张图片合成 GIF 动图：可拖入一批图片、逐帧调延迟、倒序与乒乓播放、指定输出尺寸与颜色数，透明背景也能保留。内置自写的 GIF89a 编码器，没有第三方依赖。</p>
 </div>
 
 <div style="background:rgba(217,83,79,.08);border:1px solid rgba(217,83,79,.28);border-radius:10px;padding:16px 18px;margin:18px 0">
@@ -415,20 +427,15 @@
   <p style="margin:0;font-size:14px;line-height:1.8;opacity:.88">比较两个文本文件（逐行对齐 + 行内高亮）或两个文件夹（递归比较、按状态着色），把差异按块或整份覆盖到另一侧；有写回权限时直接落到磁盘，否则打包成 ZIP 下载。</p>
 </div>
 
-<div style="background:rgba(74,111,212,.08);border:1px solid rgba(74,111,212,.30);border-radius:10px;padding:16px 18px;margin:18px 0">
-  <h3 style="margin:0 0 6px;font-size:17px"><a href="/assets/web/comments/">💬 评论区（全站评论汇总）</a></h3>
-  <p style="margin:0;font-size:14px;line-height:1.8;opacity:.88">把全站评论按文章汇总到一处，可直接留言、回复别人，也能只看自己发过的；发出来的内容与文章页面下的评论区是同一份数据。导航栏里的「评论区」就是它。</p>
-</div>
-
 <h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><ul>
 <li>工具页面本身是独立的静态 HTML，放在 <code>source/assets/web/tools/</code> 目录下，由 Hexo 原样复制到站点中，可以直接分享链接给别人使用。</li>
 <li>每个工具页面的底部都写了它的功能、使用技巧，以及实现原理与能力边界，遇到问题可以先看那里。</li>
 <li>文章列表里对应的“工具介绍”文章会自动跳转到工具页面，方便从博客里直接进入。</li>
-<li>评论区与站长用的评论管理页放在 <code>source/assets/web/comments/</code>（公开页 <code>index.html</code>，管理页 <code>admin.html</code>）。</li>
-<li>评论后端在仓库的 <code>cf/</code> 目录里：一个 Cloudflare Worker + D1 数据库，同时提供评论读写与访问计数；<br>文章页的评论框、首页的热门文章排行也都用它。原来的 Valine + LeanCloud 方案已停用（LeanCloud 2027-01-12 停服）。</li>
+<li>访问统计页放在 <code>source/assets/web/stats/</code>，需要联网读取后端数据。</li>
+<li>访问计数的后端在仓库的 <code>cf/</code> 目录里：一个 Cloudflare Worker + D1 数据库，记录每篇文章、每个工具页的访问量。<br>首页的「热门文章」排行、文章页的阅读次数也都读它。</li>
 </ul>
 <div style="margin-top:22px;font-size:14px;opacity:.85">
-  📮 有新工具的想法？欢迎在评论区留言，或者通过首页的联系方式告诉我。
+  📮 有新工具的想法？欢迎通过首页的联系方式告诉我。
 </div>
 
 
@@ -542,10 +549,9 @@
 
 
   
-<script src="/assets/web/comments/js/api.js"></script>
-<script src="/assets/web/comments/js/post-map.js"></script>
-<script src="/assets/web/comments/js/view.js"></script>
-<script src="/assets/web/comments/js/embed.js"></script>
+<script src="/assets/web/stats/js/api.js"></script>
+<script src="/assets/web/stats/js/post-map.js"></script>
+<script src="/assets/web/stats/js/post-views.js"></script>
 
 
 
@@ -559,5 +565,20 @@
   <noscript>
     <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
   </noscript>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>

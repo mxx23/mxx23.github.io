@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>访问统计 - 博客与工具排行</title>
+    <meta name="description" content="本站访问统计：日访问量、月访问量、总访问量，博文与在线工具分别排行。">
+    <link rel="stylesheet" href="/assets/web/tools/css/tool.css">
+    <script>try { var t = localStorage.getItem('tool-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) { }</script>
+    <style>
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+            gap: 10px;
+        }
+
+        .stat-box {
+            background: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+        }
+
+        .stat-box .k {
+            font-size: 12px;
+            color: var(--text-3);
+            margin-bottom: 4px;
+        }
+
+        .stat-box .v {
+            font-size: 22px;
+            font-weight: 600;
+            font-family: var(--mono);
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .stat-box .s {
+            font-size: 11.5px;
+            color: var(--text-3);
+            margin-top: 4px;
+        }
+
+        .seg {
+            display: inline-flex;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .seg button {
+            border: 0;
+            background: var(--panel);
+            color: var(--text-2);
+            font-size: 13px;
+            padding: 6px 14px;
+            cursor: pointer;
+        }
+
+        .seg button+button {
+            border-left: 1px solid var(--border);
+        }
+
+        .seg button.on {
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .rank {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .rank th {
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-3);
+            font-size: 12px;
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .rank td {
+            padding: 7px 8px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .rank tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .rank .no {
+            width: 34px;
+            color: var(--text-3);
+            font-family: var(--mono);
+            text-align: right;
+        }
+
+        .rank .num {
+            width: 74px;
+            text-align: right;
+            font-family: var(--mono);
+            white-space: nowrap;
+        }
+
+        .rank .num.strong {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .rank .num.zero {
+            color: var(--text-3);
+        }
+
+        .rank a {
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .rank a:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .rank .p {
+            display: block;
+            font-size: 11px;
+            color: var(--text-3);
+            word-break: break-all;
+        }
+
+        .bar {
+            height: 4px;
+            border-radius: 999px;
+            background: var(--panel-2);
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        .bar i {
+            display: block;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 999px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tabs button {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text-2);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 13.5px;
+            cursor: pointer;
+        }
+
+        .tabs button.on {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .tabs button .n {
+            font-family: var(--mono);
+            font-size: 12px;
+            opacity: .8;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="tool-header-inner">
+            <a class="tool-back" href="/" data-back>← 返回</a>
+            <div class="tool-title-wrap">
+                <h1 class="tool-title">📊 访问统计</h1>
+                <p class="tool-subtitle">日访问量 / 月访问量 / 总访问量 · 博文与在线工具分开排行</p>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="themeToggle" type="button" title="切换主题">☾</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="tool-main">
+
+        <!-- ------------------------------------------------ 总览 -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">总览</h2>
+                <div class="btn-group">
+                    <span class="hint" id="rangeHint" style="margin:0"></span>
+                    <button class="btn btn-sm" id="btnReload" type="button">刷新</button>
+                </div>
+            </div>
+            <div class="stat-row" id="statRow">
+                <div class="stat-box"><div class="k">今日访问量</div><div class="v" id="sToday">—</div><div class="s" id="sTodayUv">独立访客 —</div></div>
+                <div class="stat-box"><div class="k">近 30 天访问量</div><div class="v" id="sMonth">—</div><div class="s" id="sMonthUv">独立访客 —</div></div>
+                <div class="stat-box"><div class="k">总访问量</div><div class="v" id="sTotal">—</div><div class="s" id="sTotalUv">累计访客 —</div></div>
+                <div class="stat-box"><div class="k">有记录的内容</div><div class="v" id="sPages">—</div><div class="s" id="sPagesDetail">博文 — · 工具 —</div></div>
+            </div>
+            <div class="status" id="loadStatus"></div>
+        </section>
+
+        <!-- ------------------------------------------------ 排行 -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">排行榜</h2>
+                <div class="seg" id="sortSeg">
+                    <button data-sort="today" type="button">今日</button>
+                    <button data-sort="month" class="on" type="button">近 30 天</button>
+                    <button data-sort="total" type="button">总计</button>
+                </div>
+            </div>
+
+            <div class="tabs" id="kindTabs">
+                <button data-kind="posts" class="on" type="button">📝 博文<span class="n" id="nPosts">0</span></button>
+                <button data-kind="tools" type="button">🧰 在线工具<span class="n" id="nTools">0</span></button>
+                <button data-kind="other" type="button">📄 其它页面<span class="n" id="nOther">0</span></button>
+            </div>
+
+            <p class="hint" id="rankHint" style="margin:0 0 10px">
+                按当前选中的维度排序；表格里同时显示三个维度，方便对比。
+            </p>
+
+            <div style="overflow-x:auto">
+                <table class="rank" id="rankTable">
+                    <thead>
+                        <tr>
+                            <th class="no">#</th>
+                            <th>标题</th>
+                            <th class="num" id="thToday">今日</th>
+                            <th class="num" id="thMonth">近 30 天</th>
+                            <th class="num" id="thTotal">总计</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rankBody">
+                        <tr><td colspan="5" class="hint">正在读取…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ------------------------------------------------ 每日趋势 -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">每日趋势</h2>
+                <span class="hint" style="margin:0">最近 30 天（数据从后端上线后开始累积）</span>
+            </div>
+            <div id="trendBox"></div>
+        </section>
+
+        <!-- ------------------------------------------------ 说明 -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">说明</h2>
+            </div>
+            <div class="hint" style="margin:0;line-height:1.9">
+                <h4>这些数字是什么意思</h4>
+                <ul>
+                    <li><b>访问量（PV）</b>：页面被打开的次数。同一会话里同一页只记一次，刷新不会重复计数。</li>
+                    <li><b>独立访客（UV）</b>：按「当日 + 访客标识哈希」去重后的数量，不是精确人数，但能反映大致规模。</li>
+                    <li><b>今日 / 近 30 天 / 总计</b>：今日和近 30 天读的是每日明细表，总计读的是累计表。</li>
+                </ul>
+
+                <h4>为什么博文和工具要分开排</h4>
+                <ul>
+                    <li>两者的访问规律完全不同：博文靠搜索和老链接慢慢积累，工具页可能因为被分享而短时间冲高。</li>
+                    <li>混在一起排，工具页会长期压住博文，反而看不出哪篇文章真正受欢迎。</li>
+                    <li>「其它页面」收纳的是首页、归档、分页等非内容页面，一般不用关注。</li>
+                </ul>
+
+                <h4>统计口径与限制</h4>
+                <ul>
+                    <li>计数在<b>浏览器端</b>发起，因此：禁用 JS、使用阅读模式、或直接抓取页面源码的访问不会被计入。</li>
+                    <li>不会记录 IP 原文：访客标识是「IP + 日期」的哈希，每日明细 90 天后自动清理。</li>
+                    <li>工具页里像 <code>/assets/web/tools/gif.html</code> 这样的独立页面也在统计范围内。</li>
+                    <li>被搜索引擎爬虫访问也会计入（无法可靠区分），所以数字会略高于真实读者数。</li>
+                    <li>本页数据来自仓库 <code>cf/</code> 目录里的自建后端（Cloudflare Worker + D1），不依赖任何第三方统计服务。</li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <p class="footer-note">
+        访问统计 · 数据来自自建后端 · <a href="/tools/">工具页</a>
+    </p>
+
+    <script src="/assets/web/tools/js/tool.js"></script>
+    <script src="/assets/web/stats/js/api.js"></script>
+    <script src="/assets/web/stats/js/post-map.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var STATS_PATH = '/assets/web/stats';
+            var state = {
+                sort: 'month',
+                kind: 'posts',
+                data: null
+            };
+
+            var $ = function (id) { return document.getElementById(id); };
+
+            function fmt (n) {
+                n = Number(n) || 0;
+                return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+
+            function esc (s) { return Tool.escapeHtml(s == null ? '' : String(s)); }
+
+            /** 把站点路径还原成可点击的绝对网址 */
+            function pathToHref (p) {
+                if (!p || p === '/') return 'https://mxx23.github.io/';
+                return 'https://mxx23.github.io' + p.split('/').map(encodeURIComponent).join('/') +
+                    (/\.html$/.test(p) ? '' : '/');
+            }
+
+            /** 取标题：优先用 post-map 里的文章标题 */
+            function titleOf (rec) {
+                var map = window.__POST_MAP__ || {};
+                var p = rec.path;
+                var hit = map[p] || map[p + '/'] || null;
+                if (hit && hit.title) return hit.title;
+                if (rec.kind === 'tool') {
+                    /* 工具页文件名 → 更好读的名字 */
+                    var f = p.split('/').pop().replace(/\.html$/, '');
+                    var names = {
+                        'base64': 'Base64 在线编码解码', 'json': 'JSON 在线解析',
+                        'aes': 'AES 在线加解密', 'diff': '文件 / 目录差异比较',
+                        'remove-bg': '在线图片去背景', 'video-compress': '在线视频压缩',
+                        'gif': 'GIF 合成器', 'video-make': '图片合成视频'
+                    };
+                    return names[f] || f;
+                }
+                var seg = p.split('/').filter(Boolean).pop() || p;
+                try { return decodeURIComponent(seg); } catch (e) { return seg; }
+            }
+
+            function kindList () {
+                var d = state.data;
+                if (!d) return [];
+                return d[state.kind] || [];
+            }
+
+            function renderOverview () {
+                var d = state.data;
+                if (!d) return;
+                var s = d.site;
+                $('sToday').textContent = fmt(s.today);
+                $('sTodayUv').textContent = '独立访客 ' + fmt(s.uvToday);
+                $('sMonth').textContent = fmt(s.month);
+                $('sMonthUv').textContent = '独立访客 ' + fmt(s.uvMonth);
+                $('sTotal').textContent = fmt(s.total);
+                $('sTotalUv').textContent = '累计访客 ' + fmt(s.uvTotal);
+                $('sPages').textContent = fmt(d.counts.posts + d.counts.tools + d.counts.other);
+                $('sPagesDetail').textContent = '博文 ' + d.counts.posts + ' · 工具 ' + d.counts.tools;
+                $('rangeHint').textContent = '统计日期 ' + d.day + '（近 ' + d.windowDays + ' 天自 ' + d.from + ' 起）';
+                $('nPosts').textContent = d.counts.posts;
+                $('nTools').textContent = d.counts.tools;
+                $('nOther').textContent = d.counts.other;
+            }
+
+            function renderRank () {
+                var list = kindList().slice();
+                var key = state.sort;
+                list.sort(function (a, b) { return (b[key] || 0) - (a[key] || 0); });
+
+                /* 标题上的高亮列 */
+                $('thToday').style.color = key === 'today' ? 'var(--primary)' : '';
+                $('thMonth').style.color = key === 'month' ? 'var(--primary)' : '';
+                $('thTotal').style.color = key === 'total' ? 'var(--primary)' : '';
+
+                var body = $('rankBody');
+                if (!list.length) {
+                    body.innerHTML = '<tr><td colspan="5" class="hint">这一类还没有访问记录。</td></tr>';
+                    return;
+                }
+                var max = list[0][key] || 1;
+
+                body.innerHTML = list.slice(0, 100).map(function (r, i) {
+                    var cell = function (v, strong) {
+                        var cls = 'num' + (strong ? ' strong' : '') + (v ? '' : ' zero');
+                        return '<td class="' + cls + '">' + (v ? fmt(v) : '—') + '</td>';
+                    };
+                    var w = Math.max(0, Math.round((r[key] || 0) / max * 100));
+                    return '<tr>' +
+                        '<td class="no">' + (i + 1) + '</td>' +
+                        '<td><a href="' + esc(pathToHref(r.path)) + '" target="_blank" rel="noopener">' +
+                        esc(titleOf(r)) + '</a>' +
+                        '<span class="p">' + esc(r.path) + '</span>' +
+                        '<div class="bar"><i style="width:' + w + '%"></i></div></td>' +
+                        cell(r.today, key === 'today') +
+                        cell(r.month, key === 'month') +
+                        cell(r.total, key === 'total') +
+                        '</tr>';
+                }).join('');
+            }
+
+            function renderTrend () {
+                var d = state.data;
+                var box = $('trendBox');
+                if (!d || !d.trend || !d.trend.length) {
+                    box.innerHTML = '<p class="hint" style="margin:0">还没有每日数据。</p>';
+                    return;
+                }
+                var max = Math.max.apply(null, d.trend.map(function (x) { return x.pv; }).concat([1]));
+                box.innerHTML = d.trend.map(function (x) {
+                    var w = Math.max(2, Math.round(x.pv / max * 100));
+                    return '<div style="display:flex;align-items:center;gap:10px;margin:3px 0">' +
+                        '<span style="width:86px;font-size:12px;color:var(--text-3);font-family:var(--mono)">' + x.day + '</span>' +
+                        '<span style="flex:1"><span class="bar" style="margin:0"><i style="width:' + w + '%"></i></span></span>' +
+                        '<span style="width:64px;text-align:right;font-size:12px;font-family:var(--mono)">' + fmt(x.pv) + '</span>' +
+                        '</div>';
+                }).join('');
+            }
+
+            function renderAll () {
+                renderOverview();
+                renderRank();
+                renderTrend();
+            }
+
+            function load () {
+                Tool.setStatus($('loadStatus'), 'info', '正在读取统计…');
+                return StatsApi.rank({ days: 30, limit: 300 }).then(function (d) {
+                    state.data = d;
+                    renderAll();
+                    Tool.setStatus($('loadStatus'), 'ok',
+                        '已更新（统计日期 ' + d.day + '）');
+                }).catch(function (e) {
+                    Tool.setStatus($('loadStatus'), 'err',
+                        '读取失败：' + e.message + '\n如果持续失败，可能是后端不可达；统计不影响其它页面的正常浏览。');
+                });
+            }
+
+            function bind () {
+                $('sortSeg').addEventListener('click', function (e) {
+                    var b = e.target.closest ? e.target.closest('button[data-sort]') : null;
+                    if (!b) return;
+                    state.sort = b.getAttribute('data-sort');
+                    Array.prototype.forEach.call(this.querySelectorAll('button'), function (x) {
+                        x.classList.toggle('on', x === b);
+                    });
+                    renderRank();
+                });
+                $('kindTabs').addEventListener('click', function (e) {
+                    var b = e.target.closest ? e.target.closest('button[data-kind]') : null;
+                    if (!b) return;
+                    state.kind = b.getAttribute('data-kind');
+                    Array.prototype.forEach.call(this.querySelectorAll('button'), function (x) {
+                        x.classList.toggle('on', x === b);
+                    });
+                    renderRank();
+                });
+                $('btnReload').addEventListener('click', function () { load(); });
+
+                /* 切到本页时不要把访客自己也当成一次「内容访问」重复计数：
+                   这里只统计页面本身一次，与其它页面一致。 */
+            }
+
+            function init () {
+                if (!window.StatsApi) {
+                    Tool.setStatus($('loadStatus'), 'err', '接口层没有加载成功，请刷新重试。');
+                    return;
+                }
+                bind();
+                StatsApi.hit(STATS_PATH);
+                load();
+            }
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+            else init();
+        })();
+    </script>
+</body>
+
+</html>

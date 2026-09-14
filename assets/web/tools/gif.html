@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GIF 合成器 - 图片转 GIF 动图</title>
+    <meta name="description" content="在线把多张图片合成 GIF 动图：支持逐帧延迟、循环次数、尺寸调整、色彩量化与透明背景，全部在浏览器本地完成，图片不上传。">
+    <link rel="stylesheet" href="css/tool.css">
+    <script>try { var t = localStorage.getItem('tool-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) { }</script>
+    <style>
+        /* 帧列表：横向滚动的胶片条 */
+        #frameList {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+            gap: 10px;
+        }
+
+        .frame-item {
+            position: relative;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--panel-2);
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .frame-item.is-first {
+            border-color: var(--primary);
+        }
+
+        .frame-thumb {
+            width: 100%;
+            height: 88px;
+            object-fit: contain;
+            background: repeating-conic-gradient(#0000 0 25%, #8883 0 50%) 50% / 14px 14px;
+            border-radius: 6px;
+        }
+
+        .frame-meta {
+            font-size: 11.5px;
+            color: var(--text-3);
+            line-height: 1.5;
+            word-break: break-all;
+        }
+
+        .frame-meta b {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .frame-num {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, .62);
+            color: #fff;
+            font-size: 11.5px;
+            line-height: 20px;
+            text-align: center;
+            padding: 0 6px;
+        }
+
+        .frame-del {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 0;
+            background: rgba(0, 0, 0, .62);
+            color: #fff;
+            font-size: 13px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .frame-del:hover {
+            background: #d9534f;
+        }
+
+        .frame-row {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .frame-row input[type="number"] {
+            width: 58px;
+            padding: 3px 6px;
+            font-size: 12px;
+        }
+
+        .frame-row .unit {
+            font-size: 11px;
+            color: var(--text-3);
+        }
+
+        /* 帧卡片里的「ms」单位 */
+        .unit {
+            font-size: 11.5px;
+            color: var(--text-3);
+        }
+
+        /* 结果区的信息行 */
+        .kv {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            font-size: 12.5px;
+            color: var(--text-3);
+        }
+
+        .kv b {
+            color: var(--text);
+            font-family: var(--mono);
+            font-weight: 600;
+        }
+
+        .mb-12 {
+            margin-bottom: 12px;
+        }
+
+        .mini-btn {
+            flex: 1;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text-2);
+            border-radius: 5px;
+            font-size: 12px;
+            padding: 3px 0;
+            cursor: pointer;
+        }
+
+        .mini-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .mini-btn:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        /* 结果预览 */
+        #resultBox img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: repeating-conic-gradient(#0000 0 25%, #8883 0 50%) 50% / 16px 16px;
+        }
+
+        .kv {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            font-size: 12.5px;
+            color: var(--text-3);
+        }
+
+        .kv b {
+            color: var(--text);
+            font-family: var(--mono);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="tool-header-inner">
+            <a class="tool-back" href="/" data-back>← 返回</a>
+            <div class="tool-title-wrap">
+                <h1 class="tool-title">GIF 合成器</h1>
+                <p class="tool-subtitle">多张图片合成 GIF 动图 · 可调帧延迟与循环 · 全部在浏览器本地完成，图片不上传</p>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="themeToggle" type="button" title="切换主题">☾</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="tool-main">
+
+        <!-- ============================ 添加图片 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">① 添加帧</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnAddUrl" type="button">从网址添加</button>
+                    <button class="btn btn-sm" id="btnClear" type="button">全部清空</button>
+                </div>
+            </div>
+
+            <div class="drop-zone" id="dropZone">
+                <div style="font-size:34px;line-height:1">🖼️</div>
+                <p style="margin:10px 0 4px;font-weight:600">把图片拖到这里，或点击选择</p>
+                <p class="hint" style="margin:0">
+                    支持一次选多张（PNG / JPG / WebP / GIF 首帧）· 顺序就是播放顺序，加进来后可以调整
+                </p>
+                <input type="file" id="fileInput" accept="image/*" multiple hidden>
+            </div>
+
+            <div class="status" id="addStatus"></div>
+        </section>
+
+        <!-- ============================ 帧列表 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">② 帧顺序与单帧延迟</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnReverse" type="button">倒序</button>
+                    <button class="btn btn-sm" id="btnPingpong" type="button">乒乓（往返播放）</button>
+                    <button class="btn btn-sm" id="btnApplyAll" type="button">把下面的延迟应用到全部</button>
+                </div>
+            </div>
+
+            <div id="frameList"></div>
+            <p class="hint" id="frameEmpty">还没有帧。先在上面添加图片 —— 至少两张才能做出动图。</p>
+            <div class="status" id="frameStatus"></div>
+        </section>
+
+        <!-- ============================ 输出设置 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">③ 输出设置</h2>
+            </div>
+
+            <div class="grid-3">
+                <div class="field">
+                    <label class="field-label" for="defDelay">默认帧延迟</label>
+                    <input type="number" id="defDelay" value="100" min="20" max="10000" step="10">
+                    <p class="hint">毫秒。100 = 每秒 10 帧；GIF 的时间精度是 10ms，会自动取整。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="loopMode">循环</label>
+                    <select id="loopMode">
+                        <option value="0" selected>无限循环</option>
+                        <option value="1">播放 1 次</option>
+                        <option value="3">播放 3 次</option>
+                        <option value="5">播放 5 次</option>
+                        <option value="10">播放 10 次</option>
+                    </select>
+                    <p class="hint">无限循环最接近动图的观感；循环次数不影响文件体积。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="colorCount">颜色数</label>
+                    <select id="colorCount">
+                        <option value="256" selected>256 色（最好，默认）</option>
+                        <option value="128">128 色</option>
+                        <option value="64">64 色</option>
+                        <option value="32">32 色（体积小）</option>
+                        <option value="16">16 色（最小）</option>
+                    </select>
+                    <p class="hint">颜色越少文件越小；照片类建议 256，图标 / 线条图可以降到 16。</p>
+                </div>
+            </div>
+
+            <div class="grid-3 mt-12">
+                <div class="field">
+                    <label class="field-label" for="outWidth">输出尺寸</label>
+                    <div class="frame-row" style="gap:6px">
+                        <input type="number" id="outWidth" value="" min="8" max="2000" placeholder="宽">
+                        <span class="unit">×</span>
+                        <input type="number" id="outHeight" value="" min="8" max="2000" placeholder="高">
+                    </div>
+                    <p class="hint" id="sizeHint">留空就用第一帧的尺寸。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="scaleSel">快速缩放</label>
+                    <select id="scaleSel">
+                        <option value="1" selected>原尺寸</option>
+                        <option value="0.75">75%</option>
+                        <option value="0.5">50%</option>
+                        <option value="0.33">33%</option>
+                        <option value="0.25">25%</option>
+                    </select>
+                    <p class="hint">按第一帧尺寸折算，可与上面的宽高配合使用。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="bgMode">透明区域</label>
+                    <select id="bgMode">
+                        <option value="keep" selected>保持透明</option>
+                        <option value="white">填白色</option>
+                    </select>
+                    <p class="hint">GIF 只支持"全透明或全不透明"；想铺底色选填白色。</p>
+                </div>
+            </div>
+
+            <div class="btn-group mt-16">
+                <button class="btn btn-primary" id="btnMake" type="button">④ 合成 GIF</button>
+                <button class="btn" id="btnDownload" type="button" disabled>下载 GIF</button>
+                <span class="hint" id="makeHint" style="margin:0"></span>
+            </div>
+
+            <div class="progress mt-12" id="progressWrap" style="display:none">
+                <i id="progressBar" style="width:0%"></i>
+            </div>
+            <div class="status" id="makeStatus"></div>
+        </section>
+
+        <!-- ============================ 结果 ============================ -->
+        <section class="card" id="resultCard" style="display:none">
+            <div class="card-head">
+                <h2 class="card-title">⑤ 结果</h2>
+                <span class="badge ok" id="resultBadge">已完成</span>
+            </div>
+            <div class="kv mb-12">
+                <span>尺寸 <b id="rSize">—</b></span>
+                <span>帧数 <b id="rFrames">—</b></span>
+                <span>总时长 <b id="rDuration">—</b></span>
+                <span>文件大小 <b id="rBytes">—</b></span>
+            </div>
+            <div id="resultBox" style="text-align:center"></div>
+            <p class="hint mt-12">
+                浏览器预览的播放速度与真实效果一致。如果觉得太快或太慢，回到上面调整「默认帧延迟」再合成一次。
+            </p>
+        </section>
+
+        <!-- ============================ 说明 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">使用说明</h2>
+            </div>
+            <div class="hint" style="margin:0;line-height:1.9">
+
+                <h4>怎么用</h4>
+                <ul>
+                    <li><b>加帧</b>：把图片拖进虚线框（可一次多张），也可以点「从网址添加」贴图片链接。
+                        加进来的顺序就是播放顺序。</li>
+                    <li><b>调顺序</b>：每张图下面有 <b>← →</b> 可以左右移动；「倒序」把整条胶片反转；
+                        「乒乓」会在末尾自动补上反向帧，做成来回播放的效果。</li>
+                    <li><b>调速度</b>：每帧可以单独设置延迟（毫秒）。想统一改就改「默认帧延迟」，
+                        再点「把下面的延迟应用到全部」。</li>
+                    <li><b>合成</b>：点「④ 合成 GIF」，完成后上方会出现预览和「下载 GIF」按钮。</li>
+                </ul>
+
+                <h4>关于体积</h4>
+                <ul>
+                    <li>GIF 的体积主要取决于<b>尺寸、帧数和颜色数</b>。把输出尺寸降到一半，面积就只剩四分之一，体积下降最明显。</li>
+                    <li>颜色数从 256 降到 64 通常能省 20%～40%，肉眼几乎看不出差别；降到 16 会明显失真，适合图标类。</li>
+                    <li>本工具会自动为所有帧生成一张共享调色板，因此画面颜色越集中、压缩率越高。</li>
+                </ul>
+
+                <h4>关于画质</h4>
+                <ul>
+                    <li>GIF 最多只能有 256 种颜色，所以照片类图片必然有色彩损失，这是格式本身的限制，不是本工具的问题。</li>
+                    <li>缩放使用浏览器的高质量插值（多级降采样），比直接把大图硬缩到目标尺寸更清晰。</li>
+                    <li>各帧尺寸不一致时，会统一缩放到你指定的输出尺寸；留空则按第一帧的尺寸，其余帧等比适配。</li>
+                </ul>
+
+                <h4>隐私</h4>
+                <ul>
+                    <li><b>所有处理都在你的浏览器里完成</b>，图片不会上传到任何服务器。断网也能用。</li>
+                    <li>页面本身是纯静态的，没有后端；合成速度取决于你电脑的性能。</li>
+                </ul>
+
+                <h4>已知限制</h4>
+                <ul>
+                    <li>不支持直接导入视频文件。要视频转 GIF，可以先用截图或视频工具导出图片序列再拖进来。</li>
+                    <li>不作逐帧独立的局部调色板优化（所有帧共用一张 256 色调色板），
+                        因此色彩跨度极大的素材（例如一段彩虹渐变视频）体积会比专业软件略大。</li>
+                    <li>单次建议不超过 200 帧或 2000×2000 像素，否则合成会明显变慢（受浏览器内存限制）。</li>
+                    <li>透明度是二值的：alpha &lt; 128 的像素算全透明，其余算不透明，这是 GIF 格式的固有限制。</li>
+                </ul>
+
+            </div>
+        </section>
+
+    </main>
+
+    <p class="footer-note">
+        GIF 合成器 · 纯前端实现（自写 GIF89a 编码器，无第三方库） · <a href="/tools/">工具页</a>
+    </p>
+
+    <script src="js/tool.js"></script>
+  <script src="/assets/web/tools/js/pv.js"></script>
+    <script src="js/gif-encoder.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var MAX_FRAMES = 300;
+            var MAX_EDGE = 2000;
+
+            var state = {
+                frames: [],        /* { id, name, canvas, w, h, delay } */
+                nextId: 1,
+                resultBlob: null,
+                resultUrl: null,
+                busy: false
+            };
+
+            var $ = function (id) { return document.getElementById(id); };
+
+            /* ---------------------------------------------------------- 工具 */
+            function yieldToUI() {
+                return new Promise(function (r) { setTimeout(r, 0); });
+            }
+
+            /** 等比缩放到目标框内，返回 canvas；用多级降采样保证清晰度 */
+            function resizeTo(srcImg, tw, th, fillWhite) {
+                var canvas = document.createElement('canvas');
+                canvas.width = tw;
+                canvas.height = th;
+                var ctx = canvas.getContext('2d');
+                if (fillWhite) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, tw, th);
+                }
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+
+                var sw = srcImg.naturalWidth || srcImg.width;
+                var sh = srcImg.naturalHeight || srcImg.height;
+                var scale = Math.min(tw / sw, th / sh);
+                var dw = Math.max(1, Math.round(sw * scale));
+                var dh = Math.max(1, Math.round(sh * scale));
+                var dx = Math.round((tw - dw) / 2);
+                var dy = Math.round((th - dh) / 2);
+
+                /* 多级降采样：每次最多缩一半，避免一次性大幅缩小产生锯齿 */
+                var cur = srcImg, curW = sw, curH = sh;
+                while (curW > dw * 2 && curH > dh * 2) {
+                    var nw = Math.max(dw, Math.floor(curW / 2));
+                    var nh = Math.max(dh, Math.floor(curH / 2));
+                    var tmp = document.createElement('canvas');
+                    tmp.width = nw; tmp.height = nh;
+                    var tctx = tmp.getContext('2d');
+                    tctx.imageSmoothingEnabled = true;
+                    tctx.imageSmoothingQuality = 'high';
+                    tctx.drawImage(cur, 0, 0, nw, nh);
+                    cur = tmp; curW = nw; curH = nh;
+                }
+                ctx.drawImage(cur, dx, dy, dw, dh);
+                return canvas;
+            }
+
+            function firstFrameSize() {
+                if (!state.frames.length) return null;
+                return { w: state.frames[0].w, h: state.frames[0].h };
+            }
+
+            /** 计算输出尺寸：优先手动填写，其次按比例缩放，最后用第一帧尺寸 */
+            function targetSize() {
+                var base = firstFrameSize();
+                if (!base) return null;
+
+                var scale = parseFloat($('scaleSel').value) || 1;
+                var w = parseInt($('outWidth').value, 10);
+                var h = parseInt($('outHeight').value, 10);
+
+                if (w && h) return { w: clamp(w), h: clamp(h) };
+                if (w && !h) return { w: clamp(w), h: clamp(Math.round(base.h * w / base.w)) };
+                if (!w && h) return { w: clamp(Math.round(base.w * h / base.h)), h: clamp(h) };
+                return { w: clamp(Math.round(base.w * scale)), h: clamp(Math.round(base.h * scale)) };
+            }
+
+            function clamp(v) {
+                v = Math.round(v);
+                if (!v || v < 1) v = 1;
+                return Math.min(MAX_EDGE, v);
+            }
+
+            function updateSizeHint() {
+                var t = targetSize();
+                if (!t) { $('sizeHint').textContent = '留空就用第一帧的尺寸。'; return; }
+                var base = firstFrameSize();
+                $('sizeHint').textContent = '输出 ' + t.w + ' × ' + t.h +
+                    (base ? '（第一帧是 ' + base.w + ' × ' + base.h + '）' : '');
+            }
+
+            /* ------------------------------------------------------ 帧的增删改 */
+            function renderFrames() {
+                var box = $('frameList');
+                var n = state.frames.length;
+                $('frameEmpty').style.display = n ? 'none' : '';
+
+                box.innerHTML = state.frames.map(function (f, i) {
+                    return '<div class="frame-item' + (i === 0 ? ' is-first' : '') + '" data-id="' + f.id + '">' +
+                        '<span class="frame-num">' + (i + 1) + '</span>' +
+                        '<button class="frame-del" data-act="del" title="移除这一帧">×</button>' +
+                        '<img class="frame-thumb" alt="" src="' + f.thumb + '">' +
+                        '<div class="frame-meta"><b>' + Tool.escapeHtml(shortName(f.name)) + '</b><br>' +
+                        f.w + '×' + f.h + '</div>' +
+                        '<div class="frame-row">' +
+                        '<input type="number" min="10" max="10000" step="10" value="' + f.delay + '" data-act="delay" title="这一帧的延迟（毫秒）">' +
+                        '<span class="unit">ms</span>' +
+                        '</div>' +
+                        '<div class="frame-row">' +
+                        '<button class="mini-btn" data-act="left"' + (i === 0 ? ' disabled' : '') + '>←</button>' +
+                        '<button class="mini-btn" data-act="right"' + (i === n - 1 ? ' disabled' : '') + '>→</button>' +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+
+                updateSizeHint();
+                $('btnMake').disabled = n < 2 || state.busy;
+                $('makeHint').textContent = n < 2 ? '至少需要 2 帧' : (n + ' 帧待合成');
+            }
+
+            function shortName(n) {
+                n = String(n || '');
+                return n.length > 18 ? n.slice(0, 16) + '…' : n;
+            }
+
+            function moveFrame(id, dir) {
+                var i = state.frames.findIndex(function (f) { return f.id === id; });
+                if (i < 0) return;
+                var j = i + dir;
+                if (j < 0 || j >= state.frames.length) return;
+                var tmp = state.frames[i];
+                state.frames[i] = state.frames[j];
+                state.frames[j] = tmp;
+                renderFrames();
+            }
+
+            function removeFrame(id) {
+                state.frames = state.frames.filter(function (f) { return f.id !== id; });
+                renderFrames();
+            }
+
+            /* ------------------------------------------------------ 添加图片 */
+            function addImage(img, name) {
+                var canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+                canvas.getContext('2d').drawImage(img, 0, 0);
+
+                /* 缩略图：直接复用这份 canvas 的小副本 */
+                var t = document.createElement('canvas');
+                var s = Math.min(1, 120 / Math.max(canvas.width, canvas.height));
+                t.width = Math.max(1, Math.round(canvas.width * s));
+                t.height = Math.max(1, Math.round(canvas.height * s));
+                t.getContext('2d').drawImage(canvas, 0, 0, t.width, t.height);
+
+                state.frames.push({
+                    id: state.nextId++,
+                    name: name || '图片',
+                    canvas: canvas,
+                    w: canvas.width,
+                    h: canvas.height,
+                    delay: Math.max(10, parseInt($('defDelay').value, 10) || 100),
+                    thumb: t.toDataURL('image/png')
+                });
+            }
+
+            function loadFile(file) {
+                return new Promise(function (resolve, reject) {
+                    var url = URL.createObjectURL(file);
+                    var img = new Image();
+                    img.onload = function () {
+                        try { addImage(img, file.name); resolve(true); }
+                        catch (e) { reject(e); }
+                        finally { URL.revokeObjectURL(url); }
+                    };
+                    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('无法读取：' + file.name)); };
+                    img.src = url;
+                });
+            }
+
+            function addFiles(files) {
+                var list = Array.prototype.slice.call(files || []).filter(function (f) {
+                    return /^image\//.test(f.type);
+                });
+                if (!list.length) { Tool.setStatus($('addStatus'), 'warn', '没有可用的图片文件。'); return Promise.resolve(); }
+
+                var room = MAX_FRAMES - state.frames.length;
+                if (room <= 0) { Tool.setStatus($('addStatus'), 'err', '帧数已达上限（' + MAX_FRAMES + ' 帧）。'); return Promise.resolve(); }
+                var skipped = 0;
+                if (list.length > room) { skipped = list.length - room; list = list.slice(0, room); }
+
+                Tool.setStatus($('addStatus'), 'info', '正在读取 ' + list.length + ' 张图片…');
+                var ok = 0, bad = [];
+                var chain = Promise.resolve();
+                list.forEach(function (f) {
+                    chain = chain.then(function () {
+                        return loadFile(f).then(function () { ok++; })
+                            .catch(function () { bad.push(f.name); });
+                    });
+                });
+                return chain.then(function () {
+                    renderFrames();
+                    var msg = '已添加 ' + ok + ' 张';
+                    if (skipped) msg += '，另有 ' + skipped + ' 张超出上限被忽略';
+                    if (bad.length) msg += '，' + bad.length + ' 张读取失败：' + bad.slice(0, 3).join('、');
+                    Tool.setStatus($('addStatus'), bad.length ? 'warn' : 'ok', msg);
+                });
+            }
+
+            /* --------------------------------------------------- 合成主流程 */
+            function makeGif() {
+                if (state.busy) return;
+                if (state.frames.length < 2) { Tool.setStatus($('makeStatus'), 'err', '至少需要 2 帧。'); return; }
+
+                var target = targetSize();
+                var fillWhite = $('bgMode').value === 'white';
+                var colors = parseInt($('colorCount').value, 10) || 256;
+                var loop = parseInt($('loopMode').value, 10) || 0;
+
+                state.busy = true;
+                $('btnMake').disabled = true;
+                $('btnDownload').disabled = true;
+                $('progressWrap').style.display = '';
+                $('resultCard').style.display = 'none';
+                Tool.setStatus($('makeStatus'), 'info', '正在缩放 ' + state.frames.length + ' 帧…');
+
+                /* 第一步：把每帧画到统一尺寸的 canvas 上（分片执行，保持界面响应） */
+                var resized = [];
+                var i = 0;
+                function stepResize() {
+                    if (i >= state.frames.length) return Promise.resolve();
+                    var f = state.frames[i];
+                    resized.push({
+                        canvas: resizeTo(f.canvas, target.w, target.h, fillWhite),
+                        delay: Math.max(1, Math.round(f.delay / 10))   /* GIF 单位是 10ms */
+                    });
+                    i++;
+                    setProgress(i / state.frames.length * 55);
+                    return yieldToUI().then(stepResize);
+                }
+
+                stepResize().then(function () {
+                    Tool.setStatus($('makeStatus'), 'info', '正在量化颜色与压缩（帧数越多越久）…');
+                    setProgress(60);
+                    return yieldToUI();
+                }).then(function () {
+                    var enc = new GifEncoder({
+                        width: target.w,
+                        height: target.h,
+                        loop: loop,
+                        colors: colors,
+                        alphaThreshold: 128
+                    });
+                    for (var k = 0; k < resized.length; k++) {
+                        var c = resized[k].canvas;
+                        var data = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+                        enc.addFrame(data, { delay: resized[k].delay });
+                    }
+                    setProgress(75);
+                    return yieldToUI().then(function () { return enc.finish(); });
+                }).then(function (blob) {
+                    setProgress(100);
+                    state.resultBlob = blob;
+
+                    if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
+                    state.resultUrl = URL.createObjectURL(blob);
+
+                    var totalDelay = state.frames.reduce(function (a, f) { return a + f.delay; }, 0);
+                    $('resultBox').innerHTML = '<img alt="合成的 GIF 预览" src="' + state.resultUrl + '">';
+                    $('rSize').textContent = target.w + ' × ' + target.h;
+                    $('rFrames').textContent = state.frames.length + ' 帧';
+                    $('rDuration').textContent = (totalDelay / 1000).toFixed(2) + ' 秒' +
+                        (loop === 0 ? '（循环）' : '（播放 ' + loop + ' 次）');
+                    $('rBytes').textContent = Tool.formatBytes(blob.size);
+                    $('resultBadge').textContent = blob.size > 8 * 1024 * 1024 ? '偏大' : '已完成';
+                    $('resultBadge').className = 'badge ' + (blob.size > 8 * 1024 * 1024 ? 'warn' : 'ok');
+                    $('resultCard').style.display = '';
+
+                    $('btnDownload').disabled = false;
+                    Tool.setStatus($('makeStatus'), 'ok', '合成完成，共 ' + Tool.formatBytes(blob.size) +
+                        (blob.size > 8 * 1024 * 1024 ? '（超过 8MB，部分平台可能不接受，建议降低尺寸或颜色数）' : ''));
+                    Tool.toast('GIF 合成完成', 'ok');
+                    $('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }).catch(function (e) {
+                    Tool.setStatus($('makeStatus'), 'err', '合成失败：' + (e && e.message ? e.message : e) +
+                        '\n如果帧数很多或尺寸很大，试着减少帧数或降低输出尺寸。');
+                }).then(function () {
+                    state.busy = false;
+                    $('btnMake').disabled = state.frames.length < 2;
+                    $('progressWrap').style.display = 'none';
+                    renderFrames();
+                });
+            }
+
+            function setProgress(pct) {
+                $('progressBar').style.width = Math.max(0, Math.min(100, pct)) + '%';
+            }
+
+            /* ------------------------------------------------------ 事件绑定 */
+            function bind() {
+                /* 拖拽 + 点击选择（多文件，所以自己处理，不用 Tool.bindDropZone） */
+                var zone = $('dropZone');
+                var input = $('fileInput');
+                zone.addEventListener('click', function () { input.click(); });
+                input.addEventListener('change', function () {
+                    addFiles(input.files).then(function () { input.value = ''; });
+                });
+                ['dragenter', 'dragover'].forEach(function (ev) {
+                    zone.addEventListener(ev, function (e) {
+                        e.preventDefault(); e.stopPropagation();
+                        zone.classList.add('dragover');
+                    });
+                });
+                ['dragleave', 'drop'].forEach(function (ev) {
+                    zone.addEventListener(ev, function (e) {
+                        e.preventDefault(); e.stopPropagation();
+                        if (ev === 'dragleave' && zone.contains(e.relatedTarget)) return;
+                        zone.classList.remove('dragover');
+                    });
+                });
+                zone.addEventListener('drop', function (e) {
+                    if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+                });
+
+                /* 整页也接受拖放，避免拖到边缘时浏览器直接打开图片 */
+                document.addEventListener('dragover', function (e) { e.preventDefault(); });
+                document.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    if (e.target.closest && e.target.closest('#dropZone')) return;
+                    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+                        addFiles(e.dataTransfer.files);
+                    }
+                });
+
+                /* 帧列表：删除 / 移动 / 单帧延迟 */
+                $('frameList').addEventListener('click', function (e) {
+                    var btn = e.target.closest ? e.target.closest('[data-act]') : null;
+                    if (!btn || btn.tagName !== 'BUTTON') return;
+                    var item = btn.closest('.frame-item');
+                    if (!item) return;
+                    var id = parseInt(item.getAttribute('data-id'), 10);
+                    var act = btn.getAttribute('data-act');
+                    if (act === 'del') removeFrame(id);
+                    else if (act === 'left') moveFrame(id, -1);
+                    else if (act === 'right') moveFrame(id, 1);
+                });
+                $('frameList').addEventListener('change', function (e) {
+                    var input = e.target;
+                    if (input.getAttribute && input.getAttribute('data-act') === 'delay') {
+                        var item = input.closest('.frame-item');
+                        var id = parseInt(item.getAttribute('data-id'), 10);
+                        var v = parseInt(input.value, 10);
+                        state.frames.forEach(function (f) {
+                            if (f.id === id) f.delay = Math.max(10, Math.min(10000, v || 100));
+                        });
+                        input.value = state.frames.filter(function (f) { return f.id === id; })[0].delay;
+                    }
+                });
+
+                $('btnApplyAll').addEventListener('click', function () {
+                    var v = Math.max(10, parseInt($('defDelay').value, 10) || 100);
+                    state.frames.forEach(function (f) { f.delay = v; });
+                    renderFrames();
+                    Tool.toast('已把所有帧的延迟设为 ' + v + ' ms', 'ok');
+                });
+
+                $('btnReverse').addEventListener('click', function () {
+                    state.frames.reverse();
+                    renderFrames();
+                });
+
+                $('btnPingpong').addEventListener('click', function () {
+                    if (state.frames.length < 2) return;
+                    /* 末尾补上反向帧（不含首尾，避免重复停留） */
+                    var mirror = state.frames.slice(1, -1).reverse().map(function (f) {
+                        return Object.assign({}, f, { id: state.nextId++ });
+                    });
+                    state.frames = state.frames.concat(mirror);
+                    renderFrames();
+                    Tool.toast('已追加 ' + mirror.length + ' 张反向帧', 'ok');
+                });
+
+                $('btnClear').addEventListener('click', function () {
+                    if (!state.frames.length) return;
+                    state.frames = [];
+                    renderFrames();
+                    $('resultCard').style.display = 'none';
+                    Tool.setStatus($('addStatus'), 'info', '已清空帧。');
+                });
+
+                $('btnAddUrl').addEventListener('click', addFromUrl);
+
+                $('defDelay').addEventListener('change', function () {
+                    var v = Math.max(10, Math.min(10000, parseInt(this.value, 10) || 100));
+                    this.value = v;
+                });
+
+                ['outWidth', 'outHeight', 'scaleSel'].forEach(function (id) {
+                    $(id).addEventListener('input', updateSizeHint);
+                    $(id).addEventListener('change', updateSizeHint);
+                });
+
+                $('btnMake').addEventListener('click', makeGif);
+                $('btnDownload').addEventListener('click', function () {
+                    if (!state.resultBlob) return;
+                    var t = targetSize();
+                    Tool.download(state.resultBlob, 'animation-' + t.w + 'x' + t.h + '-' + state.frames.length + 'f.gif', 'image/gif');
+                });
+            }
+
+            function addFromUrl() {
+                var url = prompt('粘贴图片网址（需要允许跨域访问，否则会读取失败）：', 'https://');
+                if (!url || url === 'https://') return;
+                Tool.setStatus($('addStatus'), 'info', '正在下载图片…');
+                var img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = function () {
+                    try {
+                        addImage(img, url.split('/').pop() || '网络图片');
+                        renderFrames();
+                        Tool.setStatus($('addStatus'), 'ok', '已添加 1 张（来自网址）');
+                    } catch (e) {
+                        Tool.setStatus($('addStatus'), 'err', '读取像素失败：对方服务器不允许跨域读取。');
+                    }
+                };
+                img.onerror = function () {
+                    Tool.setStatus($('addStatus'), 'err', '下载失败：网址不对、网络不通，或对方不允许跨域。');
+                };
+                img.src = url;
+            }
+
+            /* ------------------------------------------------------ 启动 */
+            function init() {
+                bind();
+                renderFrames();
+                updateSizeHint();
+            }
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+            else init();
+        })();
+    </script>
+</body>
+
+</html>

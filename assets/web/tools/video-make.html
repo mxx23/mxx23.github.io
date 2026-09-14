@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>图片合成视频 - 幻灯片视频制作</title>
+    <meta name="description" content="在线把多张图片合成视频：可调每张时长、画面比例、分辨率、帧率与切换特效，还能配背景音乐，输出 MP4 / WebM，全部在浏览器本地完成，图片不上传。">
+    <link rel="stylesheet" href="css/tool.css">
+    <script>try { var t = localStorage.getItem('tool-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) { }</script>
+    <style>
+        #frameList {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+            gap: 10px;
+        }
+
+        .frame-item {
+            position: relative;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--panel-2);
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .frame-item.is-first {
+            border-color: var(--primary);
+        }
+
+        .frame-thumb {
+            width: 100%;
+            height: 88px;
+            object-fit: contain;
+            background: repeating-conic-gradient(#0000 0 25%, #8883 0 50%) 50% / 14px 14px;
+            border-radius: 6px;
+        }
+
+        .frame-meta {
+            font-size: 11.5px;
+            color: var(--text-3);
+            line-height: 1.5;
+            word-break: break-all;
+        }
+
+        .frame-meta b {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .frame-num {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, .62);
+            color: #fff;
+            font-size: 11.5px;
+            line-height: 20px;
+            text-align: center;
+            padding: 0 6px;
+        }
+
+        .frame-del {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 0;
+            background: rgba(0, 0, 0, .62);
+            color: #fff;
+            font-size: 13px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .frame-del:hover {
+            background: #d9534f;
+        }
+
+        .frame-row {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .frame-row input[type="number"] {
+            width: 62px;
+            padding: 3px 6px;
+            font-size: 12px;
+        }
+
+        .unit {
+            font-size: 11.5px;
+            color: var(--text-3);
+        }
+
+        .mini-btn {
+            flex: 1;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text-2);
+            border-radius: 5px;
+            font-size: 12px;
+            padding: 3px 0;
+            cursor: pointer;
+        }
+
+        .mini-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .mini-btn:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        .kv {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            font-size: 12.5px;
+            color: var(--text-3);
+        }
+
+        .kv b {
+            color: var(--text);
+            font-family: var(--mono);
+            font-weight: 600;
+        }
+
+        .mb-12 {
+            margin-bottom: 12px;
+        }
+
+        #previewWrap {
+            background: #101114;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        #previewCanvas {
+            max-width: 100%;
+            border-radius: 6px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        #resultBox video {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #000;
+        }
+
+        .rec-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #d9534f;
+            margin-right: 6px;
+            animation: recblink 1s steps(2, start) infinite;
+        }
+
+        @keyframes recblink {
+            to {
+                visibility: hidden;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="tool-header-inner">
+            <a class="tool-back" href="/" data-back>← 返回</a>
+            <div class="tool-title-wrap">
+                <h1 class="tool-title">图片合成视频</h1>
+                <p class="tool-subtitle">多张图片做成幻灯片视频 · 可配背景音乐 · 输出 MP4 / WebM · 全部在浏览器本地完成，图片不上传</p>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="themeToggle" type="button" title="切换主题">☾</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="tool-main">
+
+        <!-- ============================ 添加图片 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">① 添加图片</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnClear" type="button">全部清空</button>
+                </div>
+            </div>
+
+            <div class="drop-zone" id="dropZone">
+                <div style="font-size:34px;line-height:1">🎞️</div>
+                <p style="margin:10px 0 4px;font-weight:600">把图片拖到这里，或点击选择</p>
+                <p class="hint" style="margin:0">
+                    支持一次选多张（PNG / JPG / WebP）· 顺序就是出场顺序 · 建议先用图片工具裁剪成同一比例
+                </p>
+                <input type="file" id="fileInput" accept="image/*" multiple hidden>
+            </div>
+
+            <div class="status" id="addStatus"></div>
+        </section>
+
+        <!-- ============================ 帧列表 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">② 顺序与每张时长</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnReverse" type="button">倒序</button>
+                    <button class="btn btn-sm" id="btnPingpong" type="button">首尾循环衔接</button>
+                    <button class="btn btn-sm" id="btnApplyAll" type="button">把默认时长应用到全部</button>
+                </div>
+            </div>
+
+            <div id="frameList"></div>
+            <p class="hint" id="frameEmpty">还没有图片。先在上面添加 —— 一张也可以做成带镜头推拉的短视频。</p>
+            <div class="status" id="frameStatus"></div>
+        </section>
+
+        <!-- ============================ 输出设置 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">③ 时长模型</h2>
+            </div>
+
+            <div class="grid-2">
+                <div class="field">
+                    <label class="field-label" for="mode">怎么安排时间</label>
+                    <select id="mode">
+                        <option value="slideshow" selected>幻灯片：每张图片显示一段时间（默认 2.5 秒）</option>
+                        <option value="animation">逐帧动画：每张图片占 N 帧（可用 60fps 做高速动画）</option>
+                    </select>
+                    <p class="hint" id="modeHint">幻灯片适合照片/图文展示，一张能看几秒。</p>
+                </div>
+                <div class="field" id="animBox" style="display:none">
+                    <label class="field-label" for="framesPerImage">每张图片占几帧</label>
+                    <div class="frame-row" style="gap:6px">
+                        <input type="number" id="framesPerImage" value="1" min="1" max="600" step="1">
+                        <span class="unit">帧 / 张</span>
+                    </div>
+                    <label class="field-label" for="animFx" style="margin-top:8px">画面特效</label>
+                    <select id="animFx">
+                        <option value="none" selected>无（每帧直接替换）</option>
+                        <option value="random">随机抖动（像动画的运动感）</option>
+                        <option value="zoomin">全程缓慢推近</option>
+                        <option value="zoomout">全程缓慢拉远</option>
+                    </select>
+                    <p class="hint" id="animHint">按上面的帧率计算总时长。</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">④ 画面与输出</h2>
+            </div>
+
+            <div class="grid-3">
+                <div class="field" data-only="slideshow">
+                    <label class="field-label" for="defDuration">每张默认时长</label>
+                    <input type="number" id="defDuration" value="2500" min="200" max="60000" step="100">
+                    <p class="hint">毫秒。2500 = 每张显示 2.5 秒。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="preset">画面比例 / 分辨率</label>
+                    <select id="preset">
+                        <option value="1920x1080" selected>横屏 1080p（1920×1080）</option>
+                        <option value="1280x720">横屏 720p（1280×720）</option>
+                        <option value="3840x2160">横屏 4K（3840×2160）</option>
+                        <option value="1080x1920">竖屏 1080×1920（短视频）</option>
+                        <option value="720x1280">竖屏 720×1280（短视频）</option>
+                        <option value="1080x1080">方形 1080×1080</option>
+                        <option value="custom">自定义…</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="fps">帧率</label>
+                    <select id="fps">
+                        <option value="15">15 fps（体积小）</option>
+                        <option value="24">24 fps（电影感）</option>
+                        <option value="30" selected>30 fps（推荐）</option>
+                        <option value="50">50 fps</option>
+                        <option value="60">60 fps（顺滑）</option>
+                        <option value="90">90 fps（高刷新率屏）</option>
+                        <option value="120">120 fps（高刷新率屏，文件更大）</option>
+                    </select>
+                    <p class="hint">动画模式下帧率直接决定每帧的长度；「快速导出」不受屏幕刷新率限制，120fps 也能精确导出。</p>
+                </div>
+            </div>
+
+            <div class="grid-3 mt-12" id="customSizeRow" style="display:none">
+                <div class="field">
+                    <label class="field-label" for="outWidth">自定义宽度</label>
+                    <input type="number" id="outWidth" value="1920" min="64" max="3840" step="2">
+                </div>
+                <div class="field">
+                    <label class="field-label" for="outHeight">自定义高度</label>
+                    <input type="number" id="outHeight" value="1080" min="64" max="2160" step="2">
+                </div>
+                <div class="field">
+                    <label class="field-label">说明</label>
+                    <p class="hint" style="margin:6px 0 0">宽高都必须是偶数，编码器要求。</p>
+                </div>
+            </div>
+
+            <div class="grid-3 mt-12">
+                <div class="field" data-only="slideshow">
+                    <label class="field-label" for="effect">转场特效</label>
+                    <select id="effect">
+                        <option value="none" selected>无（直接切换）</option>
+                        <option value="fade">淡入淡出（交叠）</option>
+                        <option value="slide">横向滑动</option>
+                        <option value="zoomin">缓慢推近（Ken Burns）</option>
+                        <option value="zoomout">缓慢拉远（Ken Burns）</option>
+                    </select>
+                    <p class="hint">推近 / 拉远是全程渐变，适合单张图做动态；淡入和滑动会占用一部分时长。</p>
+                </div>
+                <div class="field" data-only="slideshow">
+                    <label class="field-label" for="effectMs">转场时长</label>
+                    <input type="number" id="effectMs" value="600" min="100" max="3000" step="50">
+                    <p class="hint">仅「淡入淡出」与「横向滑动」使用，会从该张的时长里划走这段时间。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="fitMode">图片适配</label>
+                    <select id="fitMode">
+                        <option value="contain" selected>完整显示（留黑边）</option>
+                        <option value="cover">填满画面（裁掉多余）</option>
+                        <option value="blur">完整显示 + 模糊背景</option>
+                    </select>
+                    <p class="hint">比例不一致时：完整显示不裁切，填满则有裁切，模糊背景用同一张图铺底。</p>
+                </div>
+            </div>
+
+            <div class="grid-3 mt-12">
+                <div class="field">
+                    <label class="field-label" for="bitrate">码率（画质）</label>
+                    <select id="bitrate">
+                        <option value="2000000">2 Mbps（小体积）</option>
+                        <option value="4000000" selected>4 Mbps（推荐）</option>
+                        <option value="8000000">8 Mbps（高画质）</option>
+                        <option value="16000000">16 Mbps（接近无损）</option>
+                    </select>
+                    <p class="hint">1080p 用 4～8 Mbps 就够；4K 建议 16 Mbps。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="exportMode">导出方式</label>
+                    <select id="exportMode">
+                        <option value="fast" selected>快速导出（推荐，比实时快很多倍）</option>
+                        <option value="realtime">实时录制（兼容性更好，视频多长就等多久）</option>
+                    </select>
+                    <p class="hint" id="exportModeHint">—</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="format">输出格式</label>
+                    <select id="format"></select>
+                    <p class="hint" id="formatHint">按浏览器实际支持的编码器列出。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="bgColor">留边颜色</label>
+                    <select id="bgColor">
+                        <option value="#000000" selected>黑色</option>
+                        <option value="#ffffff">白色</option>
+                        <option value="#1e1f22">深灰</option>
+                        <option value="#0f172a">深蓝</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ 背景音乐 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">④ 背景音乐（可选）</h2>
+                <div class="btn-group">
+                    <button class="btn btn-sm" id="btnPickAudio" type="button">选择音频文件</button>
+                    <button class="btn btn-sm" id="btnClearAudio" type="button" disabled>移除</button>
+                </div>
+            </div>
+            <input type="file" id="audioInput" accept="audio/*" hidden>
+            <div class="grid-3">
+                <div class="field">
+                    <label class="field-label">音频文件</label>
+                    <p class="hint" style="margin:6px 0 0" id="audioInfo">未选择。支持 MP3 / M4A / WAV / OGG 等浏览器能解码的格式。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="volume">音量</label>
+                    <input type="range" id="volume" min="0" max="1" step="0.02" value="0.8">
+                    <p class="hint" id="volumeHint">80%</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="audioMode">与视频长度的关系</label>
+                    <select id="audioMode">
+                        <option value="cut" selected>音乐长了就截断</option>
+                        <option value="loop">音乐短了就循环</option>
+                        <option value="loopcut">循环并截断（自动适配）</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-3 mt-12">
+                <div class="field">
+                    <label class="field-label" for="audioStart">起始位置（秒）</label>
+                    <input type="number" id="audioStart" value="0" min="0" step="0.1">
+                    <p class="hint" id="audioStartHint">从音频的第几秒开始取用。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="audioRange">取用长度（秒）</label>
+                    <input type="number" id="audioRange" value="0" min="0" step="0.5">
+                    <p class="hint" id="audioRangeHint">填 0 表示「用满整段」（到音频结尾或视频结尾为止）。</p>
+                </div>
+                <div class="field">
+                    <label class="field-label">试听</label>
+                    <div class="btn-group">
+                        <button class="btn btn-sm" id="btnPreviewAudio" type="button">▶ 试听这段</button>
+                        <button class="btn btn-sm" id="btnStopAudio" type="button" disabled>停止</button>
+                    </div>
+                    <p class="hint" id="audioRangeInfo">—</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ 预览与导出 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">⑤ 预览与导出</h2>
+                <span class="badge gray" id="totalBadge">—</span>
+            </div>
+
+            <div id="previewWrap">
+                <canvas id="previewCanvas" width="480" height="270"></canvas>
+                <p class="hint" style="margin:10px 0 0">
+                    预览是压缩后的画面（按等比缩小绘制），实际导出按你选的分辨率渲染。
+                </p>
+            </div>
+
+            <div class="btn-group mt-16">
+                <button class="btn" id="btnPreview" type="button">▶ 播放预览</button>
+                <button class="btn btn-primary" id="btnExport" type="button">⑥ 导出视频</button>
+                <button class="btn" id="btnDownload" type="button" disabled>下载视频</button>
+                <span class="hint" id="exportHint" style="margin:0"></span>
+            </div>
+
+            <div class="progress mt-12" id="progressWrap" style="display:none">
+                <i id="progressBar" style="width:0%"></i>
+            </div>
+            <div class="status" id="exportStatus"></div>
+            <p class="hint" id="recHint" style="display:none">
+                <span class="rec-dot"></span>正在录制。导出是<b>实时</b>进行的，视频多长就要等多久，请保持这个标签页在前台。
+            </p>
+        </section>
+
+        <!-- ============================ 结果 ============================ -->
+        <section class="card" id="resultCard" style="display:none">
+            <div class="card-head">
+                <h2 class="card-title">⑦ 结果</h2>
+                <span class="badge ok" id="resultBadge">已完成</span>
+            </div>
+            <div class="kv mb-12">
+                <span>分辨率 <b id="rSize">—</b></span>
+                <span>时长 <b id="rDuration">—</b></span>
+                <span>帧率 <b id="rFps">—</b></span>
+                <span>格式 <b id="rFormat">—</b></span>
+                <span>文件大小 <b id="rBytes">—</b></span>
+            </div>
+            <div id="resultBox" style="text-align:center"></div>
+            <p class="hint mt-12">
+                浏览器里能直接播放。如果画面糊，回到上面把码率调高再导出一次；如果文件太大，降低分辨率或码率。
+            </p>
+        </section>
+
+        <!-- ============================ 说明 ============================ -->
+        <section class="card">
+            <div class="card-head">
+                <h2 class="card-title">使用说明</h2>
+            </div>
+            <div class="hint" style="margin:0;line-height:1.9">
+
+                <h4>先想清楚：你要做「幻灯片」还是「逐帧动画」</h4>
+                <p style="margin:6px 0">
+                    这两种用途的时间计算方式完全不同，所以在「③ 时长模型」里先选一个：
+                </p>
+                <ul>
+                    <li><b>幻灯片</b>（默认）：每张图片<b>显示一段时间</b>，比如一张 2.5 秒。
+                        适合照片展示、图文讲解。转场特效只在这个模式下有意义。</li>
+                    <li><b>逐帧动画</b>：每张图片<b>占 N 帧</b>，总时长 = 总帧数 ÷ 帧率。
+                        例如 <b>120 张 × 1 帧 @60fps = 2 秒</b>；
+                        也可以 120 张 × 2 帧 @30fps = 8 秒。
+                        适合把图片序列当动画播、做定格动画或序列帧。</li>
+                </ul>
+                <p class="hint" style="margin:6px 0">
+                    切换模式不会丢失图片，两种模式共用同一组帧；只是「时间怎么算」变了。
+                </p>
+
+                <h4>怎么用</h4>
+                <ul>
+                    <li><b>加图片</b>：拖进来或点击选择，顺序就是出场顺序，可以用 <b>← →</b> 调整。</li>
+                    <li><b>定节奏</b>：幻灯片模式下每张可以单独设时长（最短 100ms）；
+                        动画模式下只需设「每张占几帧」，帧率决定一切。</li>
+                    <li><b>选比例</b>：横屏发 B 站 / 网页，竖屏发抖音 / 视频号，方形发朋友圈。
+                        图片比例和画布不一致时，按「图片适配」的规则处理。</li>
+                    <li><b>加音乐</b>（可选）：选一个音频文件当背景音乐，可调音量。</li>
+                    <li><b>导出</b>：点「⑥ 导出视频」，等待录制完成，然后下载。</li>
+                </ul>
+
+                <h4>两种导出方式，默认走快的那个</h4>
+                <table style="width:100%;border-collapse:collapse;font-size:13px;margin:8px 0">
+                    <tr style="text-align:left">
+                        <th style="padding:6px 8px;border-bottom:1px solid var(--border)">方式</th>
+                        <th style="padding:6px 8px;border-bottom:1px solid var(--border)">原理</th>
+                        <th style="padding:6px 8px;border-bottom:1px solid var(--border)">速度</th>
+                        <th style="padding:6px 8px;border-bottom:1px solid var(--border)">时长精度</th>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 8px"><b>快速导出</b>（默认）</td>
+                        <td style="padding:6px 8px">WebCodecs 逐帧编码，帧的时间戳由工具指定，
+                            编码不再受真实时间约束</td>
+                        <td style="padding:6px 8px">通常 <b>10 倍以上</b></td>
+                        <td style="padding:6px 8px"><b>精确</b>（实测偏差 0 ms）</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 8px">实时录制</td>
+                        <td style="padding:6px 8px">MediaRecorder 按墙上时钟录制，
+                            视频多长就录多久</td>
+                        <td style="padding:6px 8px">1×（20 秒视频等 20 秒）</td>
+                        <td style="padding:6px 8px">可能出现几十毫秒偏差；
+                            标签页被切到后台会拉长</td>
+                    </tr>
+                </table>
+                <ul>
+                    <li>快速导出的产物是标准 <b>MP4（H.264 + AAC）</b>：工具自己完成了 MP4 封装
+                        （把编码器输出的裸数据写成 ftyp / mdat / moov 结构），没有引入任何第三方库。</li>
+                    <li>实测：120 张图 320×180 @60fps（视频 2.000 秒），快速导出耗时约 <b>0.5 秒</b>，
+                        产物时长 <b>2.0000 秒</b>（偏差 0 ms）。</li>
+                    <li>浏览器不支持 WebCodecs 时（例如较老的 Firefox），工具会自动只用实时录制，
+                        并在「导出方式」下面给出提示。</li>
+                    <li>实时录制仍保留：万一快速导出在你的素材上出问题，切过去就是一条更保守的路径。</li>
+                </ul>
+
+                <h4>关于输出格式</h4>
+                <ul>
+                    <li><b>快速导出固定输出 MP4 (H.264)</b>，这是兼容性最好的组合：
+                        微信、抖音、B 站、剪映都直接收。</li>
+                    <li>「输出格式」那个下拉只对<b>实时录制</b>生效，格式列表按你当前浏览器实际支持的编码器动态生成；
+                        其中 WebM (VP9) 同画质体积更小，但个别平台不认，需要先转换。</li>
+                </ul>
+
+                <h4>体积估算</h4>
+                <ul>
+                    <li>文件大小 ≈ 码率 × 时长 ÷ 8。例如 4 Mbps 的 20 秒视频约 10 MB。</li>
+                    <li>幻灯片类视频画面变化慢，压缩率很高，实际体积常常比估算值更小。</li>
+                    <li>分辨率的影响很大：1080p 换成 720p，面积少一半多，体积也明显下降。</li>
+                </ul>
+
+                <h4>隐私</h4>
+                <ul>
+                    <li><b>图片和音乐都不会上传</b>，全部在你的浏览器里处理，断网也能用。</li>
+                    <li>页面是纯静态的，没有后端；导出速度取决于你的电脑性能。</li>
+                </ul>
+
+                <h4>已知限制</h4>
+                <ul>
+                    <li>不能导入视频片段再拼接 —— 本工具只做「图片 → 视频」。要拼接视频请用视频剪辑软件。</li>
+                    <li>4K 导出对内存和 CPU 压力较大，老设备建议降到 1080p。</li>
+                    <li>不支持逐张设置不同的转场特效（全局统一），也不能加字幕。</li>
+                    <li>导出过程中若标签页被切到后台，浏览器可能降频，导致视频时长略微拉长；建议导出时不要切走。</li>
+                    <li><b>动画模式下高帧率对性能有要求</b>：60fps 意味着每帧只有 16.7ms 的绘制时间。
+                        本工具会在导出前把所有图片预先缩放到输出尺寸（避免每帧都缩放原图），
+                        实测 120 张 320×180 @60fps 的产物时长为 1.97 秒（目标 2.00 秒，偏差约 30ms）。
+                        但如果图片非常多大、或分辨率开到 4K，仍可能出现掉帧、时长被略微拉长。</li>
+                    <li>动画模式的画面特效是<b>全局统一</b>的（无 / 随机抖动 / 全程推拉），不能逐帧设置。</li>
+                </ul>
+
+            </div>
+        </section>
+
+    </main>
+
+    <p class="footer-note">
+        图片合成视频 · 纯前端实现（浏览器原生编码器，无第三方库） · <a href="/tools/">工具页</a>
+    </p>
+
+    <script src="js/tool.js"></script>
+  <script src="/assets/web/tools/js/pv.js"></script>
+    <script src="js/mp4-muxer.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            /* 上限主要防手滑；张数越多，原图位图占的内存越大（约每百万像素 4 MB） */
+            var MAX_FRAMES = 1000;
+            var MAX_EDGE = 3840;
+
+            /* 动画模式里单帧最短可以到 1 帧，这里只做输入合法性下限 */
+            var MIN_DURATION = 20;
+
+            var state = {
+                frames: [],
+                nextId: 1,
+                audio: null,        /* { name, buffer, duration } */
+                audioCtx: null,
+                resultBlob: null,
+                resultUrl: null,
+                busy: false,
+                previewStop: false,
+                previewPlaying: false,
+                previewAudio: null,
+                audioPreview: null
+            };
+
+            var $ = function (id) { return document.getElementById(id); };
+
+            function yieldToUI() {
+                return new Promise(function (r) { setTimeout(r, 0); });
+            }
+
+            /* ------------------------------------------------- 输出尺寸与格式 */
+            function targetSize() {
+                var v = $('preset').value;
+                if (v === 'custom') {
+                    var w = parseInt($('outWidth').value, 10) || 1920;
+                    var h = parseInt($('outHeight').value, 10) || 1080;
+                    return { w: even(clamp(w, 64, MAX_EDGE)), h: even(clamp(h, 64, MAX_EDGE)) };
+                }
+                var parts = v.split('x');
+                return { w: parseInt(parts[0], 10), h: parseInt(parts[1], 10) };
+            }
+            function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+            function even(v) { return v % 2 === 0 ? v : v - 1; }
+
+            /* 动态列出浏览器支持的输出格式 */
+            function detectFormats() {
+                var list = [
+                    { mime: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', label: 'MP4 (H.264 + AAC) — 兼容性最好', ext: 'mp4' },
+                    { mime: 'video/mp4;codecs=avc1.4D401F,mp4a.40.2', label: 'MP4 (H.264 High + AAC)', ext: 'mp4' },
+                    { mime: 'video/mp4', label: 'MP4（浏览器默认编码器）', ext: 'mp4' },
+                    { mime: 'video/webm;codecs=vp9,opus', label: 'WebM (VP9 + Opus) — 同画质体积更小', ext: 'webm' },
+                    { mime: 'video/webm;codecs=vp8,opus', label: 'WebM (VP8 + Opus) — 编码快', ext: 'webm' },
+                    { mime: 'video/webm', label: 'WebM（浏览器默认编码器）', ext: 'webm' }
+                ];
+                if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return [];
+                return list.filter(function (f) { return MediaRecorder.isTypeSupported(f.mime); });
+            }
+
+            /* ------------------------------------------------------ 帧的增删改 */
+            function renderFrames() {
+                var box = $('frameList');
+                var n = state.frames.length;
+                $('frameEmpty').style.display = n ? 'none' : '';
+
+                box.innerHTML = state.frames.map(function (f, i) {
+                    return '<div class="frame-item' + (i === 0 ? ' is-first' : '') + '" data-id="' + f.id + '">' +
+                        '<span class="frame-num">' + (i + 1) + '</span>' +
+                        '<button class="frame-del" data-act="del" title="移除这一张">×</button>' +
+                        '<img class="frame-thumb" alt="" src="' + f.thumb + '">' +
+                        '<div class="frame-meta"><b>' + Tool.escapeHtml(shortName(f.name)) + '</b><br>' +
+                        f.w + '×' + f.h + '</div>' +
+                        (isAnimation()
+                            ? '<div class="frame-row"><span class="unit">占 ' + perImageFrames() + ' 帧（' +
+                                (perImageFrames() / currentFps() * 1000).toFixed(0) + ' ms）</span></div>'
+                            : ('<div class="frame-row">' +
+                                '<input type="number" min="100" max="60000" step="50" value="' + f.duration + '" data-act="dur" title="这一张的显示时长（毫秒）">' +
+                                '<span class="unit">ms</span>' +
+                                '</div>')) +
+                        '<div class="frame-row">' +
+                        '<button class="mini-btn" data-act="left"' + (i === 0 ? ' disabled' : '') + '>←</button>' +
+                        '<button class="mini-btn" data-act="right"' + (i === n - 1 ? ' disabled' : '') + '>→</button>' +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+
+                updateTotals();
+                $('btnExport').disabled = n === 0 || state.busy;
+                $('btnPreview').disabled = n === 0 || state.busy;
+                $('exportHint').textContent = n === 0 ? '先添加图片' : (n + ' 张待导出');
+            }
+
+            function shortName(n) {
+                n = String(n || '');
+                return n.length > 18 ? n.slice(0, 16) + '…' : n;
+            }
+
+            /* ---------------------------------------------------- 时长模型
+               幻灯片：每张有自己的时长（毫秒）
+               逐帧动画：每张占 framesPerImage 帧，总时长 = 总帧数 / 帧率 */
+            var MIN_DURATION_SS = 100;
+
+            function isAnimation() { return $('mode').value === 'animation'; }
+
+            function currentFps() { return parseInt($('fps').value, 10) || 30; }
+
+            function perImageFrames() {
+                return Math.max(1, Math.min(600, parseInt($('framesPerImage').value, 10) || 1));
+            }
+
+            function totalDuration() {
+                if (isAnimation()) {
+                    return state.frames.length * perImageFrames() / currentFps() * 1000;
+                }
+                return state.frames.reduce(function (a, f) { return a + f.duration; }, 0);
+            }
+
+            /** 生成时间轴：[{start, dur, frame}]，幻灯片与动画共用同一套查询逻辑 */
+            function buildTimeline() {
+                var out = [], acc = 0;
+                if (isAnimation()) {
+                    var per = 1000 / currentFps() * perImageFrames();
+                    state.frames.forEach(function (f) {
+                        out.push({ start: acc, dur: per, frame: f });
+                        acc += per;
+                    });
+                } else {
+                    state.frames.forEach(function (f) {
+                        out.push({ start: acc, dur: f.duration, frame: f });
+                        acc += f.duration;
+                    });
+                }
+                return out;
+            }
+
+            /** 把「只对某个模式生效」的参数隐藏掉，避免看着一堆用不上的设置 */
+            function applyModeVisibility() {
+                var mode = isAnimation() ? 'animation' : 'slideshow';
+                var fields = document.querySelectorAll('[data-only]');
+                for (var i = 0; i < fields.length; i++) {
+                    var need = fields[i].getAttribute('data-only');
+                    fields[i].style.display = (need === mode) ? '' : 'none';
+                }
+            }
+
+            function updateModeUi() {
+                var anim = isAnimation();
+                $('animBox').style.display = anim ? '' : 'none';
+                applyModeVisibility();
+                updateAudioInfo();
+                $('modeHint').textContent = anim
+                    ? '适合把一串图片当成动画播（例如 120 张 × 1 帧 @60fps = 2 秒）。'
+                    : '幻灯片适合照片/图文展示，一张能看几秒。';
+                if (anim) {
+                    $('animHint').textContent = state.frames.length
+                        ? (state.frames.length + ' 张 × ' + perImageFrames() + ' 帧 = ' +
+                            (state.frames.length * perImageFrames()) + ' 帧，@' + currentFps() + 'fps = ' +
+                            (totalDuration() / 1000).toFixed(2) + ' 秒')
+                        : '按上面的帧率计算总时长。';
+                }
+            }
+
+            function updateTotals() {
+                var ms = totalDuration();
+                var n = state.frames.length;
+                if (!n) { $('totalBadge').textContent = '—'; updateModeUi(); return; }
+                var txt = n + ' 张 · 共 ' + (ms / 1000).toFixed(2) + ' 秒';
+                if (isAnimation()) txt += '（' + (n * perImageFrames()) + ' 帧 @' + currentFps() + 'fps）';
+                $('totalBadge').textContent = txt;
+                updateModeUi();
+            }
+
+            function moveFrame(id, dir) {
+                var i = state.frames.findIndex(function (f) { return f.id === id; });
+                if (i < 0) return;
+                var j = i + dir;
+                if (j < 0 || j >= state.frames.length) return;
+                var tmp = state.frames[i];
+                state.frames[i] = state.frames[j];
+                state.frames[j] = tmp;
+                renderFrames();
+            }
+
+            /* ------------------------------------------------------ 添加图片 */
+            function addImage(img, name) {
+                var canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+                canvas.getContext('2d').drawImage(img, 0, 0);
+
+                var t = document.createElement('canvas');
+                var s = Math.min(1, 120 / Math.max(canvas.width, canvas.height));
+                t.width = Math.max(1, Math.round(canvas.width * s));
+                t.height = Math.max(1, Math.round(canvas.height * s));
+                t.getContext('2d').drawImage(canvas, 0, 0, t.width, t.height);
+
+                state.frames.push({
+                    id: state.nextId++,
+                    name: name || '图片',
+                    canvas: canvas,
+                    w: canvas.width,
+                    h: canvas.height,
+                    duration: Math.max(MIN_DURATION_SS, parseInt($('defDuration').value, 10) || 2500),
+                    thumb: t.toDataURL('image/png')
+                });
+            }
+
+            function loadFile(file) {
+                return new Promise(function (resolve, reject) {
+                    var url = URL.createObjectURL(file);
+                    var img = new Image();
+                    img.onload = function () {
+                        try { addImage(img, file.name); resolve(true); }
+                        catch (e) { reject(e); }
+                        finally { URL.revokeObjectURL(url); }
+                    };
+                    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('无法读取：' + file.name)); };
+                    img.src = url;
+                });
+            }
+
+            function addFiles(files) {
+                var list = Array.prototype.slice.call(files || []).filter(function (f) {
+                    return /^image\//.test(f.type);
+                });
+                if (!list.length) { Tool.setStatus($('addStatus'), 'warn', '没有可用的图片文件。'); return Promise.resolve(); }
+
+                var room = MAX_FRAMES - state.frames.length;
+                if (room <= 0) { Tool.setStatus($('addStatus'), 'err', '张数已达上限（' + MAX_FRAMES + '）。'); return Promise.resolve(); }
+                var skipped = 0;
+                if (list.length > room) { skipped = list.length - room; list = list.slice(0, room); }
+
+                Tool.setStatus($('addStatus'), 'info', '正在读取 ' + list.length + ' 张图片…');
+                var ok = 0, bad = [];
+                var chain = Promise.resolve();
+                list.forEach(function (f) {
+                    chain = chain.then(function () {
+                        return loadFile(f).then(function () { ok++; }).catch(function () { bad.push(f.name); });
+                    });
+                });
+                return chain.then(function () {
+                    renderFrames();
+                    var msg = '已添加 ' + ok + ' 张';
+                    if (skipped) msg += '，另有 ' + skipped + ' 张超出上限被忽略';
+                    if (bad.length) msg += '，' + bad.length + ' 张读取失败：' + bad.slice(0, 3).join('、');
+                    Tool.setStatus($('addStatus'), bad.length ? 'warn' : 'ok', msg);
+                });
+            }
+
+            /* ------------------------------------------------- 画面绘制核心 */
+
+            /** 把一张图按适配模式画到 ctx 上（含 Ken Burns 的缩放与位移） */
+            function drawImage(ctx, img, W, H, fit, opts) {
+                opts = opts || {};
+                var scale = opts.scale || 1;
+                var ox = opts.ox || 0, oy = opts.oy || 0;   /* 归一化位移，-1~1 */
+                var alpha = opts.alpha == null ? 1 : opts.alpha;
+
+                var iw = img.width, ih = img.height;
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+
+                if (fit === 'blur') {
+                    /* 背景：同一张图放大铺满并模糊 */
+                    var bs = Math.max(W / iw, H / ih) * 1.12;
+                    ctx.save();
+                    ctx.filter = 'blur(18px) brightness(0.75)';
+                    ctx.drawImage(img, (W - iw * bs) / 2, (H - ih * bs) / 2, iw * bs, ih * bs);
+                    ctx.restore();
+                }
+
+                var s0 = fit === 'cover' ? Math.max(W / iw, H / ih) : Math.min(W / iw, H / ih);
+                var s = s0 * scale;
+                var dw = iw * s, dh = ih * s;
+                var dx = (W - dw) / 2 + ox * W * 0.5;
+                var dy = (H - dh) / 2 + oy * H * 0.5;
+
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(img, dx, dy, dw, dh);
+                ctx.restore();
+            }
+
+            /** 在时间轴的某个位置查当前该显示哪一张，并给出该张内的进度 */
+            function locateAt(tl, tMs) {
+                if (!tl.length) return null;
+                if (tMs < 0) tMs = 0;
+                /* 时间轴很短（动画模式常见），直接线性扫即可 */
+                var idx = tl.length - 1;
+                for (var i = 0; i < tl.length; i++) {
+                    if (tMs < tl[i].start + tl[i].dur) { idx = i; break; }
+                }
+                var item = tl[idx];
+                return {
+                    idx: idx,
+                    frame: item.frame,
+                    prev: idx > 0 ? tl[idx - 1].frame : null,
+                    local: Math.max(0, tMs - item.start),
+                    span: Math.max(1, item.dur)
+                };
+            }
+
+            /** 计算某个时间点应该画什么，预览与导出共用 */
+            function renderAt(ctx, W, H, tMs) {
+                var fit = $('fitMode').value;
+                var tl = state.timeline && state.timeline.length ? state.timeline : buildTimeline();
+                if (!tl.length) return;
+
+                ctx.fillStyle = $('bgColor').value || '#000000';
+                ctx.fillRect(0, 0, W, H);
+
+                var at = locateAt(tl, tMs);
+                if (!at) return;
+                var p = Math.max(0, Math.min(1, at.local / at.span));
+
+                /* 动画模式的画面特效：按帧序号变化，避免出现"每张都一样"的呆板效果 */
+                if (isAnimation()) {
+                    var fx = $('animFx').value;
+                    if (fx === 'random') {
+                        /* 用帧序号做种子，保证预览与导出完全一致 */
+                        var seed = at.idx * 9301 + 49297;
+                        var rnd = function (n) { seed = (seed * 9301 + 49297) % 233280; return seed / 233280 * n; };
+                        drawImage(ctx, at.frame.canvas, W, H, fit, {
+                            scale: 1 + rnd(0.16) - 0.08,
+                            ox: rnd(0.16) - 0.08,
+                            oy: rnd(0.16) - 0.08
+                        });
+                    } else if (fx === 'zoomin' || fx === 'zoomout') {
+                        var t = tl.length > 1 ? at.idx / (tl.length - 1) : 0;
+                        var z = fx === 'zoomin' ? (1 + 0.12 * t) : (1.12 - 0.12 * t);
+                        drawImage(ctx, at.frame.canvas, W, H, fit, { scale: z });
+                    } else {
+                        drawImage(ctx, at.frame.canvas, W, H, fit, {});
+                    }
+                    return;
+                }
+
+                /* 幻灯片模式的转场与推拉 */
+                var effect = $('effect').value;
+                var fxMs = Math.max(100, parseInt($('effectMs').value, 10) || 600);
+
+                if (effect === 'zoomin' || effect === 'zoomout') {
+                    var z2 = effect === 'zoomin' ? (1 + 0.12 * p) : (1.12 - 0.12 * p);
+                    drawImage(ctx, at.frame.canvas, W, H, fit, { scale: z2 });
+                    return;
+                }
+
+                if ((effect === 'fade' || effect === 'slide') && at.prev && at.local < fxMs) {
+                    var k = at.local / fxMs;
+                    if (effect === 'fade') {
+                        drawImage(ctx, at.prev.canvas, W, H, fit, { alpha: 1 });
+                        drawImage(ctx, at.frame.canvas, W, H, fit, { alpha: k });
+                    } else {
+                        drawImage(ctx, at.prev.canvas, W, H, fit, { ox: -k });
+                        drawImage(ctx, at.frame.canvas, W, H, fit, { ox: 1 - k });
+                    }
+                    return;
+                }
+
+                drawImage(ctx, at.frame.canvas, W, H, fit, {});
+            }
+
+            /* ------------------------------------------------------ 预览播放 */
+            function startAudioForPreview(totalMs) {
+                stopPreviewAudio();
+                var buf = state.audio && state.audio.buffer;
+                if (!buf) return;
+                var AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return;
+                try {
+                    var ac = state.audioCtx && state.audioCtx.state !== 'closed' ? state.audioCtx : new AC();
+                    state.audioCtx = ac;
+                    if (ac.state === 'suspended') ac.resume().catch(function () { });
+                    var rng = audioRange();
+                    if (rng.len <= 0.02) return;
+                    var need = totalMs / 1000;
+                    var mode = $('audioMode').value;
+                    var gain = ac.createGain();
+                    gain.gain.value = parseFloat($('volume').value) || 0.8;
+                    gain.connect(ac.destination);
+                    var src = ac.createBufferSource();
+                    src.buffer = buf;
+                    src.connect(gain);
+                    var loop = (mode !== 'cut') && rng.len < need - 0.05;
+                    src.loop = loop;
+                    if (loop) {
+                        src.loopStart = rng.start;
+                        src.loopEnd = rng.start + rng.len;
+                        src.start(0, rng.start);
+                    } else {
+                        src.start(0, rng.start, Math.min(rng.len, need));
+                    }
+                    state.previewAudio = { src: src };
+                } catch (e) { /* 音频失败不影响画面预览 */ }
+            }
+
+            function stopPreviewAudio() {
+                var p = state.previewAudio;
+                if (p && p.src) { try { p.src.stop(); } catch (e) { /* 已结束 */ } }
+                state.previewAudio = null;
+            }
+
+            function stopPreview() {
+                state.previewStop = true;
+                state.previewPlaying = false;
+                stopPreviewAudio();
+                $('btnPreview').textContent = '▶ 播放预览';
+                $('btnPreview').disabled = state.busy || !state.frames.length;
+            }
+
+            function togglePreview() {
+                if (state.previewPlaying) { stopPreview(); return; }
+                if (state.busy || !state.frames.length) return;
+
+                var cv = $('previewCanvas');
+                var size = targetSize();
+                /* 预览按目标比例，但限制在 640 宽以内（省性能） */
+                var pw = Math.min(640, size.w);
+                var ph = Math.max(2, Math.round(pw * size.h / size.w));
+                cv.width = pw; cv.height = ph;
+                var ctx = cv.getContext('2d');
+
+                state.previewStop = false;
+                state.previewPlaying = true;
+                var total = totalDuration();
+                var t0 = performance.now();
+                $('btnPreview').textContent = '⏹ 停止预览';
+
+                /* 预览同时播放背景音乐：从设定区间开始，按「与视频长度的关系」决定是否循环 */
+                startAudioForPreview(total);
+
+                function step() {
+                    if (state.previewStop || !state.previewPlaying) return;
+                    var t = performance.now() - t0;
+                    if (t >= total) {
+                        renderAt(ctx, pw, ph, Math.max(0, total - 1));
+                        stopPreview();
+                        return;
+                    }
+                    renderAt(ctx, pw, ph, t);
+                    requestAnimationFrame(step);
+                }
+                step();
+            }
+
+            /** 把每张图预先缩放到输出尺寸。
+             *  导出时若每帧都从原始大图缩放到画布，单帧缩放开销可能超过 16.7ms，
+             *  60fps 就会掉帧、视频被拉长。预处理一次后，导出时只是 1:1 拷贝。 */
+            /** 把一张帧缩放到输出尺寸（多级降采样，避免一次性缩小产生锯齿）
+             *  fit 由调用方在导出开始时锁定，避免中途改设置导致前后帧不一致 */
+            function scaleFrameToOutput(f, tw, th, fillColor, fit) {
+                var c = document.createElement('canvas');
+                c.width = tw; c.height = th;
+                var x = c.getContext('2d');
+                x.fillStyle = fillColor || '#000000';
+                x.fillRect(0, 0, tw, th);
+                x.imageSmoothingEnabled = true;
+                x.imageSmoothingQuality = 'high';
+
+                var iw = f.canvas.width, ih = f.canvas.height;
+
+                if (fit === 'blur') {
+                    var bs = Math.max(tw / iw, th / ih) * 1.12;
+                    x.save();
+                    x.filter = 'blur(18px) brightness(0.75)';
+                    x.drawImage(f.canvas, (tw - iw * bs) / 2, (th - ih * bs) / 2, iw * bs, ih * bs);
+                    x.restore();
+                }
+
+                var s0 = fit === 'cover' ? Math.max(tw / iw, th / ih) : Math.min(tw / iw, th / ih);
+                var dw = iw * s0, dh = ih * s0;
+
+                var cur = f.canvas, cw = iw, chh = ih;
+                while (cw > dw * 2 && chh > dh * 2) {
+                    var nw = Math.max(Math.round(dw), Math.floor(cw / 2));
+                    var nh = Math.max(Math.round(dh), Math.floor(chh / 2));
+                    var tmp = document.createElement('canvas');
+                    tmp.width = nw; tmp.height = nh;
+                    var tctx = tmp.getContext('2d');
+                    tctx.imageSmoothingEnabled = true;
+                    tctx.imageSmoothingQuality = 'high';
+                    tctx.drawImage(cur, 0, 0, nw, nh);
+                    cur = tmp; cw = nw; chh = nh;
+                }
+                x.drawImage(cur, (tw - dw) / 2, (th - dh) / 2, dw, dh);
+                return c;
+            }
+
+            /* 导出时同时保留多少张「已缩放到输出尺寸」的帧。
+               只留最近用过的几帧就够：导出是顺序推进的，转场最多同时要两张。 */
+            var SCALE_CACHE_LIMIT = 6;
+
+            /** 返回一套「按输出尺寸渲染」的帧描述。
+             *  关键点：惰性。旧实现是导出前把 N 张图全部缩成输出尺寸的画布，
+             *  120 张 1080p 就是 949 MB 常驻内存，4K 更是 3.7 GB，很容易把标签页拖死；
+             *  现在只在真正画到某一帧时才算，并且只保留最近用过的几帧（约 50 MB）。 */
+            function prepFramesForOutput(tw, th, fillColor) {
+                /* 必须先把原帧抓下来：函数返回后 state.frames 会被换成缩放后的数组 */
+                var src = state.frames.slice();
+                var fit = $('fitMode').value;   /* 锁定适配方式 */
+                var cache = {};        /* idx -> canvas */
+                var recent = [];       /* LRU 顺序 */
+                var builds = 0, hits = 0;
+
+                function scaled(idx) {
+                    if (cache[idx]) {
+                        hits++;
+                        var at = recent.indexOf(idx);
+                        if (at >= 0) recent.splice(at, 1);
+                        recent.push(idx);
+                        return cache[idx];
+                    }
+                    builds++;
+                    var c = scaleFrameToOutput(src[idx], tw, th, fillColor, fit);
+                    cache[idx] = c;
+                    recent.push(idx);
+                    while (recent.length > SCALE_CACHE_LIMIT) delete cache[recent.shift()];
+                    return c;
+                }
+
+                var out = src.map(function (f, i) {
+                    var item = {
+                        id: f.id, name: f.name, duration: f.duration,
+                        w: tw, h: th, thumb: f.thumb
+                    };
+                    /* renderAt / drawImage 只读 .canvas，做成取值时才计算 */
+                    Object.defineProperty(item, 'canvas', {
+                        enumerable: true,
+                        get: function () { return scaled(i); }
+                    });
+                    return item;
+                });
+
+                /* 自检用：确认没有把全部帧都实体化 */
+                out.cacheStats = function () {
+                    return {
+                        total: out.length, built: builds, hits: hits,
+                        live: Object.keys(cache).length, limit: SCALE_CACHE_LIMIT,
+                        liveBytes: Object.keys(cache).reduce(function (a, k) {
+                            return a + cache[k].width * cache[k].height * 4;
+                        }, 0)
+                    };
+                };
+                return out;
+            }
+
+            /* ---------------------------------------------- 快速导出（WebCodecs）
+               与实时录制的区别：帧的时间戳由我们指定，不再受墙上时钟约束，
+               因此帧可以背靠背编码完，最后封装成 MP4。速度通常快 10 倍以上，
+               而且时间戳精确到帧、不会因为标签页切到后台而拉长。 */
+            /* ------------------------------------------------ AVC level 选择
+               H.264 的 Level 同时限制「单帧编码区像素数」和「宏块率（与帧率有关）」。
+               写死某个 level 会让高分辨率直接编码失败，所以按宽高和帧率算。
+               注意：编码区按 16×16 宏块向上取整，1920×1080 实际是 1920×1088。 */
+            var AVC_LEVELS = [
+                { code: '1E', name: '3.0', maxFrameMbs: 1620, maxMbsPerSec: 40500 },
+                { code: '1F', name: '3.1', maxFrameMbs: 3600, maxMbsPerSec: 108000 },
+                { code: '20', name: '3.2', maxFrameMbs: 5120, maxMbsPerSec: 216000 },
+                { code: '28', name: '4.0', maxFrameMbs: 8192, maxMbsPerSec: 245760 },
+                { code: '29', name: '4.1', maxFrameMbs: 8192, maxMbsPerSec: 245760 },
+                { code: '2A', name: '4.2', maxFrameMbs: 8704, maxMbsPerSec: 522240 },
+                { code: '32', name: '5.0', maxFrameMbs: 22080, maxMbsPerSec: 589824 },
+                { code: '33', name: '5.1', maxFrameMbs: 36864, maxMbsPerSec: 983040 },
+                { code: '34', name: '5.2', maxFrameMbs: 36864, maxMbsPerSec: 2073600 }
+            ];
+
+            /** 按分辨率与帧率挑一个能容纳它的最低 Level，返回完整 codec 字符串 */
+            function pickAvcCodec(w, h, fps) {
+                var mbsW = Math.ceil(w / 16);
+                var mbsH = Math.ceil(h / 16);
+                var frameMbs = mbsW * mbsH;              /* 单帧宏块数（已含取整） */
+                var perSec = frameMbs * Math.max(1, Math.round(fps || 30));
+                for (var i = 0; i < AVC_LEVELS.length; i++) {
+                    var L = AVC_LEVELS[i];
+                    if (frameMbs <= L.maxFrameMbs && perSec <= L.maxMbsPerSec) {
+                        /* 42 = Baseline profile，E0 = 无约束 */
+                        return { codec: 'avc1.42E0' + L.code, level: L.name, frameMbs: frameMbs, perSec: perSec };
+                    }
+                }
+                /* 超出 5.2 的量级：交给浏览器自己决定，避免直接拒绝 */
+                return { codec: 'avc1.42E034', level: '5.2+', frameMbs: frameMbs, perSec: perSec };
+            }
+
+            function canFastExport() {
+                return typeof VideoEncoder !== 'undefined' &&
+                    typeof VideoFrame !== 'undefined' &&
+                    typeof Mp4Muxer === 'function';
+            }
+
+            /** 读取音频区间设置，返回以「秒」为单位的起点与长度（0 长度表示用满） */
+            function audioRange() {
+                var buf = state.audio && state.audio.buffer;
+                var total = buf ? buf.duration : 0;
+                var start = Math.max(0, parseFloat($('audioStart').value) || 0);
+                if (total && start > total) start = Math.max(0, total - 0.05);
+                var want = Math.max(0, parseFloat($('audioRange').value) || 0);
+                var avail = Math.max(0, total - start);
+                /* 填 0 就是用满剩余可用部分 */
+                var len = want > 0 ? Math.min(want, avail) : avail;
+                return { start: start, len: len, avail: avail, total: total, want: want };
+            }
+
+            /** 把 AudioBuffer 处理成「按需长度」的 Float32 声道数据
+             *  支持：起始偏移、取用长度、截断、循环 */
+            function buildAudioSamples(totalMs) {
+                var buf = state.audio && state.audio.buffer;
+                if (!buf) return null;
+                var sr = buf.sampleRate;
+                var need = Math.ceil(totalMs / 1000 * sr);
+                var mode = $('audioMode').value;
+                var rng = audioRange();
+                var chCount = Math.min(2, buf.numberOfChannels);
+                var out = [];
+                for (var c = 0; c < chCount; c++) out.push(new Float32Array(need));
+
+                var src = [];
+                for (var k = 0; k < chCount; k++) src.push(buf.getChannelData(k));
+
+                /* 取用区间在样本层面的边界 */
+                var from = Math.min(buf.length, Math.round(rng.start * sr));
+                var segLen = Math.min(buf.length - from, Math.round(rng.len * sr));
+                if (segLen <= 0) return { channels: out, sampleRate: sr, gain: parseFloat($('volume').value) || 0.8 };
+
+                if (mode === 'cut') {
+                    /* 只放一遍：长了截断、短了留静音 */
+                    var n1 = Math.min(need, segLen);
+                    for (var c1 = 0; c1 < chCount; c1++) out[c1].set(src[c1].subarray(from, from + n1), 0);
+                } else {
+                    /* loop / loopcut：把取用区间循环填满 */
+                    var pos = 0;
+                    while (pos < need) {
+                        var n2 = Math.min(segLen, need - pos);
+                        for (var c2 = 0; c2 < chCount; c2++) out[c2].set(src[c2].subarray(from, from + n2), pos);
+                        pos += n2;
+                    }
+                }
+                return { channels: out, sampleRate: sr, gain: parseFloat($('volume').value) || 0.8 };
+            }
+
+            function exportFast() {
+                var size = targetSize();
+                var fps = currentFps();
+                /* 按分辨率与帧率选 AVC level —— 写死会导致高分辨率失败。
+                   注意：必须在下面第一条状态提示之前算好，否则读到 undefined。 */
+                var avcInfo = pickAvcCodec(size.w, size.h, fps);
+                var bitrate = parseInt($('bitrate').value, 10) || 4000000;
+                var total = totalDuration();
+                var anim = isAnimation();
+                var per = perImageFrames();
+                /* 每帧时长永远是一帧的时间。动画模式下 totalFrames 已经乘过 per 了，
+                   这里若再乘一次 per，整片就会正好变成 per 倍长，
+                   而且 steps[] 的时间会提前顶到 total，后半段冻在最后一张。 */
+                var frameDurUs = Math.round(1e6 / fps);
+                var totalFrames = anim ? state.frames.length * per : Math.max(1, Math.round(total / 1000 * fps));
+
+                state.busy = true;
+                $('btnExport').disabled = true;
+                $('btnPreview').disabled = true;
+                $('btnDownload').disabled = true;
+                $('resultCard').style.display = 'none';
+                $('progressWrap').style.display = '';
+                $('recHint').style.display = 'none';
+                Tool.setStatus($('exportStatus'), 'info',
+                    '准备编码…（H.264 Level ' + avcInfo.level + '，编码区 ' +
+                    (Math.ceil(size.w / 16) * 16) + '×' + (Math.ceil(size.h / 16) * 16) + '）');
+
+                var t0 = performance.now();
+                var savedFrames = state.frames;
+                var savedTimeline = state.timeline;
+
+                /* 预处理：缩到输出尺寸 —— 与实时录制共用同一函数 */
+                state.frames = prepFramesForOutput(size.w, size.h, $('bgColor').value);
+                state.timeline = buildTimeline();
+                /* 每帧对应的时间轴位置（毫秒）；动画模式用帧时长换算，幻灯片用帧率换算 */
+                var stepMs = 1000 / fps;   /* 两种模式都是「一帧的时间」 */
+                var steps = [];
+                for (var i = 0; i < totalFrames; i++) {
+                    steps.push(Math.max(0, Math.min(total - 1, i * stepMs)));
+                }
+
+                /* 按分辨率与帧率选 AVC level —— 写死会导致高分辨率失败 */
+                var avcInfo = pickAvcCodec(size.w, size.h, fps);
+                var mux = new Mp4Muxer({ timescale: 1000 });
+                mux.setVideoConfig({ codec: avcInfo.codec, width: size.w, height: size.h });
+                var encErr = null;
+                var venc = new VideoEncoder({
+                    output: function (chunk, meta) {
+                        try {
+                            if (meta && meta.decoderConfig) {
+                                mux.setVideoConfig({
+                                    codec: meta.decoderConfig.codec,
+                                    width: size.w, height: size.h,
+                                    description: meta.decoderConfig.description
+                                });
+                            }
+                            mux.addVideoChunk(chunk);
+                        } catch (e) { encErr = e.message; }
+                    },
+                    error: function (e) { encErr = String(e && e.message ? e.message : e); }
+                });
+                venc.configure({
+                    codec: avcInfo.codec,
+                    width: size.w, height: size.h,
+                    bitrate: bitrate,
+                    framerate: fps,
+                    latencyMode: 'quality'
+                });
+
+                var aenc = null;
+                var audioSamples = state.audio ? buildAudioSamples(total) : null;
+                if (audioSamples && typeof AudioEncoder !== 'undefined') {
+                    aenc = new AudioEncoder({
+                        output: function (chunk, meta) {
+                            try {
+                                if (meta && meta.decoderConfig) {
+                                    mux.setAudioConfig({
+                                        codec: meta.decoderConfig.codec,
+                                        sampleRate: meta.decoderConfig.sampleRate,
+                                        numberOfChannels: meta.decoderConfig.numberOfChannels,
+                                        description: meta.decoderConfig.description
+                                    });
+                                }
+                                mux.addAudioChunk(chunk);
+                            } catch (e) { /* 音轨失败不影响视频 */ }
+                        },
+                        error: function () { /* 忽略音频错误，继续出视频 */ }
+                    });
+                    aenc.configure({
+                        codec: 'mp4a.40.2',
+                        sampleRate: audioSamples.sampleRate,
+                        numberOfChannels: audioSamples.channels.length,
+                        bitrate: 128000
+                    });
+                }
+
+                var gop = Math.max(1, Math.round(fps * 2));
+
+                function pushAudio() {
+                    if (!aenc) return Promise.resolve();
+                    var sr = audioSamples.sampleRate;
+                    var ch = audioSamples.channels;
+                    var totalSamples = ch[0].length;
+                    var CHUNK = 1024;
+                    for (var off = 0; off < totalSamples; off += CHUNK) {
+                        var n = Math.min(CHUNK, totalSamples - off);
+                        var planar = new Float32Array(CHUNK * ch.length);
+                        for (var c = 0; c < ch.length; c++) {
+                            var dst = planar.subarray(c * CHUNK, c * CHUNK + CHUNK);
+                            dst.set(ch[c].subarray(off, off + n));   /* 不足的补 0 */
+                            if (audioSamples.gain !== 1) {
+                                for (var z = 0; z < n; z++) dst[z] *= audioSamples.gain;
+                            }
+                        }
+                        var ad = new AudioData({
+                            format: 'f32-planar',
+                            sampleRate: sr,
+                            numberOfFrames: CHUNK,
+                            numberOfChannels: ch.length,
+                            timestamp: Math.round(off / sr * 1e6),
+                            data: planar
+                        });
+                        aenc.encode(ad);
+                        ad.close();
+                    }
+                    return aenc.flush();
+                }
+
+                /* 编码画布：先把第 0 帧画好，再逐帧更新 */
+                var fastCanvas = document.createElement('canvas');
+                fastCanvas.width = size.w;
+                fastCanvas.height = size.h;
+                var fastCtx = fastCanvas.getContext('2d');
+                renderAt(fastCtx, size.w, size.h, 0);
+
+                /* 逐帧编码：不停顿，直到全部送完 */
+                var idx = 0;
+                function encodeFrames() {
+                    if (encErr) return Promise.reject(new Error(encErr));
+                    if (idx >= totalFrames) return Promise.resolve();
+                    renderAt(fastCtx, size.w, size.h, steps[idx]);
+                    var vf = new VideoFrame(fastCanvas, {
+                        timestamp: idx * frameDurUs,
+                        duration: frameDurUs
+                    });
+                    venc.encode(vf, { keyFrame: idx % gop === 0 });
+                    vf.close();
+                    idx++;
+
+                    var pct = Math.round(idx / totalFrames * 95);
+                    $('progressBar').style.width = pct + '%';
+                    if (idx % 10 === 0 || idx === totalFrames) {
+                        Tool.setStatus($('exportStatus'), 'info',
+                            '编码中 ' + idx + ' / ' + totalFrames + ' 帧…');
+                    }
+                    /* 背压：队列太长会让内存飙升 */
+                    if (venc.encodeQueueSize > 8) {
+                        return new Promise(function (res) { setTimeout(res, 0); }).then(encodeFrames);
+                    }
+                    return encodeFrames();
+                }
+
+                encodeFrames().then(function () { return venc.flush(); })
+                    .then(function () { return pushAudio(); })
+                    .then(function () {
+                        if (encErr) throw new Error(encErr);
+                        Tool.setStatus($('exportStatus'), 'info', '正在封装 MP4…');
+                        $('progressBar').style.width = '98%';
+                        return new Promise(function (res) { setTimeout(res, 0); });
+                    })
+                    .then(function () {
+                        var buf = mux.finalize();
+                        var blob = new Blob([buf], { type: 'video/mp4' });
+                        var elapsed = performance.now() - t0;
+                        finishExport(blob, {
+                            size: size, fps: fps, total: total, totalFrames: totalFrames,
+                            elapsed: elapsed, ext: 'mp4', mode: 'fast'
+                        });
+                    })
+                    .catch(function (e) {
+                        Tool.setStatus($('exportStatus'), 'err', '快速导出失败：' +
+                            (e && e.message ? e.message : e) +
+                            '\n可以切换到「实时录制」方式再试一次。');
+                    })
+                    .then(function () {
+                        state.frames = savedFrames;
+                        state.timeline = savedTimeline;
+                        state.busy = false;
+                        $('progressWrap').style.display = 'none';
+                        renderFrames();
+                    });
+            }
+
+            /** 实时录制与快速导出共用的收尾：填结果区、给提示 */
+            function finishExport(blob, info) {
+                state.resultBlob = blob;
+                if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
+                state.resultUrl = URL.createObjectURL(blob);
+
+                $('resultBox').innerHTML = '<video controls playsinline src="' + state.resultUrl + '"></video>';
+                $('rSize').textContent = info.size.w + ' × ' + info.size.h;
+                $('rDuration').textContent = (info.total / 1000).toFixed(2) + ' 秒';
+                $('rFps').textContent = info.fps + ' fps（共 ' + info.totalFrames + ' 帧）';
+                $('rFormat').textContent = info.ext.toUpperCase() +
+                    (info.mode === 'fast' ? ' · 快速导出' : ' · 实时录制');
+                $('rBytes').textContent = Tool.formatBytes(blob.size);
+                $('resultBadge').textContent = blob.size > 200 * 1024 * 1024 ? '偏大' : '已完成';
+                $('resultBadge').className = 'badge ' + (blob.size > 200 * 1024 * 1024 ? 'warn' : 'ok');
+                $('resultCard').style.display = '';
+                $('btnDownload').disabled = false;
+                $('btnExport').disabled = false;
+                $('btnPreview').disabled = false;
+
+                var sec = info.elapsed / 1000;
+                var ratio = info.total / 1000 > 0 ? (info.total / 1000) / Math.max(0.001, sec) : 0;
+                Tool.setStatus($('exportStatus'), 'ok',
+                    '导出完成：' + Tool.formatBytes(blob.size) + '，耗时 ' + sec.toFixed(2) + ' 秒' +
+                    (info.mode === 'fast' ? '（约 ' + ratio.toFixed(1) + '× 速度）' : '') +
+                    (blob.size > 200 * 1024 * 1024 ? '。文件偏大，建议降低码率或分辨率。' : ''));
+                Tool.toast('视频导出完成', 'ok');
+                $('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            /* ------------------------------------------------------ 导出视频 */
+            function pickFormat() {
+                var f = $('format').value;
+                var all = detectFormats();
+                return all.filter(function (x) { return x.mime === f; })[0] || all[0];
+            }
+
+            function exportVideo() {
+                if (state.busy) return;
+                if (!state.frames.length) { Tool.setStatus($('exportStatus'), 'err', '先添加图片。'); return; }
+                if (typeof MediaRecorder === 'undefined' || !HTMLCanvasElement.prototype.captureStream) {
+                    Tool.setStatus($('exportStatus'), 'err', '当前浏览器不支持视频录制（需要 MediaRecorder 与 captureStream）。请换 Chrome / Edge 再试。');
+                    return;
+                }
+
+                var fmt = pickFormat();
+                if (!fmt) { Tool.setStatus($('exportStatus'), 'err', '没有可用的视频编码器。'); return; }
+
+                /* 音频上下文常因浏览器自动播放策略处于 suspended，
+                   此时音源不产生数据，编码器会直接把整条音轨丢掉。必须在用户手势里唤醒它。 */
+                if (state.audio && state.audio.buffer && state.audioCtx && state.audioCtx.state === 'suspended') {
+                    state.audioCtx.resume().catch(function () { });
+                }
+
+                var size = targetSize();
+                var fps = parseInt($('fps').value, 10) || 30;
+                var bitrate = parseInt($('bitrate').value, 10) || 4000000;
+                var total = totalDuration();
+                var totalFrames = isAnimation()
+                    ? state.frames.length * perImageFrames()
+                    : Math.round(total / 1000 * fps);
+
+                var canvas = document.createElement('canvas');
+                canvas.width = size.w;
+                canvas.height = size.h;
+                var ctx = canvas.getContext('2d');
+
+                /* 预处理：把每张图缩到输出尺寸，并据此重建时间轴。
+                   这一步是 60fps 能跑准的关键 —— 否则每帧都在缩放原图。 */
+                var savedFrames = state.frames;
+                var savedTimeline = state.timeline;
+                state.frames = prepFramesForOutput(size.w, size.h, $('bgColor').value);
+                state.timeline = buildTimeline();
+                renderAt(ctx, size.w, size.h, 0);
+
+                var stream;
+                try {
+                    stream = canvas.captureStream(fps);
+                } catch (e) {
+                    Tool.setStatus($('exportStatus'), 'err', '无法从画布获取视频流：' + e.message);
+                    return;
+                }
+                if (!stream || !stream.getVideoTracks().length) {
+                    Tool.setStatus($('exportStatus'), 'err', '浏览器没有给出视频轨道，导出无法进行。');
+                    return;
+                }
+
+                /* 音频轨（可选） */
+                var audioNodes = null;
+                var stopAudio = function () { };
+                if (state.audio && state.audio.buffer) {
+                    try {
+                        var AC = window.AudioContext || window.webkitAudioContext;
+                        var ac = state.audioCtx && state.audioCtx.state !== 'closed' ? state.audioCtx : new AC();
+                        state.audioCtx = ac;
+                        var dest = ac.createMediaStreamDestination();
+                        var gain = ac.createGain();
+                        gain.gain.value = parseFloat($('volume').value) || 0.8;
+                        gain.connect(dest);
+
+                        var mode = $('audioMode').value;
+                        var bufDur = state.audio.buffer.duration * 1000;
+                        var srcs = [];
+                        var startAt = ac.currentTime + 0.06;
+                        var needLoop = (mode === 'loop' || mode === 'loopcut') && bufDur < total;
+                        var playMs = (mode === 'cut') ? Math.min(bufDur, total) : (needLoop ? total : Math.min(bufDur, total));
+
+                        var src = ac.createBufferSource();
+                        src.buffer = state.audio.buffer;
+                        src.loop = needLoop;
+                        src.connect(gain);
+                        src.start(startAt);
+                        srcs.push(src);
+
+                        audioNodes = { ac: ac, srcs: srcs, dest: dest };
+                        stopAudio = function () {
+                            srcs.forEach(function (s) { try { s.stop(); } catch (e) { /* 已停止 */ } });
+                        };
+                        stream.addTrack(dest.stream.getAudioTracks()[0]);
+                        audioNodes.state = ac.state;
+                        if (ac.state !== 'running') {
+                            Tool.setStatus($('exportStatus'), 'warn', '音频上下文未运行（' + ac.state + '），背景音乐可能不会被录进去。');
+                        }
+                    } catch (e2) {
+                        Tool.setStatus($('exportStatus'), 'warn', '背景音乐无法加入（' + e2.message + '），将只导出画面。');
+                    }
+                }
+
+                var chunks = [];
+                var rec;
+                try {
+                    rec = new MediaRecorder(stream, {
+                        mimeType: fmt.mime,
+                        videoBitsPerSecond: bitrate,
+                        audioBitsPerSecond: 128000
+                    });
+                } catch (e3) {
+                    Tool.setStatus($('exportStatus'), 'err', '创建录制器失败：' + e3.message);
+                    return;
+                }
+                rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+
+                var finished = new Promise(function (resolve) {
+                    rec.onstop = function () { resolve(); };
+                });
+
+                state.busy = true;
+                $('btnExport').disabled = true;
+                $('btnPreview').disabled = true;
+                $('btnDownload').disabled = true;
+                $('resultCard').style.display = 'none';
+                $('progressWrap').style.display = '';
+                $('recHint').style.display = '';
+                Tool.setStatus($('exportStatus'), 'info', '开始录制…');
+
+                var t0 = performance.now();
+                var rafId = 0;
+                var lastPct = -1;
+                var stopTimer = 0;
+
+                function loop() {
+                    var t = performance.now() - t0;
+                    if (t >= total) {
+                        renderAt(ctx, size.w, size.h, total - 1);
+                        if (rec.state !== 'inactive') rec.stop();
+                        return;
+                    }
+                    renderAt(ctx, size.w, size.h, t);
+                    var pct = Math.floor(t / total * 100);
+                    if (pct !== lastPct) {
+                        lastPct = pct;
+                        $('progressBar').style.width = pct + '%';
+                        Tool.setStatus($('exportStatus'), 'info',
+                            '录制中 ' + (t / 1000).toFixed(1) + ' / ' + (total / 1000).toFixed(1) + ' 秒…');
+                    }
+                    rafId = requestAnimationFrame(loop);
+                }
+
+                rec.start();
+                rafId = requestAnimationFrame(loop);
+                /* 兜底：标签页切到后台时 requestAnimationFrame 会被冻结，上面的 loop 不再执行，
+                   录制就停不下来（画面冻在最后一帧），文件时长会远超预期。
+                   定时器在后台仍会触发，用它保证按时收工。 */
+                stopTimer = setInterval(function () {
+                    if (performance.now() - t0 >= total && rec.state !== 'inactive') rec.stop();
+                }, 250);
+
+                finished.then(function () {
+                    clearInterval(stopTimer);
+                    cancelAnimationFrame(rafId);
+                    stopAudio();
+                    /* 还原原始帧与时间轴（预处理的结果只用于这次导出） */
+                    state.frames = savedFrames;
+                    state.timeline = savedTimeline;
+                    stream.getTracks().forEach(function (t) { t.stop(); });
+
+                    var elapsed = performance.now() - t0;
+                    var blob = new Blob(chunks, { type: fmt.mime.split(';')[0] });
+
+                    state.busy = false;
+                    $('progressWrap').style.display = 'none';
+                    $('recHint').style.display = 'none';
+                    $('btnPreview').disabled = false;
+                    $('btnExport').disabled = false;
+                    state.previewPlaying = false;
+                    $('btnPreview').textContent = '▶ 播放预览';
+
+                    if (!blob.size) {
+                        Tool.setStatus($('exportStatus'), 'err', '录制没有产生数据。可能是浏览器回收了编码器，请减少图片数量或降低分辨率后重试。');
+                        renderFrames();
+                        return;
+                    }
+
+                    /* 与快速导出共用同一套收尾逻辑，保证标注与统计一致 */
+                    finishExport(blob, {
+                        size: size, fps: fps, total: total, totalFrames: totalFrames,
+                        elapsed: elapsed, ext: fmt.ext, mode: 'realtime'
+                    });
+                    /* 实时录制是按墙上时钟录的，"我们想要的时长"和"文件实际多长"可能不一致，
+                       所以这里把结果卡片的时长改成读产物的真实值，避免显示的数和播放器对不上。 */
+                    var vEl = $('resultBox').querySelector('video');
+                    var showActual = function () {
+                        var d = vEl && vEl.duration;
+                        if (!isFinite(d) || d <= 0) return;
+                        $('rDuration').textContent = d.toFixed(2) + ' 秒';
+                        var diff = d - total / 1000;
+                        if (Math.abs(diff) > 0.15) {
+                            Tool.setStatus($('exportStatus'), 'warn',
+                                '导出完成：' + Tool.formatBytes(blob.size) + '，文件实际时长 ' + d.toFixed(2) +
+                                ' 秒，设定的是 ' + (total / 1000).toFixed(2) + ' 秒（相差 ' + diff.toFixed(2) +
+                                ' 秒）。\n实时录制是按墙上时钟抓画面的：标签页被切到后台时画面会漏掉，' +
+                                '时长也就不准了。需要精确时长请用「快速导出」。');
+                        }
+                    };
+                    if (vEl) {
+                        if (vEl.readyState >= 1) showActual();
+                        else vEl.addEventListener('loadedmetadata', showActual, { once: true });
+                    }
+                    var drift = elapsed / 1000 - total / 1000;
+                    if (Math.abs(drift) > 1) {
+                        Tool.setStatus($('exportStatus'), 'warn',
+                            '导出完成：' + Tool.formatBytes(blob.size) + '，录制用时 ' + (elapsed / 1000).toFixed(1) +
+                            ' 秒。与视频时长相差 ' + drift.toFixed(1) + ' 秒 —— 导出时标签页可能被切到了后台，\n' +
+                            '想要精确时长建议改用「快速导出」。');
+                    }
+                    renderFrames();
+                });
+            }
+
+            /* ------------------------------------------------------ 音频处理 */
+            function handleAudioFile(file) {
+                if (!file) return;
+                var AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) { Tool.setStatus($('audioInfo'), 'err', '浏览器不支持 Web Audio，无法加入背景音乐。'); return; }
+                Tool.setStatus($('audioInfo'), 'info', '正在解码音频…');
+                var reader = new FileReader();
+                reader.onload = function () {
+                    try {
+                        var ac = state.audioCtx && state.audioCtx.state !== 'closed' ? state.audioCtx : new AC();
+                        state.audioCtx = ac;
+                        if (ac.state === 'suspended') ac.resume().catch(function () { });
+                        ac.decodeAudioData(reader.result, function (buffer) {
+                            state.audio = { name: file.name, buffer: buffer, duration: buffer.duration };
+                            Tool.setStatus($('audioInfo'), 'ok',
+                                '已载入：' + file.name + '（' + buffer.duration.toFixed(1) + ' 秒）');
+                            $('btnClearAudio').disabled = false;
+                            updateAudioInfo();
+                        }, function () {
+                            Tool.setStatus($('audioInfo'), 'err', '音频解码失败，换一个文件试试（推荐 MP3 / M4A / WAV）。');
+                        });
+                    } catch (e) {
+                        Tool.setStatus($('audioInfo'), 'err', '音频处理出错：' + e.message);
+                    }
+                };
+                reader.onerror = function () { Tool.setStatus($('audioInfo'), 'err', '读取音频文件失败。'); };
+                reader.readAsArrayBuffer(file);
+            }
+
+            /** 「取用长度」是否被显式指定（填 0 表示用满） */
+            function audioWanted() { return (parseFloat($('audioRange').value) || 0) > 0; }
+
+            /** 更新音频区间提示（含与视频长度的关系） */
+            function updateAudioInfo() {
+                var buf = state.audio && state.audio.buffer;
+                if (!buf) {
+                    $('audioStartHint').textContent = '从音频的第几秒开始取用。';
+                    $('audioRangeHint').textContent = '填 0 表示「用满整段」（到音频结尾或视频结尾为止）。';
+                    $('audioRangeInfo').textContent = '—';
+                    return;
+                }
+                var rng = audioRange();
+                var total = rng.total;
+                $('audioStart').max = total.toFixed(2);
+                $('audioStartHint').textContent = '音频共 ' + total.toFixed(1) + ' 秒。';
+                $('audioRangeHint').textContent = audioWanted()
+                    ? '当前取用 ' + rng.len.toFixed(1) + ' 秒（从 ' + rng.start.toFixed(1) + 's 到 ' +
+                      (rng.start + rng.len).toFixed(1) + 's）'
+                    : '填 0 表示「用满整段」（到音频结尾或视频结尾为止）。';
+
+                var videoSec = totalDuration() / 1000;
+                var mode = $('audioMode').value;
+                var used;
+                if (mode === 'cut') used = Math.min(rng.len, videoSec);
+                else used = videoSec;
+                var note;
+                if (used <= 0.01) note = '当前设置不会写入音频。';
+                else if (mode === 'cut' && rng.len < videoSec - 0.05) {
+                    note = '视频 ' + videoSec.toFixed(1) + ' 秒，但只取用 ' + rng.len.toFixed(1) +
+                        ' 秒音频，之后是静音。';
+                } else if (mode !== 'cut' && rng.len < videoSec - 0.05) {
+                    note = '视频 ' + videoSec.toFixed(1) + ' 秒，这段音频 ' + rng.len.toFixed(1) +
+                        ' 秒会循环播放。';
+                } else {
+                    note = '视频 ' + videoSec.toFixed(1) + ' 秒，音频足够长。';
+                }
+                $('audioRangeInfo').textContent = note;
+            }
+
+            /** 单独试听所选区间（不动画面） */
+            function previewAudioSegment() {
+                var buf = state.audio && state.audio.buffer;
+                if (!buf) { Tool.toast('还没有选择音频文件', 'warn'); return; }
+                var AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) { Tool.setStatus($('audioInfo'), 'err', '浏览器不支持 Web Audio。'); return; }
+                stopAudioPreview();
+                try {
+                    var ac = state.audioCtx && state.audioCtx.state !== 'closed' ? state.audioCtx : new AC();
+                    state.audioCtx = ac;
+                    if (ac.state === 'suspended') ac.resume().catch(function () { });
+                    var rng = audioRange();
+                    var maxSec = totalDuration() / 1000;
+                    var playLen = Math.min(rng.len, rng.len > 0 ? rng.len : 0);
+                    if (playLen <= 0) { Tool.toast('这段没有可播的音频', 'warn'); return; }
+                    /* 试听最多播到视频长度，避免误以为整段音频都会用上 */
+                    playLen = Math.min(playLen, Math.max(1, maxSec));
+
+                    var gain = ac.createGain();
+                    gain.gain.value = parseFloat($('volume').value) || 0.8;
+                    gain.connect(ac.destination);
+                    var src = ac.createBufferSource();
+                    src.buffer = buf;
+                    src.connect(gain);
+                    src.start(0, rng.start, playLen);
+                    state.audioPreview = { src: src, ac: ac, gain: gain };
+                    $('btnStopAudio').disabled = false;
+                    src.onended = function () { stopAudioPreview(); };
+                    Tool.setStatus($('audioInfo'), 'info',
+                        '试听中：从 ' + rng.start.toFixed(1) + 's 开始，播 ' + playLen.toFixed(1) + ' 秒');
+                } catch (e) {
+                    Tool.setStatus($('audioInfo'), 'err', '试听失败：' + e.message);
+                }
+            }
+
+            function stopAudioPreview() {
+                var p = state.audioPreview;
+                if (p && p.src) { try { p.src.stop(); } catch (e) { /* 已结束 */ } }
+                state.audioPreview = null;
+                $('btnStopAudio').disabled = true;
+            }
+
+            /* ------------------------------------------------------ 事件绑定 */
+            function bind() {
+                var zone = $('dropZone');
+                var input = $('fileInput');
+                zone.addEventListener('click', function () { input.click(); });
+                input.addEventListener('change', function () {
+                    addFiles(input.files).then(function () { input.value = ''; });
+                });
+                ['dragenter', 'dragover'].forEach(function (ev) {
+                    zone.addEventListener(ev, function (e) {
+                        e.preventDefault(); e.stopPropagation();
+                        zone.classList.add('dragover');
+                    });
+                });
+                ['dragleave', 'drop'].forEach(function (ev) {
+                    zone.addEventListener(ev, function (e) {
+                        e.preventDefault(); e.stopPropagation();
+                        if (ev === 'dragleave' && zone.contains(e.relatedTarget)) return;
+                        zone.classList.remove('dragover');
+                    });
+                });
+                zone.addEventListener('drop', function (e) {
+                    if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+                });
+                document.addEventListener('dragover', function (e) { e.preventDefault(); });
+                document.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    if (e.target.closest && e.target.closest('#dropZone')) return;
+                    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+                        addFiles(e.dataTransfer.files);
+                    }
+                });
+
+                $('frameList').addEventListener('click', function (e) {
+                    var btn = e.target.closest ? e.target.closest('[data-act]') : null;
+                    if (!btn || btn.tagName !== 'BUTTON') return;
+                    var item = btn.closest('.frame-item');
+                    if (!item) return;
+                    var id = parseInt(item.getAttribute('data-id'), 10);
+                    var act = btn.getAttribute('data-act');
+                    if (act === 'del') {
+                        state.frames = state.frames.filter(function (f) { return f.id !== id; });
+                        renderFrames();
+                    } else if (act === 'left') moveFrame(id, -1);
+                    else if (act === 'right') moveFrame(id, 1);
+                });
+                $('frameList').addEventListener('change', function (e) {
+                    var el = e.target;
+                    if (el.getAttribute && el.getAttribute('data-act') === 'dur') {
+                        var item = el.closest('.frame-item');
+                        var id = parseInt(item.getAttribute('data-id'), 10);
+                        var v = clamp(parseInt(el.value, 10) || 2500, MIN_DURATION_SS, 60000);
+                        state.frames.forEach(function (f) { if (f.id === id) f.duration = v; });
+                        el.value = v;
+                        updateTotals();
+                    }
+                });
+
+                $('btnApplyAll').addEventListener('click', function () {
+                    var v = clamp(parseInt($('defDuration').value, 10) || 2500, MIN_DURATION_SS, 60000);
+                    state.frames.forEach(function (f) { f.duration = v; });
+                    renderFrames();
+                    Tool.toast('已把每张时长设为 ' + v + ' ms', 'ok');
+                });
+                $('btnReverse').addEventListener('click', function () {
+                    state.frames.reverse();
+                    renderFrames();
+                });
+                $('btnPingpong').addEventListener('click', function () {
+                    if (state.frames.length < 2) return;
+                    var mirror = state.frames.slice(0, -1).reverse().map(function (f) {
+                        return Object.assign({}, f, { id: state.nextId++ });
+                    });
+                    state.frames = state.frames.concat(mirror);
+                    renderFrames();
+                    Tool.toast('已追加 ' + mirror.length + ' 张，来回播放更连贯', 'ok');
+                });
+                $('btnClear').addEventListener('click', function () {
+                    if (!state.frames.length) return;
+                    state.frames = [];
+                    renderFrames();
+                    $('resultCard').style.display = 'none';
+                    Tool.setStatus($('addStatus'), 'info', '已清空图片。');
+                });
+
+                $('preset').addEventListener('change', function () {
+                    $('customSizeRow').style.display = this.value === 'custom' ? '' : 'none';
+                });
+
+                /* 时长模型：切换时重建时间轴并刷新总计 */
+                ['mode', 'framesPerImage', 'fps', 'effect', 'effectMs', 'fitMode', 'bgColor'].forEach(function (id) {
+                    $(id).addEventListener('change', function () {
+                        state.timeline = null;
+                        updateTotals();
+                        renderFrames();
+                    });
+                });
+                $('animFx').addEventListener('change', function () { state.timeline = null; });
+                $('defDuration').addEventListener('change', function () {
+                    this.value = clamp(parseInt(this.value, 10) || 2500, MIN_DURATION_SS, 60000);
+                });
+                $('volume').addEventListener('input', function () {
+                    $('volumeHint').textContent = Math.round(this.value * 100) + '%';
+                });
+
+                ['audioStart', 'audioRange'].forEach(function (id) {
+                    $(id).addEventListener('input', updateAudioInfo);
+                    $(id).addEventListener('change', updateAudioInfo);
+                });
+                $('btnPreviewAudio').addEventListener('click', previewAudioSegment);
+                $('btnStopAudio').addEventListener('click', stopAudioPreview);
+                $('btnPickAudio').addEventListener('click', function () { $('audioInput').click(); });
+                $('audioInput').addEventListener('change', function () {
+                    handleAudioFile(this.files && this.files[0]);
+                    this.value = '';
+                });
+                $('btnClearAudio').addEventListener('click', function () {
+                    state.audio = null;
+                    stopAudioPreview();
+                    $('audioInfo').textContent = '未选择。支持 MP3 / M4A / WAV / OGG 等浏览器能解码的格式。';
+                    $('btnClearAudio').disabled = true;
+                    $('audioStart').value = '0';
+                    $('audioRange').value = '0';
+                    updateAudioInfo();
+                });
+
+                $('btnPreview').addEventListener('click', togglePreview);
+                $('btnExport').addEventListener('click', function () {
+                    if ($('exportMode').value === 'fast' && canFastExport()) exportFast();
+                    else exportVideo();
+                });
+                $('btnDownload').addEventListener('click', function () {
+                    if (!state.resultBlob) return;
+                    var fmt = pickFormat();
+                    var size = targetSize();
+                    Tool.download(state.resultBlob, 'slideshow-' + size.w + 'x' + size.h + '-' +
+                        (totalDuration() / 1000).toFixed(0) + 's.' + (fmt ? fmt.ext : 'mp4'), fmt ? fmt.mime.split(';')[0] : 'video/mp4');
+                });
+            }
+
+            /* ------------------------------------------------------ 启动 */
+            function init() {
+                var formats = detectFormats();
+                var sel = $('format');
+                if (!formats.length) {
+                    sel.innerHTML = '<option value="">（当前浏览器不支持视频录制）</option>';
+                    sel.disabled = true;
+                    $('formatHint').textContent = '当前浏览器不支持 MediaRecorder，无法导出视频。请用 Chrome / Edge / Firefox 打开。';
+                    $('btnExport').disabled = true;
+                } else {
+                    sel.innerHTML = formats.map(function (f) {
+                        return '<option value="' + f.mime + '">' + f.label + '</option>';
+                    }).join('');
+                    $('formatHint').textContent = '共检测到 ' + formats.length + ' 种可用格式，已默认选兼容性最好的那个。';
+                }
+
+                /* 导出方式：按浏览器能力给出可用选项与说明 */
+                (function () {
+                    var sel = $('exportMode');
+                    if (!canFastExport()) {
+                        sel.value = 'realtime';
+                        sel.options[0].disabled = true;
+                        $('exportModeHint').textContent =
+                            '当前浏览器不支持 WebCodecs，只能用实时录制（视频多长就等多久）。';
+                    } else {
+                        var fast = typeof AudioEncoder !== 'undefined';
+                        $('exportModeHint').innerHTML =
+                            '快速导出用 WebCodecs 逐帧编码，<b>不受实时限制</b>，通常几秒内完成' +
+                            (fast ? '，并且支持背景音乐。' : '；但当前浏览器没有音频编码器，背景音乐不会写入。');
+                    }
+                    sel.addEventListener('change', function () {
+                        if (sel.value === 'fast' && !canFastExport()) sel.value = 'realtime';
+                    });
+                })();
+
+                bind();
+                updateModeUi();
+                renderFrames();
+
+                /* 先画一帧空白，避免预览区一片死黑 */
+                var cv = $('previewCanvas');
+                var ctx = cv.getContext('2d');
+                ctx.fillStyle = '#141519';
+                ctx.fillRect(0, 0, cv.width, cv.height);
+                ctx.fillStyle = 'rgba(255,255,255,.35)';
+                ctx.font = '14px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('添加图片后，这里可以播放预览', cv.width / 2, cv.height / 2);
+            }
+
+            /* 暴露少量内部函数，方便自动化测试与排查（不影响页面功能） */
+            window.__videoTool = {
+                pickAvcCodec: pickAvcCodec,
+                buildTimeline: buildTimeline,
+                totalDuration: totalDuration,
+                perImageFrames: perImageFrames,
+                currentFps: currentFps,
+                isAnimation: isAnimation,
+                locateAt: locateAt,
+                renderAt: renderAt,
+                prepFramesForOutput: prepFramesForOutput,
+                scaleFrameToOutput: scaleFrameToOutput,
+                scaleCacheLimit: SCALE_CACHE_LIMIT,
+                buildAudioSamples: buildAudioSamples,
+                state: state
+            };
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+            else init();
+        })();
+    </script>
+</body>
+
+</html>

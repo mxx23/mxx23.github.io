@@ -59,10 +59,6 @@
 
 
 
-  
-<link rel="stylesheet" href="/assets/web/comments/css/embed.css">
-
-
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
@@ -184,9 +180,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/assets/web/comments/" target="_self">
-                <i class="iconfont icon-comment"></i>
-                <span>评论区</span>
+              <a class="nav-link" href="/assets/web/stats/" target="_self">
+                <i class="iconfont icon-chart"></i>
+                <span>统计</span>
               </a>
             </li>
           
@@ -306,10 +302,10 @@
           
           
             <div class="col-4 mobile-grid-cell">
-              <a href="/assets/web/comments/" target="_self">
+              <a href="/assets/web/stats/" target="_self">
                 <div class="mobile-grid-item">
-                  <i class="iconfont icon-comment"></i>
-                  <span>评论区</span>
+                  <i class="iconfont icon-chart"></i>
+                  <span>统计</span>
                 </div>
               </a>
             </div>
@@ -522,10 +518,9 @@
 
 
   
-<script src="/assets/web/comments/js/api.js"></script>
-<script src="/assets/web/comments/js/post-map.js"></script>
-<script src="/assets/web/comments/js/view.js"></script>
-<script src="/assets/web/comments/js/embed.js"></script>
+<script src="/assets/web/stats/js/api.js"></script>
+<script src="/assets/web/stats/js/post-map.js"></script>
+<script src="/assets/web/stats/js/post-views.js"></script>
 
 
 
@@ -539,5 +534,20 @@
   <noscript>
     <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
   </noscript>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>

@@ -4,25 +4,56 @@
   
   
   <entry>
-    <title>评论区</title>
-    <link href="/2026/09/13/%E8%AF%84%E8%AE%BA%E5%8C%BA/"/>
-    <url>/2026/09/13/%E8%AF%84%E8%AE%BA%E5%8C%BA/</url>
+    <title>图片合成视频</title>
+    <link href="/2026/09/13/%E5%9B%BE%E7%89%87%E5%90%88%E6%88%90%E8%A7%86%E9%A2%91/"/>
+    <url>/2026/09/13/%E5%9B%BE%E7%89%87%E5%90%88%E6%88%90%E8%A7%86%E9%A2%91/</url>
     
-    <content type="html"><![CDATA[<p>　　本站的评论区：全站评论都汇总在这一页，可以直接留言，也可以回复别人的评论；发出去的内容与文章页面下面的评论区是同一份数据。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/comments/"     style="display:inline-block;padding:12px 36px;background:#4a6fd4;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(74,111,212,.32)">    👉 打开评论区  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
+    <content type="html"><![CDATA[<p>　　在线把多张图片合成视频：每张的显示时长可以单独设置，支持横屏 &#x2F; 竖屏 &#x2F; 方形三种比例与 720p～4K 分辨率，还能加淡入淡出、横向滑动和镜头推拉特效，配上一段背景音乐，导出成 MP4 或 WebM。图片和音乐都在浏览器里处理，不上传。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/tools/video-make.html"     style="display:inline-block;padding:12px 36px;background:#38b2ac;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(56,178,172,.32)">    👉 打开图片合成视频  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
     
     
     <categories>
       
-      <category>闲聊</category>
+      <category>在线工具</category>
       
     </categories>
     
     
     <tags>
       
-      <tag>评论区</tag>
+      <tag>在线工具</tag>
       
-      <tag>留言</tag>
+      <tag>视频</tag>
+      
+      <tag>幻灯片</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>GIF 合成器</title>
+    <link href="/2026/09/13/GIF%E5%90%88%E6%88%90%E5%99%A8/"/>
+    <url>/2026/09/13/GIF%E5%90%88%E6%88%90%E5%99%A8/</url>
+    
+    <content type="html"><![CDATA[<p>　　在线 GIF 合成器：把多张图片拼成一个 GIF 动图，可以逐帧设置延迟、调整播放顺序、做成乒乓来回播放，也能指定输出尺寸与颜色数，透明背景会保留。所有合成都在浏览器里完成，图片不上传。</p><div style="text-align:center;margin:28px 0 18px">  <a href="/assets/web/tools/gif.html"     style="display:inline-block;padding:12px 36px;background:#e86aa6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;box-shadow:0 4px 14px rgba(232,106,166,.32)">    👉 打开 GIF 合成器  </a></div><p style="text-align:center;font-size:13px;opacity:.7">页面正在自动跳转；如果没有反应，请点击上面的按钮进入。</p><script src="/assets/web/tools/js/tool-redirect.js"></script>]]></content>
+    
+    
+    <categories>
+      
+      <category>在线工具</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>在线工具</tag>
+      
+      <tag>GIF</tag>
+      
+      <tag>动图</tag>
       
     </tags>
     
